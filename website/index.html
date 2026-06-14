@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="OpenPDF is a native macOS PDF workspace for reading, annotating, organizing, and building PDFs locally."
+    >
+    <meta name="theme-color" content="#f7fafc">
+    <title>OpenPDF - Native PDF Workspace for macOS</title>
+    <link rel="preload" as="image" href="assets/openpdf-app-mockup.png">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main" data-i18n="skip">Skip to content</a>
+
+    <header class="site-header">
+      <nav class="nav-shell" aria-label="Primary">
+        <a class="brand" href="#top" aria-label="OpenPDF home">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>OpenPDF</span>
+        </a>
+
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+          <span class="sr-only" data-i18n="menu">Menu</span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </button>
+
+        <div class="nav-menu" id="site-menu">
+          <a href="#features" data-i18n="nav.features">Features</a>
+          <a href="#compare" data-i18n="nav.compare">Compare</a>
+          <a href="#languages" data-i18n="nav.languages">Languages</a>
+          <a href="#roadmap" data-i18n="nav.roadmap">Roadmap</a>
+        </div>
+
+        <div class="nav-actions">
+          <div class="language-switch" aria-label="Language">
+            <button class="language-option is-active" type="button" data-lang="en" aria-pressed="true">EN</button>
+            <button class="language-option" type="button" data-lang="de" aria-pressed="false">DE</button>
+          </div>
+          <a class="button button-primary button-small" href="../dist/OpenPDF.app" data-i18n="download">Download for macOS</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <h1 id="hero-title" data-i18n="hero.title">OpenPDF for macOS</h1>
+            <p class="hero-lede" data-i18n="hero.lede">
+              A native PDF workspace to read, annotate, organize, and build PDFs locally.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="../dist/OpenPDF.app" data-i18n="download">Download for macOS</a>
+              <a class="button button-secondary" href="#features" data-i18n="viewFeatures">View features</a>
+            </div>
+            <ul class="trust-list" aria-label="Product highlights">
+              <li data-i18n="hero.trust.local">Built for local documents</li>
+              <li data-i18n="hero.trust.native">Native macOS interface</li>
+              <li data-i18n="hero.trust.offline">Works offline</li>
+            </ul>
+          </div>
+
+          <div class="hero-visual" aria-label="OpenPDF app interface preview">
+            <img
+              src="assets/openpdf-app-mockup.png"
+              alt="OpenPDF macOS app showing page thumbnails, highlighted PDF text, search, and annotation tools."
+              width="560"
+              height="620"
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-tight" id="features" aria-labelledby="features-title">
+        <div class="section-heading">
+          <h2 id="features-title" data-i18n="features.title">Everything you need in one native app.</h2>
+          <p data-i18n="features.lede">Fast, local, and designed around everyday PDF work.</p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card">
+            <div class="feature-icon feature-icon-blue" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H7a3 3 0 0 0-3 3V5.5Z"></path>
+                <path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"></path>
+              </svg>
+            </div>
+            <h3 data-i18n="features.read.title">Read with clarity</h3>
+            <p data-i18n="features.read.body">Navigate long documents with thumbnails, search, zoom, and flexible layouts.</p>
+            <ul>
+              <li data-i18n="features.read.item1">Continuous, single-page, and two-page views</li>
+              <li data-i18n="features.read.item2">Search with highlighted results</li>
+              <li data-i18n="features.read.item3">Page thumbnails and quick navigation</li>
+            </ul>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-icon feature-icon-amber" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="m4 20 4.3-1.1L19.1 8.1a2.2 2.2 0 0 0 0-3.1 2.2 2.2 0 0 0-3.1 0L5.2 15.8 4 20Z"></path>
+                <path d="m14.6 6.4 3 3"></path>
+              </svg>
+            </div>
+            <h3 data-i18n="features.annotate.title">Annotate naturally</h3>
+            <p data-i18n="features.annotate.body">Add highlights, notes, text fields, stamps, and signature placeholders.</p>
+            <ul>
+              <li data-i18n="features.annotate.item1">Highlight, underline, and strike out selected text</li>
+              <li data-i18n="features.annotate.item2">Text notes and visual stamps</li>
+              <li data-i18n="features.annotate.item3">Color and font controls</li>
+            </ul>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-icon feature-icon-green" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M7 4h10v5H7z"></path>
+                <path d="M4 10h16v10H4z"></path>
+                <path d="M8 14h8"></path>
+                <path d="M8 17h5"></path>
+              </svg>
+            </div>
+            <h3 data-i18n="features.organize.title">Organize pages</h3>
+            <p data-i18n="features.organize.body">Create PDFs, add image pages, merge files, rotate, reorder, and delete pages.</p>
+            <ul>
+              <li data-i18n="features.organize.item1">Merge multiple PDFs into one document</li>
+              <li data-i18n="features.organize.item2">Import images as PDF pages</li>
+              <li data-i18n="features.organize.item3">Move, rotate, insert, and delete pages</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section product-band" aria-labelledby="workflow-title">
+        <div class="split-layout">
+          <div class="split-copy">
+            <h2 id="workflow-title" data-i18n="workflow.title">Designed for focused document work.</h2>
+            <p data-i18n="workflow.body">
+              OpenPDF keeps PDF actions close to the document: pages on the left, reading in the center, and precise tools on the right.
+            </p>
+            <div class="workflow-list">
+              <div>
+                <strong data-i18n="workflow.item1.title">Local by default</strong>
+                <span data-i18n="workflow.item1.body">Open, edit, and save files on your Mac.</span>
+              </div>
+              <div>
+                <strong data-i18n="workflow.item2.title">No account required</strong>
+                <span data-i18n="workflow.item2.body">Built for offline-first document handling.</span>
+              </div>
+              <div>
+                <strong data-i18n="workflow.item3.title">Native foundation</strong>
+                <span data-i18n="workflow.item3.body">SwiftUI and PDFKit keep the app aligned with macOS.</span>
+              </div>
+            </div>
+          </div>
+          <figure class="detail-figure">
+            <img
+              src="assets/openpdf-detail-mockup.png"
+              alt="OpenPDF detail view with highlighted contract text and signature placeholder."
+              width="520"
+              height="300"
+              loading="lazy"
+            >
+          </figure>
+        </div>
+      </section>
+
+      <section class="section compare-section" id="compare" aria-labelledby="compare-title">
+        <div class="compare-layout">
+          <div>
+            <h2 id="compare-title" data-i18n="compare.title">A modern alternative for Mac.</h2>
+            <p data-i18n="compare.body">
+              PDF Expert is a mature commercial benchmark. OpenPDF starts smaller: local, native, transparent, and focused on core PDF workflows first.
+            </p>
+          </div>
+
+          <div class="comparison-table" role="table" aria-label="OpenPDF positioning">
+            <div class="comparison-row comparison-head" role="row">
+              <span role="columnheader" data-i18n="compare.col.capability">Capability</span>
+              <span role="columnheader">OpenPDF</span>
+              <span role="columnheader" data-i18n="compare.col.position">Position</span>
+            </div>
+            <div class="comparison-row" role="row">
+              <span role="cell" data-i18n="compare.rows.reading">Reading and search</span>
+              <span role="cell" data-i18n="compare.status.ready">Ready</span>
+              <span role="cell" data-i18n="compare.position.core">Core workflow</span>
+            </div>
+            <div class="comparison-row" role="row">
+              <span role="cell" data-i18n="compare.rows.annotations">Annotations</span>
+              <span role="cell" data-i18n="compare.status.mvp">MVP ready</span>
+              <span role="cell" data-i18n="compare.position.growing">Growing feature set</span>
+            </div>
+            <div class="comparison-row" role="row">
+              <span role="cell" data-i18n="compare.rows.pages">Page organization</span>
+              <span role="cell" data-i18n="compare.status.ready">Ready</span>
+              <span role="cell" data-i18n="compare.position.core">Core workflow</span>
+            </div>
+            <div class="comparison-row" role="row">
+              <span role="cell" data-i18n="compare.rows.ocr">OCR, conversion, redaction</span>
+              <span role="cell" data-i18n="compare.status.planned">Planned</span>
+              <span role="cell" data-i18n="compare.position.roadmap">Roadmap area</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section languages-section" id="languages" aria-labelledby="languages-title">
+        <div class="section-heading">
+          <h2 id="languages-title" data-i18n="languages.title">OpenPDF will speak your language.</h2>
+          <p data-i18n="languages.body">English and German are built in first. The localization layer is ready for more major languages later.</p>
+        </div>
+
+        <div class="language-grid" aria-label="Localization roadmap">
+          <div class="language-card is-live">
+            <span class="flag" aria-hidden="true">🇬🇧</span>
+            <strong>English</strong>
+            <span>en</span>
+            <em data-i18n="languages.available">Available</em>
+          </div>
+          <div class="language-card is-live">
+            <span class="flag" aria-hidden="true">🇩🇪</span>
+            <strong>Deutsch</strong>
+            <span>de</span>
+            <em data-i18n="languages.available">Available</em>
+          </div>
+          <div class="language-card">
+            <span class="flag" aria-hidden="true">🇫🇷</span>
+            <strong>Français</strong>
+            <span>fr</span>
+            <em data-i18n="languages.planned">Planned</em>
+          </div>
+          <div class="language-card">
+            <span class="flag" aria-hidden="true">🇪🇸</span>
+            <strong>Español</strong>
+            <span>es</span>
+            <em data-i18n="languages.planned">Planned</em>
+          </div>
+          <div class="language-card">
+            <span class="flag" aria-hidden="true">🇯🇵</span>
+            <strong>日本語</strong>
+            <span>ja</span>
+            <em data-i18n="languages.planned">Planned</em>
+          </div>
+          <div class="language-card">
+            <span class="flag" aria-hidden="true">🇰🇷</span>
+            <strong>한국어</strong>
+            <span>ko</span>
+            <em data-i18n="languages.planned">Planned</em>
+          </div>
+          <div class="language-card">
+            <span class="flag" aria-hidden="true">🇨🇳</span>
+            <strong>中文</strong>
+            <span>zh</span>
+            <em data-i18n="languages.planned">Planned</em>
+          </div>
+          <div class="language-card">
+            <span class="flag" aria-hidden="true">🌐</span>
+            <strong data-i18n="languages.more">More languages</strong>
+            <span>i18n</span>
+            <em data-i18n="languages.planned">Planned</em>
+          </div>
+        </div>
+      </section>
+
+      <section class="section roadmap-section" id="roadmap" aria-labelledby="roadmap-title">
+        <div class="section-heading">
+          <h2 id="roadmap-title" data-i18n="roadmap.title">Roadmap / Coming soon</h2>
+          <p data-i18n="roadmap.body">OpenPDF grows step by step, starting with the features that make daily PDF work easier.</p>
+        </div>
+
+        <div class="roadmap-line">
+          <article>
+            <span aria-hidden="true"></span>
+            <h3 data-i18n="roadmap.forms.title">Forms</h3>
+            <p data-i18n="roadmap.forms.body">Fill and create interactive form fields with validation.</p>
+          </article>
+          <article>
+            <span aria-hidden="true"></span>
+            <h3 data-i18n="roadmap.redaction.title">Redaction</h3>
+            <p data-i18n="roadmap.redaction.body">Permanently remove sensitive content, not just cover it.</p>
+          </article>
+          <article>
+            <span aria-hidden="true"></span>
+            <h3 data-i18n="roadmap.ocr.title">OCR</h3>
+            <p data-i18n="roadmap.ocr.body">Make scanned PDFs searchable and selectable.</p>
+          </article>
+          <article>
+            <span aria-hidden="true"></span>
+            <h3 data-i18n="roadmap.batch.title">Batch processing</h3>
+            <p data-i18n="roadmap.batch.body">Process multiple files for conversion, export, and optimization.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section final-cta" aria-labelledby="final-title">
+        <div>
+          <h2 id="final-title" data-i18n="final.title">Bring your PDF workflow home to macOS.</h2>
+          <p data-i18n="final.body">OpenPDF is built for people who want fast local tools without turning every document into a cloud workflow.</p>
+        </div>
+        <a class="button button-primary" href="../dist/OpenPDF.app" data-i18n="download">Download for macOS</a>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="#top" aria-label="OpenPDF home">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>OpenPDF</span>
+        </a>
+        <p data-i18n="footer.tagline">A native PDF workspace for macOS. Read, annotate, organize, and build PDFs locally.</p>
+      </div>
+      <div>
+        <strong data-i18n="footer.product">Product</strong>
+        <a href="#features" data-i18n="nav.features">Features</a>
+        <a href="#compare" data-i18n="nav.compare">Compare</a>
+        <a href="#roadmap" data-i18n="nav.roadmap">Roadmap</a>
+      </div>
+      <div>
+        <strong data-i18n="footer.resources">Resources</strong>
+        <a href="../docs/external/user-guide.md" data-i18n="footer.guide">User guide</a>
+        <a href="../docs/external/features.md" data-i18n="footer.docs">Documentation</a>
+        <a href="../docs/internal/pdf-expert-positioning.md" data-i18n="footer.positioning">Positioning</a>
+      </div>
+      <p class="copyright">© 2026 OpenPDF.</p>
+    </footer>
+
+    <script src="site.js"></script>
+  </body>
+</html>
