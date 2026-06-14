@@ -33,6 +33,7 @@ Die Codex-App kann dieselbe Aktion über den lokalen `Run`-Button starten.
 - [Featureübersicht](docs/external/features.md)
 - [Interne Architektur](docs/internal/architecture.md)
 - [Einordnung gegenüber PDF Expert](docs/internal/pdf-expert-positioning.md)
+- [Domainentscheidung](docs/internal/domain-decision.md)
 - [HTML-Website](website/index.html)
 
 ## Status
