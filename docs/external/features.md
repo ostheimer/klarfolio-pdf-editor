@@ -1,4 +1,4 @@
-# OpenPDF Featureübersicht
+# Klarfolio PDF Editor Featureübersicht
 
 Diese Datei dokumentiert den aktuellen Funktionsumfang aus Nutzersicht.
 

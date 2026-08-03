@@ -133,7 +133,7 @@ private struct EmptyDocumentView: View {
                 .foregroundStyle(.secondary)
 
             VStack(spacing: 6) {
-                Text("OpenPDF")
+                Text("Klarfolio PDF Editor")
                     .font(.title)
                     .fontWeight(.semibold)
 

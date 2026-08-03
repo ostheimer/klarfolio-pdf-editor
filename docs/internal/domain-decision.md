@@ -1,64 +1,71 @@
-# Domainentscheidung
+# Namens- und Domainentscheidung
 
-Stand der Recherche: 2026-06-14.
+Stand der Recherche: 2026-07-16.
 
 ## Entscheidung
 
-Die bevorzugte öffentliche Domain für den PDF-Editor ist:
+Der Produktname lautet:
 
-- `lepdf.app`
+- `Klarfolio PDF Editor`
 
-Der Produktname kann daraus als `LePDF` abgeleitet werden. Die Domain ist kurz,
-englisch/international anschlussfähig und passt zu einer App, die kostenlose
-PDF-Bearbeitung in den Vordergrund stellt. Die Lesart `le PDF` wirkt bewusst
-leicht französisch, bleibt aber auch für englischsprachige Nutzer verständlich
-und merkfähig.
+Die Marke `Klarfolio` ist eigenständig und merkfähig. Der Zusatz `PDF Editor`
+kommuniziert die Produktkategorie und die Bearbeitungsfunktion direkt.
+
+Empfohlene Domains:
+
+- Primär: `klarfolio.com`
+- Deutschsprachige Weiterleitungen: `klarfolio.at` und `klarfolio.de`
 
 ## Positionierung
 
-Die Kommunikation sollte English-first sein und das Kernversprechen klar
-benennen:
+Das Kernversprechen wird außerhalb des App-Namens kommuniziert:
 
-- free PDF editing
-- no account-first workflow
-- simple editing, annotation and page organization
-- local, fast and approachable PDF workflows
+- Deutsch: `PDFs kostenlos lesen, bearbeiten und organisieren.`
+- Englisch: `Free PDF editing for Mac.`
+- Lokal auf dem Mac, ohne Konto und ohne Abo
 
-`LePDF` sollte nicht als vollständiger Ersatz für PDF Expert auftreten, sondern
-als leichter, kostenloser PDF-Editor für alltägliche Arbeiten.
+Im App Store bleibt Preiswerbung aus Name und Untertitel. Dort lautet der
+Vorschlag:
 
-## Domainprüfung
+- Name: `Klarfolio PDF Editor`
+- Untertitel: `PDFs lesen & bearbeiten`
 
-Technische Prüfung am 2026-06-14:
+`Kostenlos` wird in Beschreibung und Werbetext erklärt, weil sich Preise ändern
+können und Apple Preisangaben in dauerhaften Metadaten einschränkt.
 
-| Domain | Ergebnis | Einordnung |
+## Rechercheergebnis
+
+Technische Prüfung am 2026-07-16:
+
+| Prüfung | Ergebnis | Einordnung |
 | --- | --- | --- |
-| `lepdf.app` | frei | Bevorzugte Domain. |
-| `lepdf.io` | frei | Mögliche defensive Registrierung. |
-| `lepdf.com` | belegt | Nicht verfügbar. |
-| `pdffree.app` | frei | Gute Redirect- oder SEO-Landing-Domain. |
-| `pdfaha.com` | frei | Kurze `.com`-Alternative, aber weniger klar. |
-| `pdffy.app` | frei | Kurze App-Domain, etwas verspielter. |
-| `jotpdf.app` | frei | Gute App-Domain für Anmerkungen, `.com` ist belegt. |
-| `despdf.app` | frei | Wegen bestehendem `despdf.com` nicht empfohlen. |
+| `klarfolio.at` | frei | Bei nic.at war kein Domain-Datensatz vorhanden. |
+| `klarfolio.de` | frei | DENIC meldete `Status: free`. |
+| `klarfolio.com` | frei | Verisign RDAP lieferte keinen registrierten Domain-Datensatz. |
+| Österreichische Markensuche | 0 Treffer | Keine exakten Treffer in den über See.IP geprüften nationalen, EU- und internationalen Schutzrechten für Österreich. |
+| DPMAregister | 0 Treffer | Keine exakten deutschen Markentreffer für `Klarfolio`. |
+| Mac App Store AT/DE | 0 Treffer | Keine App mit dem exakten Namen gefunden. |
 
-Domainverfügbarkeit ist nur eine Momentaufnahme. `lepdf.app` sollte vor
-öffentlicher Kommunikation registriert werden.
+Eine allgemeine Websuche ergab ebenfalls keinen exakten Produkt- oder
+Softwaretreffer. `Klipfolio` ist jedoch eine bestehende kanadische Marke und
+Business-Intelligence-Software. Die Wörter sind nicht identisch und die
+Produktbereiche unterscheiden sich, die phonetische Nähe bleibt aber ein
+Restrisiko.
 
-## Verworfene Namen
+## Rechtliche Absicherung
 
-| Name | Grund |
-| --- | --- |
-| `openpdf` | `openpdf.com`, `openpdf.de` und `openpdf.app` sind belegt; außerdem gibt es das bekannte OpenPDF-Projekt. |
-| `chatpdf` | Bereits als AI-PDF-Produkt etabliert und zu stark auf Chat statt Editor ausgerichtet. |
-| `despdf` | `despdf.com` ist belegt und thematisch zu nah an PDF-Angeboten und PDF-Tools. |
-| `trulyfreepdf` | Inhaltlich passend, aber für die gewünschte kurze Marke zu lang. |
-| `leichtpdf` | Gute deutschsprachige Option, aber nicht English-first. |
+Die Recherche ist eine Vorprüfung und keine rechtliche Markenfreigabe. Vor
+größeren Marketingausgaben oder einer Markenanmeldung sollte eine professionelle
+Ähnlichkeitsrecherche des Österreichischen Patentamts oder eine anwaltliche
+Prüfung erfolgen:
+
+- https://www.patentamt.at/markenaehnlichkeitsrecherche
+- https://seeip.patentamt.at/en/markesuche
+- https://register.dpma.de/DPMAregister/marke/basis
 
 ## Nächste Schritte
 
-1. `lepdf.app` registrieren.
-2. Optional `lepdf.io` und `pdffree.app` defensiv registrieren.
-3. Öffentliche Website und App-Texte auf `LePDF` und `free PDF editing` ausrichten.
-4. Interne Codename-Nutzung von `OpenPDF` nur solange beibehalten, bis Branding
-   und Paketnamen bewusst umgestellt werden.
+1. `klarfolio.com`, `klarfolio.at` und `klarfolio.de` umgehend registrieren.
+2. Bundle-ID `at.ostheimer.klarfoliopdf` im Apple Developer Portal anlegen.
+3. App-Datensatz `Klarfolio PDF Editor` in App Store Connect reservieren.
+4. Professionelle Ähnlichkeitsrecherche vor öffentlichem Launch beauftragen.

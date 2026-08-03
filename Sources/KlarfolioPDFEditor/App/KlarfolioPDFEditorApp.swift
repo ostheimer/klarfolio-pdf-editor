@@ -2,23 +2,46 @@ import AppKit
 import SwiftUI
 
 @main
-struct OpenPDFApp: App {
+struct KlarfolioPDFEditorApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var store = PDFDocumentStore()
 
     var body: some Scene {
-        WindowGroup("OpenPDF", id: "main") {
+        WindowGroup("Klarfolio PDF Editor", id: "main") {
             ContentView()
                 .environmentObject(store)
                 .frame(minWidth: 1120, minHeight: 720)
+                .onAppear {
+                    openExternalDocumentURLs(AppDelegate.consumePendingOpenURLs())
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .klarfolioOpenDocumentURLs)) { notification in
+                    guard let urls = notification.userInfo?[AppDelegate.openURLsUserInfoKey] as? [URL] else {
+                        return
+                    }
+                    openExternalDocumentURLs(urls)
+                }
+                .onOpenURL { url in
+                    openExternalDocumentURLs([url])
+                }
         }
         .commands {
-            OpenPDFCommands(store: store)
+            KlarfolioPDFEditorCommands(store: store)
         }
+    }
+
+    private func openExternalDocumentURLs(_ urls: [URL]) {
+        guard let url = urls.first(where: { $0.pathExtension.lowercased() == "pdf" }) else {
+            return
+        }
+
+        store.loadDocument(from: url)
     }
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    static let openURLsUserInfoKey = "urls"
+    private static var pendingOpenURLs: [URL] = []
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
@@ -27,9 +50,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
     }
+
+    func application(_ sender: NSApplication, openFile filename: String) -> Bool {
+        enqueueOpenFiles([filename])
+        return true
+    }
+
+    func application(_ sender: NSApplication, openFiles filenames: [String]) {
+        enqueueOpenURLs(filenames.map { URL(fileURLWithPath: $0) })
+        sender.reply(toOpenOrPrint: .success)
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        enqueueOpenURLs(urls)
+    }
+
+    static func consumePendingOpenURLs() -> [URL] {
+        let urls = pendingOpenURLs
+        pendingOpenURLs.removeAll()
+        return urls
+    }
+
+    private func enqueueOpenFiles(_ filenames: [String]) {
+        enqueueOpenURLs(filenames.map { URL(fileURLWithPath: $0) })
+    }
+
+    private func enqueueOpenURLs(_ urls: [URL]) {
+        Self.pendingOpenURLs.append(contentsOf: urls)
+        NotificationCenter.default.post(
+            name: .klarfolioOpenDocumentURLs,
+            object: nil,
+            userInfo: [Self.openURLsUserInfoKey: urls]
+        )
+    }
 }
 
-struct OpenPDFCommands: Commands {
+extension Notification.Name {
+    static let klarfolioOpenDocumentURLs = Notification.Name("KlarfolioPDFEditorOpenDocumentURLs")
+}
+
+struct KlarfolioPDFEditorCommands: Commands {
     @ObservedObject var store: PDFDocumentStore
 
     var body: some Commands {
