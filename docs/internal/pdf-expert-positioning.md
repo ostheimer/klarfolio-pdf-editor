@@ -14,11 +14,11 @@ Quellen:
 
 PDF Expert ist ein reifes, kommerzielles PDF-Produkt für Apple-Plattformen. Die öffentliche Produktkommunikation stellt Lesen, Anmerken, direkte PDF-Bearbeitung, Seitenorganisation, Konvertierung, OCR, Formulare, Signaturen, Schutzfunktionen, Komprimierung und KI-gestützte Dokumentarbeit heraus.
 
-OpenPDF ist aktuell ein lokales macOS-MVP. Es deckt die Grundfläche `Lesen + Anmerken + Seitenorganisation` ab, hat aber noch keine tiefe Inhaltsbearbeitung, keine OCR, keine Konvertierung, keine Formular-Spezialfunktionen, keine sichere Schwärzung und keine KI-Funktionen.
+Klarfolio PDF Editor ist aktuell ein lokales macOS-MVP. Es deckt die Grundfläche `Lesen + Anmerken + Seitenorganisation` ab, hat aber noch keine tiefe Inhaltsbearbeitung, keine OCR, keine Konvertierung, keine Formular-Spezialfunktionen, keine sichere Schwärzung und keine KI-Funktionen.
 
 ## Featurematrix
 
-| Bereich | PDF Expert laut öffentlicher Produktseiten | OpenPDF aktuell | Einordnung |
+| Bereich | PDF Expert laut öffentlicher Produktseiten | Klarfolio PDF Editor aktuell | Einordnung |
 | --- | --- | --- | --- |
 | PDF lesen | Mehrere Lese- und Ansichtsmodi, Tag/Nacht/Sepia, vertikales und horizontales Scrollen. | Native PDFKit-Anzeige, fortlaufend, Einzelseite, Doppelseite, Zoom. | Teilweise vergleichbar, aber ohne Lesethemen und Komfortmodi. |
 | Suche | Suche in PDFs, laut Featureseite auch über mehrere PDFs und Notizen. | Suche im geöffneten PDF mit Treffer-Hervorhebung. | Basis vorhanden, Multi-Dokument- und Notizsuche fehlen. |
@@ -35,11 +35,11 @@ OpenPDF ist aktuell ein lokales macOS-MVP. Es deckt die Grundfläche `Lesen + An
 | Schutz | Passwortschutz, Schwärzen/Zensieren, vertrauliche Daten entfernen. | Nicht umgesetzt. | Wichtig, aber sicherheitskritisch und später sorgfältig umzusetzen. |
 | Komprimierung | PDFs komprimieren. | Nicht umgesetzt. | Fehlt. |
 | KI-Funktionen | PDF Copilot mit Zusammenfassung, Fragen, Erklärungen und Quellenbezug laut App Store/Anleitungen. | Nicht umgesetzt. | Kein aktuelles Ziel des MVP. |
-| Plattformen | Mac, iPhone, iPad, Vision Pro, geräteübergreifendes Konto. | macOS lokal. | OpenPDF ist enger, aber dafür einfacher und lokal. |
+| Plattformen | Mac, iPhone, iPad, Vision Pro, geräteübergreifendes Konto. | macOS lokal. | Klarfolio PDF Editor ist enger, aber dafür einfacher und lokal. |
 
-## Produktpositionierung für OpenPDF
+## Produktpositionierung für Klarfolio PDF Editor
 
-OpenPDF sollte kurzfristig nicht als vollständiger PDF-Expert-Ersatz auftreten. Eine realistische Positionierung ist:
+Klarfolio PDF Editor sollte kurzfristig nicht als vollständiger PDF-Expert-Ersatz auftreten. Eine realistische Positionierung ist:
 
 - native, lokale macOS-App für einfache PDF-Arbeiten
 - schnelle Seitenorganisation ohne Cloud-Konto
@@ -64,7 +64,7 @@ OpenPDF sollte kurzfristig nicht als vollständiger PDF-Expert-Ersatz auftreten.
 
 ## Abgrenzung bei Kommunikation
 
-In Nutzertexten sollte OpenPDF nicht behaupten, bestehende PDF-Texte oder Bilder direkt wie ein Office-Dokument zu bearbeiten. Korrekte Formulierungen sind:
+In Nutzertexten sollte Klarfolio PDF Editor nicht behaupten, bestehende PDF-Texte oder Bilder direkt wie ein Office-Dokument zu bearbeiten. Korrekte Formulierungen sind:
 
 - `Textfelder hinzufügen`
 - `PDFs kommentieren`

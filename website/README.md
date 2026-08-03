@@ -1,6 +1,6 @@
-# OpenPDF Website
+# Klarfolio PDF Editor Website
 
-This folder contains the static product website for OpenPDF.
+This folder contains the static product website for Klarfolio PDF Editor.
 
 ## Files
 

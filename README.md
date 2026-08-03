@@ -1,10 +1,10 @@
-# OpenPDF
+# Klarfolio PDF Editor
 
-OpenPDF ist eine native macOS-App zum Erstellen, Anzeigen und Bearbeiten von PDF-Dateien.
+Klarfolio PDF Editor ist eine kostenlose, native macOS-App zum Erstellen, Anzeigen und Bearbeiten von PDF-Dateien.
 
 ## Ziel
 
-OpenPDF soll ein schneller, nativer PDF-Reader und PDF-Editor für macOS werden. Der aktuelle Stand ist ein funktionales MVP mit Anzeige, Suche, Seitenverwaltung, PDF-Zusammenführung und grundlegenden Anmerkungswerkzeugen.
+Klarfolio PDF Editor soll ein schneller, kostenloser PDF-Reader und PDF-Editor für macOS werden. Der aktuelle Stand ist ein funktionales MVP mit Anzeige, Suche, Seitenverwaltung, PDF-Zusammenführung und grundlegenden Anmerkungswerkzeugen.
 
 ## Funktionen
 
@@ -26,6 +26,29 @@ Eine ausführliche Featurebeschreibung liegt in [docs/external/features.md](docs
 ```
 
 Die Codex-App kann dieselbe Aktion über den lokalen `Run`-Button starten.
+
+## App-Icon
+
+Das App-Icon liegt unter `Sources/KlarfolioPDFEditor/Resources/AppIcon.icns`. Die PNG-Vorschau
+und die `.icns`-Datei können bei Bedarf neu erzeugt werden:
+
+```bash
+swift script/generate_app_icon.swift
+```
+
+## App-Store-Paket
+
+Die App kann als sandboxed macOS-Bundle gebaut werden. Für ein Mac-App-Store-Paket
+werden Apple Distribution-Zertifikate benötigt:
+
+```bash
+APP_STORE_APP_IDENTITY="3rd Party Mac Developer Application: Example Team" \
+APP_STORE_INSTALLER_IDENTITY="3rd Party Mac Developer Installer: Example Team" \
+./script/package_app_store.sh
+```
+
+Weitere Release-Notizen liegen in
+[docs/internal/app-store-release.md](docs/internal/app-store-release.md).
 
 ## Dokumentation
 

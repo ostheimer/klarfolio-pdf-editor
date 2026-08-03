@@ -92,7 +92,7 @@ textarea {
 }
 
 .nav-shell {
-  width: min(100% - 32px, var(--max));
+  width: min(calc(100% - 32px), var(--max));
   min-height: 72px;
   margin: 0 auto;
   display: flex;
@@ -236,7 +236,7 @@ textarea {
 }
 
 .hero-grid {
-  width: min(100% - 32px, var(--max));
+  width: min(calc(100% - 32px), var(--max));
   height: 100%;
   margin: 0 auto;
   display: grid;
@@ -351,7 +351,7 @@ textarea {
 }
 
 .section-heading {
-  width: min(100% - 32px, 780px);
+  width: min(calc(100% - 32px), 780px);
   margin: 0 auto 44px;
   text-align: center;
 }
@@ -377,7 +377,7 @@ textarea {
 }
 
 .feature-grid {
-  width: min(100% - 32px, var(--max));
+  width: min(calc(100% - 32px), var(--max));
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -455,7 +455,7 @@ textarea {
 }
 
 .split-layout {
-  width: min(100% - 32px, var(--max));
+  width: min(calc(100% - 32px), var(--max));
   margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(320px, 0.8fr) minmax(460px, 1.2fr);
@@ -516,7 +516,7 @@ textarea {
 }
 
 .compare-layout {
-  width: min(100% - 32px, var(--max));
+  width: min(calc(100% - 32px), var(--max));
   margin: 0 auto;
   display: grid;
   grid-template-columns: 0.72fr 1.28fr;
@@ -573,7 +573,7 @@ textarea {
 }
 
 .language-grid {
-  width: min(100% - 32px, var(--max));
+  width: min(calc(100% - 32px), var(--max));
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
@@ -627,7 +627,7 @@ textarea {
 }
 
 .roadmap-line {
-  width: min(100% - 32px, var(--max));
+  width: min(calc(100% - 32px), var(--max));
   margin: 0 auto;
   position: relative;
   display: grid;
@@ -674,7 +674,7 @@ textarea {
 }
 
 .final-cta {
-  width: min(100% - 32px, var(--max));
+  width: min(calc(100% - 32px), var(--max));
   margin: 0 auto 64px;
   padding: 48px;
   display: flex;
@@ -693,7 +693,7 @@ textarea {
 }
 
 .site-footer {
-  width: min(100% - 32px, var(--max));
+  width: min(calc(100% - 32px), var(--max));
   margin: 0 auto;
   padding: 44px 0 26px;
   border-top: 1px solid var(--line);
@@ -864,9 +864,9 @@ textarea {
   .hero-visual {
     position: absolute;
     right: -20%;
-    bottom: 20px;
+    bottom: -120px;
     width: 86%;
-    opacity: 0.2;
+    opacity: 0.16;
     pointer-events: none;
   }
 
@@ -936,6 +936,18 @@ textarea {
   .site-footer {
     grid-template-columns: 1fr;
     gap: 28px;
+  }
+}
+
+@media (max-width: 400px) {
+  .brand {
+    gap: 7px;
+    font-size: 20px;
+  }
+
+  .brand-mark {
+    width: 26px;
+    height: 26px;
   }
 }
 

@@ -2,15 +2,15 @@ const translations = {
   en: {
     skip: "Skip to content",
     menu: "Menu",
-    download: "Download for macOS",
+    download: "Free download for macOS",
     viewFeatures: "View features",
     "nav.features": "Features",
     "nav.compare": "Compare",
     "nav.languages": "Languages",
     "nav.roadmap": "Roadmap",
-    "hero.title": "OpenPDF for macOS",
-    "hero.lede": "A native PDF workspace to read, annotate, organize, and build PDFs locally.",
-    "hero.trust.local": "Built for local documents",
+    "hero.title": "Klarfolio PDF Editor",
+    "hero.lede": "A free, native PDF editor to read, annotate, organize, and build PDFs locally on your Mac.",
+    "hero.trust.free": "Free, no subscription",
     "hero.trust.native": "Native macOS interface",
     "hero.trust.offline": "Works offline",
     "features.title": "Everything you need in one native app.",
@@ -31,7 +31,7 @@ const translations = {
     "features.organize.item2": "Import images as PDF pages",
     "features.organize.item3": "Move, rotate, insert, and delete pages",
     "workflow.title": "Designed for focused document work.",
-    "workflow.body": "OpenPDF keeps PDF actions close to the document: pages on the left, reading in the center, and precise tools on the right.",
+    "workflow.body": "Klarfolio PDF Editor keeps PDF actions close to the document: pages on the left, reading in the center, and precise tools on the right.",
     "workflow.item1.title": "Local by default",
     "workflow.item1.body": "Open, edit, and save files on your Mac.",
     "workflow.item2.title": "No account required",
@@ -39,7 +39,7 @@ const translations = {
     "workflow.item3.title": "Native foundation",
     "workflow.item3.body": "SwiftUI and PDFKit keep the app aligned with macOS.",
     "compare.title": "A modern alternative for Mac.",
-    "compare.body": "PDF Expert is a mature commercial benchmark. OpenPDF starts smaller: local, native, transparent, and focused on core PDF workflows first.",
+    "compare.body": "PDF Expert is a mature commercial benchmark. Klarfolio PDF Editor starts smaller: free, local, native, and focused on core PDF workflows first.",
     "compare.col.capability": "Capability",
     "compare.col.position": "Position",
     "compare.rows.reading": "Reading and search",
@@ -52,13 +52,13 @@ const translations = {
     "compare.position.core": "Core workflow",
     "compare.position.growing": "Growing feature set",
     "compare.position.roadmap": "Roadmap area",
-    "languages.title": "OpenPDF will speak your language.",
+    "languages.title": "Klarfolio PDF Editor will speak your language.",
     "languages.body": "English and German are built in first. The localization layer is ready for more major languages later.",
     "languages.available": "Available",
     "languages.planned": "Planned",
     "languages.more": "More languages",
     "roadmap.title": "Roadmap / Coming soon",
-    "roadmap.body": "OpenPDF grows step by step, starting with the features that make daily PDF work easier.",
+    "roadmap.body": "Klarfolio PDF Editor grows step by step, starting with the features that make daily PDF work easier.",
     "roadmap.forms.title": "Forms",
     "roadmap.forms.body": "Fill and create interactive form fields with validation.",
     "roadmap.redaction.title": "Redaction",
@@ -67,8 +67,8 @@ const translations = {
     "roadmap.ocr.body": "Make scanned PDFs searchable and selectable.",
     "roadmap.batch.title": "Batch processing",
     "roadmap.batch.body": "Process multiple files for conversion, export, and optimization.",
-    "final.title": "Bring your PDF workflow home to macOS.",
-    "final.body": "OpenPDF is built for people who want fast local tools without turning every document into a cloud workflow.",
+    "final.title": "Edit PDFs for free. Keep them on your Mac.",
+    "final.body": "Klarfolio PDF Editor gives you fast local tools without turning every document into a cloud workflow.",
     "footer.tagline": "A native PDF workspace for macOS. Read, annotate, organize, and build PDFs locally.",
     "footer.product": "Product",
     "footer.resources": "Resources",
@@ -79,15 +79,15 @@ const translations = {
   de: {
     skip: "Zum Inhalt springen",
     menu: "Menü",
-    download: "Für macOS laden",
+    download: "Kostenlos für macOS laden",
     viewFeatures: "Funktionen ansehen",
     "nav.features": "Funktionen",
     "nav.compare": "Vergleich",
     "nav.languages": "Sprachen",
     "nav.roadmap": "Roadmap",
-    "hero.title": "OpenPDF für macOS",
-    "hero.lede": "Ein nativer PDF-Arbeitsbereich zum Lesen, Kommentieren, Organisieren und Erstellen von PDFs auf dem Mac.",
-    "hero.trust.local": "Für lokale Dokumente gebaut",
+    "hero.title": "Klarfolio PDF Editor",
+    "hero.lede": "Ein kostenloser, nativer PDF-Editor zum Lesen, Kommentieren, Organisieren und Erstellen von PDFs auf dem Mac.",
+    "hero.trust.free": "Kostenlos, ohne Abo",
     "hero.trust.native": "Native macOS-Oberfläche",
     "hero.trust.offline": "Funktioniert offline",
     "features.title": "Alles Wichtige in einer nativen App.",
@@ -108,7 +108,7 @@ const translations = {
     "features.organize.item2": "Bilder als PDF-Seiten importieren",
     "features.organize.item3": "Seiten verschieben, drehen, einfügen und löschen",
     "workflow.title": "Für konzentrierte Dokumentarbeit gestaltet.",
-    "workflow.body": "OpenPDF hält PDF-Aktionen nah am Dokument: Seiten links, Lesen in der Mitte und präzise Werkzeuge rechts.",
+    "workflow.body": "Klarfolio PDF Editor hält PDF-Aktionen nah am Dokument: Seiten links, Lesen in der Mitte und präzise Werkzeuge rechts.",
     "workflow.item1.title": "Standardmäßig lokal",
     "workflow.item1.body": "Dateien auf dem Mac öffnen, bearbeiten und speichern.",
     "workflow.item2.title": "Kein Konto nötig",
@@ -116,7 +116,7 @@ const translations = {
     "workflow.item3.title": "Native Grundlage",
     "workflow.item3.body": "SwiftUI und PDFKit halten die App nah an macOS.",
     "compare.title": "Eine moderne Alternative für den Mac.",
-    "compare.body": "PDF Expert ist ein ausgereifter kommerzieller Maßstab. OpenPDF startet kleiner: lokal, nativ, transparent und zuerst auf zentrale PDF-Workflows fokussiert.",
+    "compare.body": "PDF Expert ist ein ausgereifter kommerzieller Maßstab. Klarfolio PDF Editor startet kleiner: kostenlos, lokal, nativ und zuerst auf zentrale PDF-Workflows fokussiert.",
     "compare.col.capability": "Funktion",
     "compare.col.position": "Einordnung",
     "compare.rows.reading": "Lesen und Suche",
@@ -129,13 +129,13 @@ const translations = {
     "compare.position.core": "Kernworkflow",
     "compare.position.growing": "Wachsender Funktionsumfang",
     "compare.position.roadmap": "Roadmap-Bereich",
-    "languages.title": "OpenPDF spricht Deine Sprache.",
+    "languages.title": "Klarfolio PDF Editor spricht Deine Sprache.",
     "languages.body": "Englisch und Deutsch sind zuerst integriert. Die Lokalisierungsschicht ist für weitere wichtige Sprachen vorbereitet.",
     "languages.available": "Verfügbar",
     "languages.planned": "Geplant",
     "languages.more": "Weitere Sprachen",
     "roadmap.title": "Roadmap / Demnächst",
-    "roadmap.body": "OpenPDF wächst Schritt für Schritt, beginnend mit Funktionen, die tägliche PDF-Arbeit leichter machen.",
+    "roadmap.body": "Klarfolio PDF Editor wächst Schritt für Schritt, beginnend mit Funktionen, die tägliche PDF-Arbeit leichter machen.",
     "roadmap.forms.title": "Formulare",
     "roadmap.forms.body": "Interaktive Formularfelder mit Validierung ausfüllen und erstellen.",
     "roadmap.redaction.title": "Schwärzung",
@@ -144,8 +144,8 @@ const translations = {
     "roadmap.ocr.body": "Gescannte PDFs durchsuchbar und auswählbar machen.",
     "roadmap.batch.title": "Stapelverarbeitung",
     "roadmap.batch.body": "Mehrere Dateien für Konvertierung, Export und Optimierung verarbeiten.",
-    "final.title": "Bring Deinen PDF-Workflow zurück nach macOS.",
-    "final.body": "OpenPDF ist für Menschen gebaut, die schnelle lokale Werkzeuge wollen, ohne jedes Dokument in einen Cloud-Workflow zu verwandeln.",
+    "final.title": "PDFs kostenlos bearbeiten. Direkt auf Deinem Mac.",
+    "final.body": "Klarfolio PDF Editor bietet schnelle lokale Werkzeuge, ohne jedes Dokument in einen Cloud-Workflow zu verwandeln.",
     "footer.tagline": "Ein nativer PDF-Arbeitsbereich für macOS. PDFs lesen, kommentieren, organisieren und lokal erstellen.",
     "footer.product": "Produkt",
     "footer.resources": "Ressourcen",
@@ -158,8 +158,8 @@ const translations = {
 const futureLocales = ["fr", "es", "it", "pt", "ja", "ko", "zh", "ar", "hi"];
 
 const documentTitle = {
-  en: "OpenPDF - Native PDF Workspace for macOS",
-  de: "OpenPDF - Nativer PDF-Arbeitsbereich für macOS"
+  en: "Klarfolio PDF Editor - Free PDF Editing for Mac",
+  de: "Klarfolio PDF Editor - PDFs kostenlos auf dem Mac bearbeiten"
 };
 
 function setLanguage(language) {
@@ -181,14 +181,14 @@ function setLanguage(language) {
     button.setAttribute("aria-pressed", String(isActive));
   });
 
-  localStorage.setItem("openpdf-language", activeLanguage);
+  localStorage.setItem("klarfolio-language", activeLanguage);
 }
 
 document.querySelectorAll(".language-option").forEach((button) => {
   button.addEventListener("click", () => setLanguage(button.dataset.lang));
 });
 
-window.OpenPDFLocales = {
+window.KlarfolioLocales = {
   available: Object.keys(translations),
   planned: futureLocales
 };
@@ -208,4 +208,4 @@ navMenu.querySelectorAll("a").forEach((link) => {
   });
 });
 
-setLanguage(localStorage.getItem("openpdf-language") || "en");
+setLanguage(localStorage.getItem("klarfolio-language") || "en");

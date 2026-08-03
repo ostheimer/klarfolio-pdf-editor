@@ -1,17 +1,17 @@
 # Interne Architektur
 
-Diese Datei beschreibt die aktuelle technische Struktur von OpenPDF.
+Diese Datei beschreibt die aktuelle technische Struktur von Klarfolio PDF Editor.
 
 ## Projektform
 
-OpenPDF ist eine SwiftPM-basierte macOS-App.
+Klarfolio PDF Editor ist eine SwiftPM-basierte macOS-App.
 
 - Paketdatei: `Package.swift`
-- App-Einstieg: `Sources/OpenPDF/App/OpenPDFApp.swift`
+- App-Einstieg: `Sources/KlarfolioPDFEditor/App/KlarfolioPDFEditorApp.swift`
 - Build- und Startskript: `script/build_and_run.sh`
 - Codex-Run-Action: `.codex/environments/environment.toml`
 
-Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter `dist/OpenPDF.app` an und startet es mit `open -n`.
+Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter `dist/Klarfolio PDF Editor.app` an und startet es mit `open -n`.
 
 ## Architekturprinzipien
 
@@ -25,7 +25,7 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 
 | Datei | Verantwortung |
 | --- | --- |
-| `OpenPDFApp.swift` | App-Einstieg, Menübefehle, Aktivierung als reguläre macOS-App. |
+| `KlarfolioPDFEditorApp.swift` | App-Einstieg, Menübefehle, Aktivierung als reguläre macOS-App. |
 | `ContentView.swift` | Hauptlayout, Toolbar, Suchfeld, Statusleiste und leerer Startzustand. |
 | `SidebarView.swift` | Seitenminiaturen, Seitenauswahl und Dokumentübersicht. |
 | `InspectorView.swift` | Werkzeug-, Anmerkungs-, Seiten- und Dokumentaktionen. |

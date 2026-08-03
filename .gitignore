@@ -3,3 +3,4 @@ dist/
 .DS_Store
 DerivedData/
 *.xcuserdata/
+Sources/KlarfolioPDFEditor/Resources/AppIcon.iconset/

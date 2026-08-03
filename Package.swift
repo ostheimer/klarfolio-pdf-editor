@@ -3,17 +3,18 @@
 import PackageDescription
 
 let package = Package(
-    name: "OpenPDF",
+    name: "KlarfolioPDFEditor",
     platforms: [
         .macOS(.v14)
     ],
     products: [
-        .executable(name: "OpenPDF", targets: ["OpenPDF"])
+        .executable(name: "KlarfolioPDFEditor", targets: ["KlarfolioPDFEditor"])
     ],
     targets: [
         .executableTarget(
-            name: "OpenPDF",
-            path: "Sources/OpenPDF"
+            name: "KlarfolioPDFEditor",
+            path: "Sources/KlarfolioPDFEditor",
+            exclude: ["Resources"]
         )
     ]
 )

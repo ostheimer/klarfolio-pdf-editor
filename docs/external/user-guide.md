@@ -1,6 +1,6 @@
-# OpenPDF Nutzerhandbuch
+# Klarfolio PDF Editor Nutzerhandbuch
 
-OpenPDF ist eine native macOS-App zum Lesen, Erstellen und Bearbeiten von PDF-Dateien. Die Oberfläche besteht aus einer Seitenleiste links, der PDF-Ansicht in der Mitte und einem Werkzeugbereich rechts.
+Klarfolio PDF Editor ist eine kostenlose, native macOS-App zum Lesen, Erstellen und Bearbeiten von PDF-Dateien. Die Oberfläche besteht aus einer Seitenleiste links, der PDF-Ansicht in der Mitte und einem Werkzeugbereich rechts.
 
 ## Starten
 
@@ -50,7 +50,7 @@ Im rechten Werkzeugbereich stehen Seitenaktionen bereit:
 
 ## Anmerkungen
 
-OpenPDF unterstützt einfache PDF-Anmerkungen:
+Klarfolio PDF Editor unterstützt einfache PDF-Anmerkungen:
 
 - `Textfeld` fügt frei platzierbaren Text in der Seitenmitte ein.
 - `Notiz` fügt eine PDF-Notiz hinzu.
@@ -65,4 +65,4 @@ Farbe und Schriftgröße werden im Werkzeugbereich eingestellt. Für Marker, Unt
 
 ## Grenzen des aktuellen MVP
 
-OpenPDF bearbeitet derzeit keine vorhandenen PDF-Textobjekte direkt. Textfelder sind Anmerkungen, keine Änderungen am ursprünglichen PDF-Inhalt. Ebenso fehlen aktuell OCR, Schwärzung, Passwortschutz, Komprimierung, Formularfeld-Bearbeitung, Office-Export und KI-gestützte Zusammenfassungen.
+Klarfolio PDF Editor bearbeitet derzeit keine vorhandenen PDF-Textobjekte direkt. Textfelder sind Anmerkungen, keine Änderungen am ursprünglichen PDF-Inhalt. Ebenso fehlen aktuell OCR, Schwärzung, Passwortschutz, Komprimierung, Formularfeld-Bearbeitung, Office-Export und KI-gestützte Zusammenfassungen.
