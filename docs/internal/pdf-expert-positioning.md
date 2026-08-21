@@ -22,11 +22,11 @@ Klarfolio PDF Editor ist aktuell ein lokales macOS-MVP. Es deckt die Grundfläch
 | --- | --- | --- | --- |
 | PDF lesen | Mehrere Lese- und Ansichtsmodi, Tag/Nacht/Sepia, vertikales und horizontales Scrollen. | Native PDFKit-Anzeige, fortlaufend, Einzelseite, Doppelseite, Zoom. | Teilweise vergleichbar, aber ohne Lesethemen und Komfortmodi. |
 | Suche | Suche in PDFs, laut Featureseite auch über mehrere PDFs und Notizen. | Suche im geöffneten PDF mit Treffer-Hervorhebung. | Basis vorhanden, Multi-Dokument- und Notizsuche fehlen. |
-| Anmerkungen | Hervorheben, Kommentare, Stempel, Text, Sticker, teils Audio und Formen. | Textfeld, Notiz, Marker, Unterstreichen, Durchstreichen, Stempel, Signaturfeld-Platzhalter. | Kern vorhanden, Zeichenwerkzeuge, Formen, Audio und Bearbeitung vorhandener Annotationen fehlen. |
+| Anmerkungen | Hervorheben, Kommentare, Stempel, Text, Sticker, teils Audio und Formen. | Textfeld, Notiz, Marker, Unterstreichen, Durchstreichen, Stempel, Signaturfeld-Platzhalter sowie Auswahl, Verschieben und Bearbeiten vorhandener Nicht-Widget-Anmerkungen. | Kern vorhanden; Zeichenwerkzeuge, Formen und Audio fehlen. |
 | Direkte Textbearbeitung | Vorhandenen PDF-Text ändern, Absätze ergänzen, Schriften bearbeiten. | Nicht umgesetzt. Textfelder sind Annotationen. | Große Lücke gegenüber PDF Expert. |
 | Bilder bearbeiten | Bilder einfügen, ersetzen und skalieren. | Bilder können als neue Seiten importiert werden. | Nur Import als Seiten, keine Objektbearbeitung im PDF. |
-| Links | Links zu Seiten oder Websites hinzufügen. | Nicht umgesetzt. | Technisch als Link-Annotation erreichbar, UI fehlt. |
-| Seitenverwaltung | Zusammenführen, Seiten hinzufügen, löschen, drehen, neu anordnen, extrahieren, teilen. | Zusammenführen, leere Seiten, Bildseiten, löschen, drehen, verschieben. | Starke MVP-Abdeckung, Extrahieren und Teilen fehlen. |
+| Links | Links zu Seiten oder Websites hinzufügen. | Link-Anmerkungen zu Webadressen oder Dokumentseiten. | Basis vorhanden, keine erweiterte Linkverwaltung. |
+| Seitenverwaltung | Zusammenführen, Seiten hinzufügen, löschen, drehen, neu anordnen, extrahieren, teilen. | Zusammenführen, leere Seiten, Bildseiten, löschen, drehen, verschieben, Seitenbereiche extrahieren und nach aktueller Seite teilen. | Gute Basis, aber ohne komplexe Batch-Workflows. |
 | Konvertierung | PDF zu Word, Excel, PowerPoint, Bildern, TXT und umgekehrt. | Bilder zu PDF-Seiten, ansonsten keine Konvertierung. | Große Lücke. |
 | OCR | Texterkennung für Scans, Text kopieren, markieren und durchsuchen. | Nicht umgesetzt. | Große Lücke, besonders für gescannte Dokumente. |
 | Scan-Verbesserung | Scans verbessern, Schatten entfernen, Kontrast verbessern, Doppelseiten aufteilen. | Nicht umgesetzt. | Nicht im MVP. |
@@ -51,9 +51,9 @@ Klarfolio PDF Editor sollte kurzfristig nicht als vollständiger PDF-Expert-Ersa
 
 | Priorität | Feature | Warum |
 | --- | --- | --- |
-| P1 | Annotationen auswählen, verschieben und bearbeiten | Macht vorhandene MVP-Funktionen wirklich nutzbar. |
-| P1 | Seiten extrahieren und Dokument teilen | Nahe an bestehender Seitenlogik, hoher Alltagsnutzen. |
-| P1 | Link-Annotationen | Schließt eine sichtbare Lücke mit überschaubarem PDFKit-Aufwand. |
+| Abgeschlossen (P1) | Annotationen auswählen, verschieben und bearbeiten | Macht vorhandene MVP-Funktionen wirklich nutzbar. |
+| Abgeschlossen (P1) | Seiten extrahieren und Dokument teilen | Nahe an bestehender Seitenlogik, hoher Alltagsnutzen. |
+| Abgeschlossen (P1) | Link-Annotationen | Schließt eine sichtbare Lücke mit überschaubarem PDFKit-Aufwand. |
 | P2 | Formularfelder ausfüllen | Wichtig für Verträge, Bewerbungen und Behörden-PDFs. |
 | P2 | Sichere Schwärzung | Hoher Nutzen, aber nur mit echter Inhaltsentfernung veröffentlichen. |
 | P2 | Crop/Zuschneiden | Häufige Scan- und Dokumentpflegefunktion. |

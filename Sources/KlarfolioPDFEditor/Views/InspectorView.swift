@@ -8,6 +8,7 @@ struct InspectorView: View {
             VStack(alignment: .leading, spacing: 18) {
                 toolSection
                 annotationSection
+                selectedAnnotationSection
                 pageSection
                 documentSection
             }
@@ -112,12 +113,121 @@ struct InspectorView: View {
             }
             .disabled(!store.hasDocument)
 
+            Divider()
+
+            Text("Link hinzufügen")
+                .font(.subheadline.weight(.semibold))
+
+            linkTargetControls
+
+            Button {
+                store.addLinkAnnotation()
+            } label: {
+                Label("Link-Bereich anlegen", systemImage: "link.badge.plus")
+            }
+            .disabled(!store.hasDocument)
+
+            Text("Markierter Text wird verlinkt; ohne Textauswahl entsteht ein verschiebbarer Link-Bereich in der Seitenmitte.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
             Button(role: .destructive) {
                 store.removeLastAnnotationOnCurrentPage()
             } label: {
                 Label("Letzte Anmerkung löschen", systemImage: "trash")
             }
             .disabled(!store.hasDocument)
+        }
+    }
+
+    @ViewBuilder
+    private var selectedAnnotationSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Ausgewählte Anmerkung")
+                .font(.headline)
+
+            if store.hasSelectedAnnotation {
+                LabeledContent("Typ", value: store.selectedAnnotationTypeTitle)
+                if let pageIndex = store.selectedAnnotationPageIndex {
+                    LabeledContent("Seite", value: "\(pageIndex + 1)")
+                }
+
+                TextField("Inhalt oder Kommentar", text: $store.selectedAnnotationText)
+                    .textFieldStyle(.roundedBorder)
+
+                if store.selectedAnnotationIsLink {
+                    linkTargetControls
+                }
+
+                HStack(spacing: 6) {
+                    Button {
+                        store.moveSelectedAnnotationBy(x: -4, y: 0)
+                    } label: {
+                        Label("Nach links", systemImage: "arrow.left")
+                    }
+
+                    Button {
+                        store.moveSelectedAnnotationBy(x: 0, y: -4)
+                    } label: {
+                        Label("Nach unten", systemImage: "arrow.down")
+                    }
+
+                    Button {
+                        store.moveSelectedAnnotationBy(x: 0, y: 4)
+                    } label: {
+                        Label("Nach oben", systemImage: "arrow.up")
+                    }
+
+                    Button {
+                        store.moveSelectedAnnotationBy(x: 4, y: 0)
+                    } label: {
+                        Label("Nach rechts", systemImage: "arrow.right")
+                    }
+                }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.bordered)
+
+                HStack(spacing: 8) {
+                    Button {
+                        store.applySelectedAnnotationEdits()
+                    } label: {
+                        Label("Änderungen anwenden", systemImage: "checkmark.circle")
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Button(role: .destructive) {
+                        store.removeSelectedAnnotation()
+                    } label: {
+                        Label("Löschen", systemImage: "trash")
+                    }
+                }
+            } else {
+                Text("Werkzeug „Auswahl“ aktivieren und eine vorhandene Anmerkung anklicken. Danach kann sie gezogen, mit Pfeiltasten verschoben, bearbeitet oder gelöscht werden.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var linkTargetControls: some View {
+        Picker("Ziel", selection: $store.linkTargetMode) {
+            ForEach(PDFLinkTargetMode.allCases) { mode in
+                Text(mode.title).tag(mode)
+            }
+        }
+        .pickerStyle(.segmented)
+
+        switch store.linkTargetMode {
+        case .website:
+            TextField("https://example.com", text: $store.linkURLString)
+                .textFieldStyle(.roundedBorder)
+        case .page:
+            Stepper(
+                "Zielseite \(store.linkDestinationPage)",
+                value: $store.linkDestinationPage,
+                in: 1...max(store.pageCount, 1)
+            )
         }
     }
 
@@ -185,6 +295,40 @@ struct InspectorView: View {
                 Label("Aktuelle Seite löschen", systemImage: "trash")
             }
             .disabled(store.pageCount <= 1)
+
+            Divider()
+
+            Text("Seiten extrahieren")
+                .font(.subheadline.weight(.semibold))
+
+            Grid(alignment: .leading, horizontalSpacing: 8, verticalSpacing: 8) {
+                GridRow {
+                    TextField("Von", value: $store.extractionStartPage, format: .number)
+                        .textFieldStyle(.roundedBorder)
+                    TextField("Bis", value: $store.extractionEndPage, format: .number)
+                        .textFieldStyle(.roundedBorder)
+                }
+
+                GridRow {
+                    Button("Aktuelle Seite") {
+                        store.useCurrentPageForExtraction()
+                    }
+
+                    Button {
+                        store.extractPages()
+                    } label: {
+                        Label("Extrahieren …", systemImage: "square.and.arrow.up")
+                    }
+                }
+            }
+            .disabled(!store.hasDocument)
+
+            Button {
+                store.splitDocumentAfterCurrentPage()
+            } label: {
+                Label("Nach aktueller Seite teilen …", systemImage: "rectangle.split.2x1")
+            }
+            .disabled(store.pageCount < 2 || store.currentPageIndex >= store.pageCount - 1)
         }
     }
 

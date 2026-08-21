@@ -28,6 +28,7 @@ enum PDFInteractionTool: String, CaseIterable, Identifiable {
     case text
     case note
     case highlight
+    case link
     case stamp
     case sign
 
@@ -39,6 +40,7 @@ enum PDFInteractionTool: String, CaseIterable, Identifiable {
         case .text: "Text"
         case .note: "Notiz"
         case .highlight: "Marker"
+        case .link: "Link"
         case .stamp: "Stempel"
         case .sign: "Signatur"
         }
@@ -50,9 +52,32 @@ enum PDFInteractionTool: String, CaseIterable, Identifiable {
         case .text: "textformat"
         case .note: "note.text"
         case .highlight: "highlighter"
+        case .link: "link"
         case .stamp: "seal"
         case .sign: "signature"
         }
+    }
+}
+
+enum PDFLinkTargetMode: String, CaseIterable, Identifiable {
+    case website
+    case page
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .website: "Webadresse"
+        case .page: "Dokumentseite"
+        }
+    }
+}
+
+extension PDFAnnotation {
+    func hasSubtype(_ subtype: PDFAnnotationSubtype) -> Bool {
+        let separators = CharacterSet(charactersIn: "/")
+        return type?.trimmingCharacters(in: separators)
+            == subtype.rawValue.trimmingCharacters(in: separators)
     }
 }
 
