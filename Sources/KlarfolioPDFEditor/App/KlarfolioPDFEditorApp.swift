@@ -27,6 +27,11 @@ struct KlarfolioPDFEditorApp: App {
         .commands {
             KlarfolioPDFEditorCommands(store: store)
         }
+
+        Window("Datenschutz", id: "privacy") {
+            PrivacyNoticeView()
+        }
+        .windowResizability(.contentSize)
     }
 
     private func openExternalDocumentURLs(_ urls: [URL]) {
@@ -91,6 +96,7 @@ extension Notification.Name {
 
 struct KlarfolioPDFEditorCommands: Commands {
     @ObservedObject var store: PDFDocumentStore
+    @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
         CommandGroup(replacing: .newItem) {
@@ -134,6 +140,16 @@ struct KlarfolioPDFEditorCommands: Commands {
                 store.mergePDFs()
             }
 
+            Button("Seiten extrahieren …") {
+                store.extractPages()
+            }
+            .disabled(!store.hasDocument)
+
+            Button("Nach aktueller Seite teilen …") {
+                store.splitDocumentAfterCurrentPage()
+            }
+            .disabled(store.pageCount < 2 || store.currentPageIndex >= store.pageCount - 1)
+
             Divider()
 
             Button("Auswahl hervorheben") {
@@ -154,6 +170,17 @@ struct KlarfolioPDFEditorCommands: Commands {
             .keyboardShortcut("m", modifiers: [.command, .shift])
             .disabled(!store.hasDocument)
 
+            Button("Link einfügen") {
+                store.addLinkAnnotation()
+            }
+            .keyboardShortcut("l", modifiers: [.command, .shift])
+            .disabled(!store.hasDocument)
+
+            Button("Ausgewählte Anmerkung löschen") {
+                store.removeSelectedAnnotation()
+            }
+            .disabled(!store.hasSelectedAnnotation)
+
             Divider()
 
             Button("Vergrößern") {
@@ -173,6 +200,12 @@ struct KlarfolioPDFEditorCommands: Commands {
             }
             .keyboardShortcut("0")
             .disabled(!store.hasDocument)
+        }
+
+        CommandGroup(after: .help) {
+            Button("Datenschutz …") {
+                openWindow(id: "privacy")
+            }
         }
     }
 }
