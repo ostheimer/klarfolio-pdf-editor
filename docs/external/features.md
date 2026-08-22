@@ -44,6 +44,8 @@ Diese Datei dokumentiert den aktuellen Funktionsumfang aus Nutzersicht.
 | Durchstreichen | Umgesetzt | Streicht zuvor selektierten Text. |
 | Stempel | Umgesetzt | Erstellt einfache Textstempel. |
 | Signaturfeld | Teilweise umgesetzt | Fügt einen visuellen Platzhalter ein, aber keine kryptografische Signatur. |
+| Bestehende Anmerkung bearbeiten | Umgesetzt | Nicht-Widget-Anmerkungen können ausgewählt, verschoben, bearbeitet und gelöscht werden. |
+| Link hinzufügen | Umgesetzt | Erzeugt Link-Anmerkungen zu einer Webadresse oder einer Seite im selben Dokument. |
 | Freihandzeichnen | Nicht umgesetzt | Für spätere Zeichenwerkzeuge vorgesehen. |
 | Formen | Nicht umgesetzt | Rechteck, Linie, Pfeil und Polygon fehlen noch. |
 | Audio-Kommentare | Nicht umgesetzt | Nicht Teil des aktuellen MVP. |
@@ -57,8 +59,9 @@ Diese Datei dokumentiert den aktuellen Funktionsumfang aus Nutzersicht.
 | PDF zusammenführen | Umgesetzt | Hängt Seiten aus anderen PDFs an. |
 | Seite drehen | Umgesetzt | Dreht die aktuelle Seite nach links oder rechts. |
 | Seite verschieben | Umgesetzt | Verschiebt die aktuelle Seite nach oben oder unten. |
-| Seite löschen | Umgesetzt | Löscht die aktuelle Seite, wenn mindestens eine weitere Seite bleibt. |
-| Seiten extrahieren | Nicht umgesetzt | Export einzelner Seiten ist noch nicht vorhanden. |
+| Seite löschen | Umgesetzt | Löscht die aktuelle Seite, wenn mindestens eine weitere Seite bleibt, und entfernt interne Links mit diesem Ziel. |
+| Seiten extrahieren | Umgesetzt | Speichert einen frei gewählten Seitenbereich als neue PDF, ohne das geöffnete Dokument zu verändern; interne Links werden auf enthaltene Zielseiten umgebogen oder bei externem Bereichsziel entfernt. |
+| Dokument teilen | Umgesetzt | Schreibt zwei vorab vorbereitete neue PDFs nach der aktuellen Seite in einen ausgewählten Zielordner und behandelt interne Links je Ausgabeteil wie beim Extrahieren. |
 | Seiten zuschneiden | Nicht umgesetzt | Crop-Werkzeuge fehlen aktuell. |
 
 ## Bearbeitung des PDF-Inhalts
@@ -67,7 +70,7 @@ Diese Datei dokumentiert den aktuellen Funktionsumfang aus Nutzersicht.
 | --- | --- | --- |
 | Vorhandenen Text ändern | Nicht umgesetzt | PDFKit bietet dafür keine vollständige High-Level-Editorfunktion. |
 | Bilder im PDF ändern | Nicht umgesetzt | Bildobjekt-Bearbeitung ist nicht implementiert. |
-| Links hinzufügen | Nicht umgesetzt | Link-Annotationen sind technisch möglich, aber noch nicht in der UI. |
+| Links hinzufügen | Umgesetzt | Links können zu einer Webadresse oder zu einer Seite des geöffneten Dokuments führen. |
 | Kopf-/Fußzeilen | Nicht umgesetzt | Noch nicht geplant. |
 | Inhaltsverzeichnis/Lesezeichen | Nicht umgesetzt | Noch nicht geplant. |
 

@@ -18,6 +18,14 @@ final class PDFDocumentStore: ObservableObject {
     @Published var isDirty = false
     @Published var statusMessage = "Bereit"
     @Published var revision = 0
+    @Published private(set) var selectedAnnotation: PDFAnnotation?
+    @Published private(set) var selectedAnnotationPageIndex: Int?
+    @Published var selectedAnnotationText = ""
+    @Published var linkTargetMode: PDFLinkTargetMode = .website
+    @Published var linkURLString = "https://"
+    @Published var linkDestinationPage = 1
+    @Published var extractionStartPage = 1
+    @Published var extractionEndPage = 1
 
     weak var pdfView: PDFView?
 
@@ -49,6 +57,36 @@ final class PDFDocumentStore: ObservableObject {
         PDFUtilities.pageSizeLabel(for: currentPage)
     }
 
+    var hasSelectedAnnotation: Bool {
+        selectedAnnotation != nil
+    }
+
+    var selectedAnnotationIsLink: Bool {
+        guard let selectedAnnotation else {
+            return false
+        }
+
+        return selectedAnnotation.hasSubtype(.link)
+    }
+
+    var selectedAnnotationTypeTitle: String {
+        guard let annotation = selectedAnnotation, let type = annotation.type else {
+            return "Keine Auswahl"
+        }
+
+        if annotation.hasSubtype(.freeText) { return "Textfeld" }
+        if annotation.hasSubtype(.text) { return "Notiz" }
+        if annotation.hasSubtype(.highlight) { return "Hervorhebung" }
+        if annotation.hasSubtype(.underline) { return "Unterstreichung" }
+        if annotation.hasSubtype(.strikeOut) { return "Durchstreichung" }
+        if annotation.hasSubtype(.link) { return "Link" }
+        if annotation.hasSubtype(.stamp) { return "Stempel" }
+        if annotation.hasSubtype(.ink) { return "Zeichnung" }
+        if annotation.hasSubtype(.square) { return "Rechteck" }
+        if annotation.hasSubtype(.circle) { return "Ellipse" }
+        return type
+    }
+
     func attach(pdfView: PDFView) {
         self.pdfView = pdfView
         configure(pdfView)
@@ -61,7 +99,9 @@ final class PDFDocumentStore: ObservableObject {
         pdfView.displayMode = layoutMode.pdfDisplayMode
         pdfView.displayDirection = .vertical
         pdfView.displaysPageBreaks = true
-        pdfView.enableDataDetectors = true
+        if #unavailable(macOS 15) {
+            pdfView.enableDataDetectors = true
+        }
         pdfView.backgroundColor = .windowBackgroundColor
     }
 
@@ -226,6 +266,143 @@ final class PDFDocumentStore: ObservableObject {
         }
     }
 
+    func extractPages() {
+        guard let document else {
+            return
+        }
+
+        let startIndex = extractionStartPage - 1
+        let endIndex = extractionEndPage - 1
+        guard startIndex >= 0,
+              endIndex >= startIndex,
+              endIndex < document.pageCount,
+              let extractedDocument = documentByCopyingPages(in: startIndex...endIndex) else {
+            statusMessage = "Bitte einen gültigen Seitenbereich wählen."
+            return
+        }
+
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.pdf]
+        panel.canCreateDirectories = true
+        panel.nameFieldStringValue = exportName(
+            suffix: startIndex == endIndex
+                ? "Seite-\(startIndex + 1)"
+                : "Seiten-\(startIndex + 1)-\(endIndex + 1)"
+        )
+        panel.message = "Ausgewählte Seiten als neues PDF sichern"
+
+        guard panel.runModal() == .OK, let url = panel.url else {
+            return
+        }
+
+        _ = writePages(in: startIndex...endIndex, to: url, preparedDocument: extractedDocument)
+    }
+
+    func useCurrentPageForExtraction() {
+        let pageNumber = min(max(currentPageIndex + 1, 1), max(pageCount, 1))
+        extractionStartPage = pageNumber
+        extractionEndPage = pageNumber
+    }
+
+    func splitDocumentAfterCurrentPage() {
+        guard let document, document.pageCount > 1 else {
+            statusMessage = "Zum Teilen werden mindestens zwei Seiten benötigt."
+            return
+        }
+
+        let splitIndex = min(max(currentPageIndex, 0), document.pageCount - 1)
+        guard splitIndex < document.pageCount - 1,
+              let firstPart = documentByCopyingPages(in: 0...splitIndex),
+              let secondPart = documentByCopyingPages(in: (splitIndex + 1)...(document.pageCount - 1)) else {
+            statusMessage = "Nach der letzten Seite kann das Dokument nicht geteilt werden."
+            return
+        }
+
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.canCreateDirectories = true
+        panel.prompt = "Auswählen"
+        panel.message = "Zielordner für die beiden PDF-Teile auswählen"
+
+        guard panel.runModal() == .OK, let directoryURL = panel.url else {
+            return
+        }
+
+        let baseName = fileURL?.deletingPathExtension().lastPathComponent ?? "Dokument"
+        let firstURL = directoryURL.appendingPathComponent("\(baseName)-Teil-1.pdf")
+        let secondURL = directoryURL.appendingPathComponent("\(baseName)-Teil-2.pdf")
+
+        guard confirmOverwriteIfNeeded([firstURL, secondURL]) else {
+            statusMessage = "Teilen abgebrochen"
+            return
+        }
+
+        _ = writeSplitDocument(
+            afterPageAt: splitIndex,
+            firstPartURL: firstURL,
+            secondPartURL: secondURL,
+            preparedParts: (firstPart, secondPart)
+        )
+    }
+
+    func documentByCopyingPages(in range: ClosedRange<Int>) -> PDFDocument? {
+        guard let document,
+              range.lowerBound >= 0,
+              range.upperBound < document.pageCount else {
+            return nil
+        }
+
+        let result = PDFDocument()
+        var copiedPages: [(source: PDFPage, copy: PDFPage)] = []
+        for pageIndex in range {
+            guard let page = document.page(at: pageIndex),
+                  let pageCopy = page.copy() as? PDFPage else {
+                return nil
+            }
+
+            result.insert(pageCopy, at: result.pageCount)
+            copiedPages.append((page, pageCopy))
+        }
+
+        remapInternalLinks(in: copiedPages, sourceDocument: document, sourceRange: range)
+        return result.pageCount > 0 ? result : nil
+    }
+
+    @discardableResult
+    func writePages(in range: ClosedRange<Int>, to url: URL) -> Bool {
+        guard let extractedDocument = documentByCopyingPages(in: range) else {
+            statusMessage = "Bitte einen gültigen Seitenbereich wählen."
+            return false
+        }
+
+        return writePages(in: range, to: url, preparedDocument: extractedDocument)
+    }
+
+    @discardableResult
+    func writeSplitDocument(
+        afterPageAt splitIndex: Int,
+        firstPartURL: URL,
+        secondPartURL: URL
+    ) -> Bool {
+        guard let document,
+              splitIndex >= 0,
+              splitIndex < document.pageCount - 1,
+              let firstPart = documentByCopyingPages(in: 0...splitIndex),
+              let secondPart = documentByCopyingPages(in: (splitIndex + 1)...(document.pageCount - 1)) else {
+            statusMessage = "Bitte eine Teilung vor der letzten Seite wählen."
+            return false
+        }
+
+        return writeSplitDocument(
+            afterPageAt: splitIndex,
+            firstPartURL: firstPartURL,
+            secondPartURL: secondPartURL,
+            preparedParts: (firstPart, secondPart)
+        )
+    }
+
     func deleteCurrentPage() {
         guard let document, document.pageCount > 1 else {
             statusMessage = "Die letzte Seite kann nicht gelöscht werden."
@@ -233,6 +410,12 @@ final class PDFDocumentStore: ObservableObject {
         }
 
         let deleteIndex = min(max(currentPageIndex, 0), document.pageCount - 1)
+        if selectedAnnotationPageIndex == deleteIndex {
+            clearAnnotationSelection()
+        }
+        if let deletedPage = document.page(at: deleteIndex) {
+            removeInternalLinks(targeting: deletedPage, in: document)
+        }
         document.removePage(at: deleteIndex)
         let nextIndex = min(deleteIndex, document.pageCount - 1)
         markChanged("Seite \(deleteIndex + 1) gelöscht")
@@ -255,14 +438,19 @@ final class PDFDocumentStore: ObservableObject {
             return
         }
 
-        let oldIndex = document.index(for: page)
+        guard let oldIndex = pageIndex(of: page, in: document) else {
+            return
+        }
         let newIndex = oldIndex + offset
-        guard oldIndex >= 0, newIndex >= 0, newIndex < document.pageCount else {
+        guard document.pageCount > 0, (0..<document.pageCount).contains(newIndex) else {
             return
         }
 
         document.removePage(at: oldIndex)
         document.insert(page, at: newIndex)
+        if selectedAnnotation?.page === page {
+            selectedAnnotationPageIndex = newIndex
+        }
         markChanged("Seite verschoben")
         goToPage(newIndex)
     }
@@ -347,6 +535,148 @@ final class PDFDocumentStore: ObservableObject {
         statusMessage = "Suche zurückgesetzt"
     }
 
+    func selectAnnotation(_ annotation: PDFAnnotation?, on page: PDFPage? = nil) {
+        selectedAnnotation = annotation
+
+        guard let annotation else {
+            selectedAnnotationPageIndex = nil
+            selectedAnnotationText = ""
+            pdfView?.needsDisplay = true
+            return
+        }
+
+        let annotationPage = page ?? annotation.page
+        if let annotationPage,
+           let document,
+           let pageIndex = pageIndex(of: annotationPage, in: document) {
+            selectedAnnotationPageIndex = pageIndex
+            goToPage(pageIndex)
+        } else {
+            selectedAnnotationPageIndex = nil
+        }
+
+        selectedAnnotationText = annotation.contents ?? ""
+        loadStyle(from: annotation)
+        loadLinkTarget(from: annotation)
+        selectedTool = .select
+        statusMessage = "\(selectedAnnotationTypeTitle) ausgewählt"
+        pdfView?.needsDisplay = true
+    }
+
+    func clearAnnotationSelection() {
+        selectAnnotation(nil)
+    }
+
+    func applySelectedAnnotationEdits() {
+        guard let annotation = selectedAnnotation, let page = annotation.page else {
+            statusMessage = "Keine Anmerkung ausgewählt."
+            return
+        }
+
+        if selectedAnnotationIsLink, !applyLinkTarget(to: annotation) {
+            return
+        }
+
+        if annotation.hasAppearanceStream && canRegenerateAppearance(for: annotation) {
+            annotation.removeValue(forAnnotationKey: .appearanceDictionary)
+            annotation.removeValue(forAnnotationKey: .appearanceState)
+        }
+        annotation.contents = selectedAnnotationText
+        applyCurrentStyle(to: annotation)
+        annotation.modificationDate = Date()
+        pdfView?.annotationsChanged(on: page)
+        markChanged("\(selectedAnnotationTypeTitle) aktualisiert")
+    }
+
+    func moveSelectedAnnotationBy(x: CGFloat, y: CGFloat) {
+        guard let annotation = selectedAnnotation, let page = annotation.page else {
+            statusMessage = "Keine Anmerkung ausgewählt."
+            return
+        }
+
+        let originalBounds = annotation.bounds
+        var movedBounds = originalBounds.offsetBy(dx: x, dy: y)
+        movedBounds.origin = clampedAnnotationOrigin(for: movedBounds, on: page)
+        guard movedBounds != originalBounds else {
+            return
+        }
+
+        annotation.bounds = movedBounds
+        annotation.modificationDate = Date()
+        pdfView?.annotationsChanged(on: page)
+        markChanged("Anmerkung verschoben")
+    }
+
+    func annotationMoveDidFinish(
+        _ annotation: PDFAnnotation,
+        on page: PDFPage,
+        from originalBounds: CGRect
+    ) {
+        guard annotation === selectedAnnotation, annotation.bounds != originalBounds else {
+            return
+        }
+
+        annotation.modificationDate = Date()
+        pdfView?.annotationsChanged(on: page)
+        markChanged("Anmerkung verschoben")
+    }
+
+    func removeSelectedAnnotation() {
+        guard let annotation = selectedAnnotation, let page = annotation.page else {
+            statusMessage = "Keine Anmerkung ausgewählt."
+            return
+        }
+
+        page.removeAnnotation(annotation)
+        clearAnnotationSelection()
+        pdfView?.annotationsChanged(on: page)
+        markChanged("Anmerkung entfernt")
+    }
+
+    func addLinkAnnotation() {
+        guard currentPage != nil else {
+            return
+        }
+
+        let locations = linkAnnotationLocations()
+        guard !locations.isEmpty else {
+            statusMessage = "Für den Link wurde keine gültige Position gefunden."
+            return
+        }
+
+        var addedAnnotations: [(annotation: PDFAnnotation, page: PDFPage)] = []
+        for location in locations {
+            let annotation = PDFAnnotation(
+                bounds: location.bounds,
+                forType: .link,
+                withProperties: nil
+            )
+            annotation.contents = linkTargetDescription
+            annotation.color = NSColor.systemBlue
+            annotation.border = border(lineWidth: 1)
+
+            guard applyLinkTarget(to: annotation, reportErrors: addedAnnotations.isEmpty) else {
+                continue
+            }
+
+            location.page.addAnnotation(annotation)
+            addedAnnotations.append((annotation, location.page))
+        }
+
+        guard let first = addedAnnotations.first else {
+            return
+        }
+
+        selectedTool = .link
+        selectAnnotation(first.annotation, on: first.page)
+        selectedTool = .link
+        markChanged(
+            addedAnnotations.count == 1
+                ? "Link hinzugefügt"
+                : "\(addedAnnotations.count) Link-Bereiche hinzugefügt"
+        )
+    }
+
     func addFreeTextAnnotation(text: String = "Text") {
         guard let page = currentPage else {
             return
@@ -364,6 +694,8 @@ final class PDFDocumentStore: ObservableObject {
         annotation.border = border(lineWidth: 0)
         page.addAnnotation(annotation)
         selectedTool = .text
+        selectAnnotation(annotation, on: page)
+        selectedTool = .text
         markChanged("Textfeld eingefügt")
     }
 
@@ -380,6 +712,8 @@ final class PDFDocumentStore: ObservableObject {
         annotation.contents = "Notiz"
         annotation.color = annotationColor.nsColor
         page.addAnnotation(annotation)
+        selectedTool = .note
+        selectAnnotation(annotation, on: page)
         selectedTool = .note
         markChanged("Notiz eingefügt")
     }
@@ -436,6 +770,8 @@ final class PDFDocumentStore: ObservableObject {
         annotation.border = border(lineWidth: 1.5)
         page.addAnnotation(annotation)
         selectedTool = .stamp
+        selectAnnotation(annotation, on: page)
+        selectedTool = .stamp
         markChanged("Stempel eingefügt")
     }
 
@@ -456,16 +792,22 @@ final class PDFDocumentStore: ObservableObject {
         annotation.border = border(lineWidth: 1)
         page.addAnnotation(annotation)
         selectedTool = .sign
+        selectAnnotation(annotation, on: page)
+        selectedTool = .sign
         markChanged("Signaturfeld eingefügt")
     }
 
     func removeLastAnnotationOnCurrentPage() {
-        guard let page = currentPage, let annotation = page.annotations.last else {
+        guard let page = currentPage,
+              let annotation = page.annotations.last(where: { !$0.hasSubtype(.popup) }) else {
             statusMessage = "Keine Anmerkung auf dieser Seite."
             return
         }
 
         page.removeAnnotation(annotation)
+        if annotation === selectedAnnotation {
+            clearAnnotationSelection()
+        }
         markChanged("Anmerkung entfernt")
     }
 
@@ -478,23 +820,34 @@ final class PDFDocumentStore: ObservableObject {
             return
         }
 
-        if let page = view.currentPage, let document {
-            let index = document.index(for: page)
-            if index >= 0 {
-                currentPageIndex = index
-            }
+        if let page = view.currentPage,
+           let document,
+           let index = pageIndex(of: page, in: document) {
+            currentPageIndex = index
         }
 
         zoomPercent = Int((view.scaleFactor * 100).rounded())
     }
 
+    func constrainedAnnotationBounds(_ proposedBounds: CGRect, on page: PDFPage) -> CGRect {
+        var result = proposedBounds
+        result.origin = clampedAnnotationOrigin(for: proposedBounds, on: page)
+        return result
+    }
+
     private func setDocument(_ document: PDFDocument, url: URL?, dirty: Bool) {
+        selectedAnnotation = nil
+        selectedAnnotationPageIndex = nil
+        selectedAnnotationText = ""
         self.document = document
         self.fileURL = url
         self.isDirty = dirty
         self.currentPageIndex = 0
         self.searchText = ""
         self.searchResultCount = 0
+        self.linkDestinationPage = 1
+        self.extractionStartPage = 1
+        self.extractionEndPage = 1
         self.revision += 1
         pdfView?.document = document
         pdfView?.highlightedSelections = nil
@@ -510,11 +863,478 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     private func markChanged(_ message: String) {
+        refreshSelectedAnnotationLocation()
         isDirty = true
         revision += 1
         statusMessage = message
         pdfView?.needsDisplay = true
         syncFromPDFView(pdfView)
+    }
+
+    private var linkTargetDescription: String {
+        switch linkTargetMode {
+        case .website:
+            return linkURLString.trimmingCharacters(in: .whitespacesAndNewlines)
+        case .page:
+            return "Seite \(linkDestinationPage)"
+        }
+    }
+
+    private func linkAnnotationLocations() -> [(page: PDFPage, bounds: CGRect)] {
+        if let selection = pdfView?.currentSelection {
+            let locations = selection.selectionsByLine().flatMap { lineSelection in
+                lineSelection.pages.compactMap { page -> (page: PDFPage, bounds: CGRect)? in
+                    let bounds = lineSelection.bounds(for: page).insetBy(dx: -1.5, dy: -1.5)
+                    return bounds.isEmpty ? nil : (page, bounds)
+                }
+            }
+
+            if !locations.isEmpty {
+                return locations
+            }
+        }
+
+        guard let page = currentPage else {
+            return []
+        }
+
+        return [(page, defaultAnnotationBounds(on: page, width: 240, height: 32))]
+    }
+
+    private func applyLinkTarget(to annotation: PDFAnnotation, reportErrors: Bool = true) -> Bool {
+        switch linkTargetMode {
+        case .website:
+            guard let url = normalizedLinkURL(from: linkURLString) else {
+                if reportErrors {
+                    statusMessage = "Bitte eine gültige Webadresse eingeben."
+                }
+                return false
+            }
+
+            annotation.destination = nil
+            annotation.url = url
+
+        case .page:
+            guard let document,
+                  linkDestinationPage >= 1,
+                  linkDestinationPage <= document.pageCount,
+                  let targetPage = document.page(at: linkDestinationPage - 1) else {
+                if reportErrors {
+                    statusMessage = "Bitte eine gültige Zielseite wählen."
+                }
+                return false
+            }
+
+            let pageBounds = targetPage.bounds(for: .cropBox)
+            annotation.url = nil
+            annotation.destination = PDFDestination(
+                page: targetPage,
+                at: CGPoint(x: pageBounds.minX, y: pageBounds.maxY)
+            )
+        }
+
+        return true
+    }
+
+    private func loadLinkTarget(from annotation: PDFAnnotation) {
+        guard annotation.hasSubtype(.link) else {
+            return
+        }
+
+        if let url = annotation.url {
+            linkTargetMode = .website
+            linkURLString = url.absoluteString
+            return
+        }
+
+        linkTargetMode = .page
+        if let targetPage = annotation.destination?.page,
+           let document,
+           let targetIndex = pageIndex(of: targetPage, in: document) {
+            linkDestinationPage = targetIndex + 1
+        } else {
+            linkDestinationPage = min(max(currentPageIndex + 1, 1), max(pageCount, 1))
+        }
+    }
+
+    private func loadStyle(from annotation: PDFAnnotation) {
+        if let selectedFont = annotation.font {
+            fontSize = Double(selectedFont.pointSize)
+        }
+
+        let selectedColor: NSColor?
+        if annotation.hasSubtype(.freeText) {
+            selectedColor = annotation.fontColor
+        } else {
+            selectedColor = annotation.color
+        }
+
+        guard let selectedColor,
+              let rgbColor = selectedColor.usingColorSpace(.deviceRGB),
+              let closestSwatch = AnnotationSwatch.allCases.min(by: { first, second in
+                  colorDistance(from: first.nsColor, to: rgbColor)
+                      < colorDistance(from: second.nsColor, to: rgbColor)
+              }) else {
+            return
+        }
+
+        annotationColor = closestSwatch
+    }
+
+    private func colorDistance(from first: NSColor, to second: NSColor) -> CGFloat {
+        guard let firstRGB = first.usingColorSpace(.deviceRGB),
+              let secondRGB = second.usingColorSpace(.deviceRGB) else {
+            return .greatestFiniteMagnitude
+        }
+
+        let red = firstRGB.redComponent - secondRGB.redComponent
+        let green = firstRGB.greenComponent - secondRGB.greenComponent
+        let blue = firstRGB.blueComponent - secondRGB.blueComponent
+        return red * red + green * green + blue * blue
+    }
+
+    private func normalizedLinkURL(from value: String) -> URL? {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return nil
+        }
+
+        let candidate: String
+        if trimmed.contains("://") || trimmed.lowercased().hasPrefix("mailto:") {
+            candidate = trimmed
+        } else {
+            candidate = "https://\(trimmed)"
+        }
+
+        guard let components = URLComponents(string: candidate),
+              let scheme = components.scheme?.lowercased(),
+              ["http", "https", "mailto"].contains(scheme) else {
+            return nil
+        }
+
+        if scheme == "mailto" {
+            guard !components.path.isEmpty else {
+                return nil
+            }
+        } else {
+            guard let host = components.host, !host.isEmpty else {
+                return nil
+            }
+        }
+
+        return components.url
+    }
+
+    private func applyCurrentStyle(to annotation: PDFAnnotation) {
+        if annotation.hasSubtype(.freeText) {
+            annotation.font = .systemFont(ofSize: fontSize)
+            annotation.fontColor = annotationColor.nsColor
+        } else if annotation.hasSubtype(.highlight) {
+            annotation.color = annotationColor.nsColor.withAlphaComponent(0.45)
+        } else if annotation.hasSubtype(.underline) || annotation.hasSubtype(.strikeOut) {
+            annotation.color = annotationColor.nsColor.withAlphaComponent(0.85)
+        } else if annotation.hasSubtype(.link) {
+            annotation.color = NSColor.systemBlue
+            annotation.border = border(lineWidth: 1)
+        } else {
+            annotation.color = annotationColor.nsColor
+        }
+    }
+
+    private func canRegenerateAppearance(for annotation: PDFAnnotation) -> Bool {
+        annotation.hasSubtype(.freeText)
+            || annotation.hasSubtype(.text)
+            || annotation.hasSubtype(.highlight)
+            || annotation.hasSubtype(.underline)
+            || annotation.hasSubtype(.strikeOut)
+            || annotation.hasSubtype(.link)
+            || annotation.hasSubtype(.ink)
+            || annotation.hasSubtype(.line)
+            || annotation.hasSubtype(.square)
+            || annotation.hasSubtype(.circle)
+    }
+
+    private func refreshSelectedAnnotationLocation() {
+        guard let annotation = selectedAnnotation else {
+            selectedAnnotationPageIndex = nil
+            return
+        }
+
+        guard let page = annotation.page,
+              let document else {
+            selectedAnnotation = nil
+            selectedAnnotationPageIndex = nil
+            selectedAnnotationText = ""
+            return
+        }
+
+        guard let pageIndex = pageIndex(of: page, in: document) else {
+            selectedAnnotation = nil
+            selectedAnnotationPageIndex = nil
+            selectedAnnotationText = ""
+            return
+        }
+
+        selectedAnnotationPageIndex = pageIndex
+        if annotation.hasSubtype(.link) {
+            loadLinkTarget(from: annotation)
+        }
+    }
+
+    private func remapInternalLinks(
+        in copiedPages: [(source: PDFPage, copy: PDFPage)],
+        sourceDocument: PDFDocument,
+        sourceRange: ClosedRange<Int>
+    ) {
+        for pair in copiedPages {
+            let sourceAnnotations = pair.source.annotations
+            let copiedAnnotations = pair.copy.annotations
+
+            for annotationIndex in copiedAnnotations.indices.reversed() {
+                guard annotationIndex < sourceAnnotations.count else {
+                    continue
+                }
+
+                let sourceAnnotation = sourceAnnotations[annotationIndex]
+                let copiedAnnotation = copiedAnnotations[annotationIndex]
+                guard sourceAnnotation.hasSubtype(.link),
+                      sourceAnnotation.url == nil,
+                      let sourceDestination = sourceAnnotation.destination,
+                      let sourceTargetPage = sourceDestination.page else {
+                    continue
+                }
+
+                guard let sourceTargetIndex = pageIndex(of: sourceTargetPage, in: sourceDocument),
+                      sourceRange.contains(sourceTargetIndex) else {
+                    pair.copy.removeAnnotation(copiedAnnotation)
+                    continue
+                }
+
+                let copiedTargetIndex = sourceTargetIndex - sourceRange.lowerBound
+                guard copiedPages.indices.contains(copiedTargetIndex) else {
+                    pair.copy.removeAnnotation(copiedAnnotation)
+                    continue
+                }
+
+                copiedAnnotation.url = nil
+                copiedAnnotation.destination = PDFDestination(
+                    page: copiedPages[copiedTargetIndex].copy,
+                    at: sourceDestination.point
+                )
+            }
+        }
+    }
+
+    private func removeInternalLinks(targeting targetPage: PDFPage, in document: PDFDocument) {
+        for pageIndex in 0..<document.pageCount {
+            guard let page = document.page(at: pageIndex) else {
+                continue
+            }
+
+            let linksToRemove = page.annotations.filter { annotation in
+                annotation.hasSubtype(.link)
+                    && annotation.url == nil
+                    && annotation.destination?.page === targetPage
+            }
+            for annotation in linksToRemove {
+                page.removeAnnotation(annotation)
+            }
+        }
+    }
+
+    private func clampedAnnotationOrigin(for bounds: CGRect, on page: PDFPage) -> CGPoint {
+        let pageBounds = page.bounds(for: .cropBox)
+        let x: CGFloat
+        let y: CGFloat
+
+        if bounds.width >= pageBounds.width {
+            x = pageBounds.minX
+        } else {
+            x = min(max(bounds.minX, pageBounds.minX), pageBounds.maxX - bounds.width)
+        }
+
+        if bounds.height >= pageBounds.height {
+            y = pageBounds.minY
+        } else {
+            y = min(max(bounds.minY, pageBounds.minY), pageBounds.maxY - bounds.height)
+        }
+
+        return CGPoint(x: x, y: y)
+    }
+
+    private func pageIndex(of page: PDFPage, in document: PDFDocument) -> Int? {
+        let index = document.index(for: page)
+        return (0..<document.pageCount).contains(index) ? index : nil
+    }
+
+    private func exportName(suffix: String) -> String {
+        let baseName = fileURL?.deletingPathExtension().lastPathComponent ?? "Dokument"
+        return "\(baseName)-\(suffix).pdf"
+    }
+
+    private func confirmOverwriteIfNeeded(_ urls: [URL]) -> Bool {
+        let existingNames = urls
+            .filter { FileManager.default.fileExists(atPath: $0.path) }
+            .map(\.lastPathComponent)
+        guard !existingNames.isEmpty else {
+            return true
+        }
+
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = "Vorhandene Dateien ersetzen?"
+        alert.informativeText = existingNames.joined(separator: "\n")
+        alert.addButton(withTitle: "Ersetzen")
+        alert.addButton(withTitle: "Abbrechen")
+        return alert.runModal() == .alertFirstButtonReturn
+    }
+
+    private func writePages(
+        in range: ClosedRange<Int>,
+        to url: URL,
+        preparedDocument: PDFDocument
+    ) -> Bool {
+        guard preparedDocument.write(to: url) else {
+            statusMessage = "Die ausgewählten Seiten konnten nicht gesichert werden."
+            return false
+        }
+
+        let unit = range.count == 1 ? "Seite" : "Seiten"
+        statusMessage = "\(range.count) \(unit) nach \(url.lastPathComponent) extrahiert"
+        return true
+    }
+
+    private func writeSplitDocument(
+        afterPageAt splitIndex: Int,
+        firstPartURL: URL,
+        secondPartURL: URL,
+        preparedParts: (first: PDFDocument, second: PDFDocument)
+    ) -> Bool {
+        guard firstPartURL.standardizedFileURL != secondPartURL.standardizedFileURL else {
+            statusMessage = "Für beide Teile werden unterschiedliche Dateinamen benötigt."
+            return false
+        }
+
+        let fileManager = FileManager.default
+        guard !isDirectory(at: firstPartURL, using: fileManager),
+              !isDirectory(at: secondPartURL, using: fileManager) else {
+            statusMessage = "Das Dokument konnte nicht vollständig geteilt werden."
+            return false
+        }
+
+        let firstStagingURL = stagingURL(for: firstPartURL)
+        let secondStagingURL = stagingURL(for: secondPartURL)
+        defer {
+            removeFileIfPresent(at: firstStagingURL, using: fileManager)
+            removeFileIfPresent(at: secondStagingURL, using: fileManager)
+        }
+
+        guard preparedParts.first.write(to: firstStagingURL),
+              preparedParts.second.write(to: secondStagingURL) else {
+            statusMessage = "Das Dokument konnte nicht vollständig geteilt werden."
+            return false
+        }
+
+        var installedOutputs: [InstalledOutput] = []
+        do {
+            installedOutputs.append(
+                try installStagedOutput(
+                    at: firstStagingURL,
+                    destinationURL: firstPartURL,
+                    using: fileManager
+                )
+            )
+            installedOutputs.append(
+                try installStagedOutput(
+                    at: secondStagingURL,
+                    destinationURL: secondPartURL,
+                    using: fileManager
+                )
+            )
+        } catch {
+            for output in installedOutputs.reversed() {
+                rollbackInstalledOutput(output, using: fileManager)
+            }
+            statusMessage = "Das Dokument konnte nicht vollständig geteilt werden."
+            return false
+        }
+
+        for output in installedOutputs {
+            if let backupURL = output.backupURL {
+                removeFileIfPresent(at: backupURL, using: fileManager)
+            }
+        }
+
+        statusMessage = "Dokument nach Seite \(splitIndex + 1) in zwei PDFs geteilt"
+        return true
+    }
+
+    private struct InstalledOutput {
+        let destinationURL: URL
+        let backupURL: URL?
+    }
+
+    private func stagingURL(for destinationURL: URL) -> URL {
+        destinationURL.deletingLastPathComponent().appendingPathComponent(
+            ".\(destinationURL.lastPathComponent).klarfolio-\(UUID().uuidString).tmp.pdf"
+        )
+    }
+
+    private func backupURL(for destinationURL: URL) -> URL {
+        destinationURL.deletingLastPathComponent().appendingPathComponent(
+            ".\(destinationURL.lastPathComponent).klarfolio-\(UUID().uuidString).backup"
+        )
+    }
+
+    private func installStagedOutput(
+        at stagingURL: URL,
+        destinationURL: URL,
+        using fileManager: FileManager
+    ) throws -> InstalledOutput {
+        let destinationExists = fileManager.fileExists(atPath: destinationURL.path)
+        let existingBackupURL = destinationExists ? backupURL(for: destinationURL) : nil
+
+        if let existingBackupURL {
+            try fileManager.moveItem(at: destinationURL, to: existingBackupURL)
+        }
+
+        do {
+            try fileManager.moveItem(at: stagingURL, to: destinationURL)
+        } catch {
+            if let existingBackupURL {
+                try? fileManager.moveItem(at: existingBackupURL, to: destinationURL)
+            }
+            throw error
+        }
+
+        return InstalledOutput(
+            destinationURL: destinationURL,
+            backupURL: existingBackupURL
+        )
+    }
+
+    private func rollbackInstalledOutput(
+        _ output: InstalledOutput,
+        using fileManager: FileManager
+    ) {
+        removeFileIfPresent(at: output.destinationURL, using: fileManager)
+        if let backupURL = output.backupURL,
+           fileManager.fileExists(atPath: backupURL.path) {
+            try? fileManager.moveItem(at: backupURL, to: output.destinationURL)
+        }
+    }
+
+    private func removeFileIfPresent(at url: URL, using fileManager: FileManager) {
+        guard fileManager.fileExists(atPath: url.path) else {
+            return
+        }
+        try? fileManager.removeItem(at: url)
+    }
+
+    private func isDirectory(at url: URL, using fileManager: FileManager) -> Bool {
+        var isDirectory: ObjCBool = false
+        return fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory)
+            && isDirectory.boolValue
     }
 
     private func defaultAnnotationBounds(on page: PDFPage, width: CGFloat, height: CGFloat) -> CGRect {

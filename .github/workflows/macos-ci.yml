@@ -1,0 +1,103 @@
+name: macOS CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test-and-package-check:
+    name: Build and test (${{ matrix.label }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: macOS 15 / Xcode 16.4
+            os: macos-15
+            xcode: /Applications/Xcode_16.4.app/Contents/Developer
+          - label: macOS 26 / Xcode 26.6
+            os: macos-26
+            xcode: /Applications/Xcode_26.6.app/Contents/Developer
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      # Swift Testing needs the framework from a full Xcode installation. Do not
+      # silently fall back to the Command Line Tools toolchain for test execution.
+      - name: Select full Xcode toolchain
+        run: |
+          sudo xcode-select --switch "${{ matrix.xcode }}"
+          developer_dir="$(xcode-select -p)"
+          case "$developer_dir" in
+            /Applications/Xcode*.app/Contents/Developer) ;;
+            *) echo "A full Xcode developer directory is required, got: $developer_dir" >&2; exit 1 ;;
+          esac
+          xcodebuild -version
+          swift --version
+
+      - name: Resolve dependencies
+        run: swift package resolve
+
+      - name: Build debug configuration
+        run: swift build -c debug
+
+      - name: Build release configuration
+        run: swift build -c release
+
+      - name: Run Swift tests
+        run: swift test --parallel
+
+      - name: Validate shell scripts and source plists
+        run: |
+          set -euo pipefail
+          for script in script/*.sh; do
+            bash -n "$script"
+          done
+          bash script/build_app_bundle.sh --help >/dev/null
+          bash script/package_app_store.sh --help >/dev/null
+
+          plutil -lint Packaging/KlarfolioPDFEditor.entitlements
+          test "$(/usr/libexec/PlistBuddy -c 'Print :com.apple.security.app-sandbox' Packaging/KlarfolioPDFEditor.entitlements)" = "true"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :com.apple.security.files.user-selected.read-write' Packaging/KlarfolioPDFEditor.entitlements)" = "true"
+
+      - name: Validate static website
+        run: |
+          python3 website/verify-site.py
+          node --check website/site.js
+
+      - name: Assemble unsigned app bundle and validate Info.plist
+        env:
+          CI_APP_BUNDLE: ${{ runner.temp }}/Klarfolio-PDF-Editor-CI.app
+        run: |
+          set -euo pipefail
+          ./script/build_app_bundle.sh \
+            --configuration debug \
+            --output "$CI_APP_BUNDLE" \
+            --no-sign
+
+          info_plist="$CI_APP_BUNDLE/Contents/Info.plist"
+          test -x "$CI_APP_BUNDLE/Contents/MacOS/KlarfolioPDFEditor"
+          test -f "$CI_APP_BUNDLE/Contents/Resources/AppIcon.icns"
+          plutil -lint "$info_plist"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundlePackageType' "$info_plist")" = "APPL"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$info_plist")" = "at.ostheimer.klarfoliopdf"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$info_plist")" = "KlarfolioPDFEditor"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$info_plist")" = "14.0"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDocumentTypes:0:CFBundleTypeRole' "$info_plist")" = "Editor"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDocumentTypes:0:LSItemContentTypes:0' "$info_plist")" = "com.adobe.pdf"
