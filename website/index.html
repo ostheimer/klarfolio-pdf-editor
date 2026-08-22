@@ -8,7 +8,10 @@
       content="Klarfolio PDF Editor is a free native macOS app for reading, editing, annotating, and organizing PDFs locally."
     >
     <meta name="theme-color" content="#f7fafc">
+    <!-- Set this to the final HTTPS download URL when a signed release is available. -->
+    <meta name="klarfolio-download-url" content="">
     <title>Klarfolio PDF Editor - Free PDF Editing for Mac</title>
+    <link rel="canonical" data-site-canonical>
     <link rel="preload" as="image" href="assets/klarfolio-pdf-editor-app-mockup.png">
     <link rel="stylesheet" href="styles.css">
   </head>
@@ -16,8 +19,8 @@
     <a class="skip-link" href="#main" data-i18n="skip">Skip to content</a>
 
     <header class="site-header">
-      <nav class="nav-shell" aria-label="Primary">
-        <a class="brand" href="#top" aria-label="Klarfolio PDF Editor home">
+      <nav class="nav-shell" aria-label="Primary" data-i18n-aria="nav.primary">
+        <a class="brand" href="#top" aria-label="Klarfolio PDF Editor home" data-i18n-aria="brand.home">
           <span class="brand-mark" aria-hidden="true"></span>
           <span>Klarfolio PDF Editor</span>
         </a>
@@ -36,11 +39,11 @@
         </div>
 
         <div class="nav-actions">
-          <div class="language-switch" aria-label="Language">
+          <div class="language-switch" aria-label="Language" data-i18n-aria="language.label">
             <button class="language-option is-active" type="button" data-lang="en" aria-pressed="true">EN</button>
             <button class="language-option" type="button" data-lang="de" aria-pressed="false">DE</button>
           </div>
-          <a class="button button-primary button-small" href="../dist/Klarfolio%20PDF%20Editor.app" data-i18n="download">Free download for macOS</a>
+          <a class="button button-primary button-small is-disabled" data-download aria-disabled="true" data-i18n="download.coming">Download coming soon</a>
         </div>
       </nav>
     </header>
@@ -54,20 +57,22 @@
               A free, native PDF editor to read, annotate, organize, and build PDFs locally on your Mac.
             </p>
             <div class="hero-actions">
-              <a class="button button-primary" href="../dist/Klarfolio%20PDF%20Editor.app" data-i18n="download">Free download for macOS</a>
+              <a class="button button-primary is-disabled" data-download aria-disabled="true" aria-describedby="download-status" data-i18n="download.coming">Download coming soon</a>
               <a class="button button-secondary" href="#features" data-i18n="viewFeatures">View features</a>
             </div>
-            <ul class="trust-list" aria-label="Product highlights">
+            <p class="release-status" id="download-status" role="status" data-i18n="download.status.coming">The first signed release is being prepared. The download will appear here once it is available.</p>
+            <ul class="trust-list" aria-label="Product highlights" data-i18n-aria="hero.trust.label">
               <li data-i18n="hero.trust.free">Free, no subscription</li>
               <li data-i18n="hero.trust.native">Native macOS interface</li>
               <li data-i18n="hero.trust.offline">Works offline</li>
             </ul>
           </div>
 
-          <div class="hero-visual" aria-label="Klarfolio PDF Editor app interface preview">
+          <div class="hero-visual" aria-label="Klarfolio PDF Editor app interface preview" data-i18n-aria="hero.preview.label">
             <img
               src="assets/klarfolio-pdf-editor-app-mockup.png"
               alt="Klarfolio PDF Editor for macOS showing page thumbnails, highlighted PDF text, search, and annotation tools."
+              data-i18n-alt="hero.preview.alt"
               width="560"
               height="620"
             >
@@ -160,6 +165,7 @@
             <img
               src="assets/klarfolio-pdf-editor-detail-mockup.png"
               alt="Klarfolio PDF Editor detail view with highlighted contract text and signature placeholder."
+              data-i18n-alt="workflow.preview.alt"
               width="520"
               height="300"
               loading="lazy"
@@ -177,7 +183,7 @@
             </p>
           </div>
 
-          <div class="comparison-table" role="table" aria-label="Klarfolio PDF Editor positioning">
+          <div class="comparison-table" role="table" aria-label="Klarfolio PDF Editor positioning" data-i18n-aria="compare.label">
             <div class="comparison-row comparison-head" role="row">
               <span role="columnheader" data-i18n="compare.col.capability">Capability</span>
               <span role="columnheader">Klarfolio PDF Editor</span>
@@ -213,7 +219,7 @@
           <p data-i18n="languages.body">English and German are built in first. The localization layer is ready for more major languages later.</p>
         </div>
 
-        <div class="language-grid" aria-label="Localization roadmap">
+        <div class="language-grid" aria-label="Localization roadmap" data-i18n-aria="languages.label">
           <div class="language-card is-live">
             <span class="flag" aria-hidden="true">🇬🇧</span>
             <strong>English</strong>
@@ -300,13 +306,13 @@
           <h2 id="final-title" data-i18n="final.title">Edit PDFs for free. Keep them on your Mac.</h2>
           <p data-i18n="final.body">Klarfolio PDF Editor gives you fast local tools without turning every document into a cloud workflow.</p>
         </div>
-        <a class="button button-primary" href="../dist/Klarfolio%20PDF%20Editor.app" data-i18n="download">Free download for macOS</a>
+        <a class="button button-primary is-disabled" data-download aria-disabled="true" aria-describedby="download-status" data-i18n="download.coming">Download coming soon</a>
       </section>
     </main>
 
     <footer class="site-footer">
       <div>
-        <a class="brand" href="#top" aria-label="Klarfolio PDF Editor home">
+        <a class="brand" href="#top" aria-label="Klarfolio PDF Editor home" data-i18n-aria="brand.home">
           <span class="brand-mark" aria-hidden="true"></span>
           <span>Klarfolio PDF Editor</span>
         </a>
@@ -320,9 +326,10 @@
       </div>
       <div>
         <strong data-i18n="footer.resources">Resources</strong>
-        <a href="../docs/external/user-guide.md" data-i18n="footer.guide">User guide</a>
-        <a href="../docs/external/features.md" data-i18n="footer.docs">Documentation</a>
-        <a href="../docs/internal/pdf-expert-positioning.md" data-i18n="footer.positioning">Positioning</a>
+        <a href="https://github.com/ostheimer/klarfolio-pdf-editor/blob/main/docs/external/user-guide.md" rel="noopener noreferrer" data-i18n="footer.guide">User guide</a>
+        <a href="https://github.com/ostheimer/klarfolio-pdf-editor/blob/main/docs/external/features.md" rel="noopener noreferrer" data-i18n="footer.docs">Documentation</a>
+        <a href="support.html" data-i18n="footer.support">Support</a>
+        <a href="privacy.html" data-i18n="footer.privacy">Privacy</a>
       </div>
       <p class="copyright">© 2026 Klarfolio PDF Editor.</p>
     </footer>

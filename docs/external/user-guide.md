@@ -46,7 +46,10 @@ Im rechten Werkzeugbereich stehen Seitenaktionen bereit:
 - `Links drehen` und `Rechts drehen` drehen die aktuelle Seite.
 - `Nach oben` und `Nach unten` verschieben die aktuelle Seite.
 - `PDF zusammenführen` hängt Seiten aus anderen PDFs an.
-- `Aktuelle Seite löschen` entfernt die aktuelle Seite, solange das Dokument mehr als eine Seite enthält.
+- `Aktuelle Seite löschen` entfernt die aktuelle Seite, solange das Dokument mehr als eine Seite enthält. Interne Links, deren Ziel diese Seite war, werden ebenfalls entfernt, damit keine verwaisten Linkziele gespeichert werden.
+- Unter `Seiten extrahieren` wählst du mit `Von` und `Bis` einen Bereich und sicherst ihn als neue PDF. Das geöffnete Dokument bleibt dabei unverändert.
+- `Nach aktueller Seite teilen` legt im gewählten Zielordner zwei neue Dateien mit den Endungen `-Teil-1.pdf` und `-Teil-2.pdf` an. Beide Ausgaben werden zuerst vorbereitet, damit ein Fehler beim zweiten Teil keine einseitig überschriebene Ausgabe zurücklässt. Nach der letzten Seite ist die Aktion nicht verfügbar.
+- Interne Seitenlinks werden beim Extrahieren und Teilen auf die Seiten des jeweiligen Ausgabedokuments umgebogen. Verweist ein Link auf eine Seite außerhalb dieses Ausgabeteils, wird er dort entfernt; Weblinks bleiben erhalten.
 
 ## Anmerkungen
 
@@ -60,9 +63,17 @@ Klarfolio PDF Editor unterstützt einfache PDF-Anmerkungen:
 - `Signaturfeld` fügt einen Platzhalter für eine Unterschrift ein.
 - `Stempel einfügen` erstellt Stempel wie `Genehmigt`, `Entwurf` oder `Vertraulich`.
 - `Letzte Anmerkung löschen` entfernt die zuletzt angelegte Anmerkung der aktuellen Seite.
+- Mit `Link-Bereich anlegen` verlinkst du markierten Text oder ohne Textauswahl einen Bereich in der Seitenmitte. Das Ziel kann eine Webadresse oder eine Seite im selben Dokument sein; bei einer Webadresse ergänzt die App bei Bedarf `https://`.
+- Mit dem Werkzeug `Auswahl` kannst du eine vorhandene, nicht interaktive Anmerkung anklicken. Der blaue Rahmen zeigt die Auswahl. Ziehe sie, verwende die Pfeiltasten oder bearbeite Inhalt, Farbe und Schriftgröße im Bereich `Ausgewählte Anmerkung`; dort lässt sie sich auch löschen.
 
 Farbe und Schriftgröße werden im Werkzeugbereich eingestellt. Für Marker, Unterstreichung und Durchstreichung muss zuerst Text im PDF markiert werden.
 
 ## Grenzen des aktuellen MVP
 
 Klarfolio PDF Editor bearbeitet derzeit keine vorhandenen PDF-Textobjekte direkt. Textfelder sind Anmerkungen, keine Änderungen am ursprünglichen PDF-Inhalt. Ebenso fehlen aktuell OCR, Schwärzung, Passwortschutz, Komprimierung, Formularfeld-Bearbeitung, Office-Export und KI-gestützte Zusammenfassungen.
+
+## Datenschutz
+
+Die App verarbeitet die von dir ausgewählten Dokumente lokal auf deinem Mac. Der vollständige [Datenschutzhinweis](privacy.md) ist vor einer öffentlichen Veröffentlichung noch um die verantwortliche Stelle und eine öffentliche URL zu ergänzen.
+
+Eine Zusammenfassung der aktuellen lokalen Datenverarbeitung ist jederzeit im App-Menü unter `Hilfe > Datenschutz …` erreichbar.

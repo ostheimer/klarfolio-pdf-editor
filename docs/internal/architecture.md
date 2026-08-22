@@ -30,7 +30,8 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 | `SidebarView.swift` | Seitenminiaturen, Seitenauswahl und Dokumentübersicht. |
 | `InspectorView.swift` | Werkzeug-, Anmerkungs-, Seiten- und Dokumentaktionen. |
 | `PDFCanvasView.swift` | `NSViewRepresentable` für `PDFView` plus PDFKit-Benachrichtigungen. |
-| `PDFDocumentStore.swift` | Öffnen, Speichern, Seitenaktionen, Suche, Zoom und Annotationen. |
+| `PrivacyNoticeView.swift` | Direkt in der App erreichbare Zusammenfassung der lokalen Datenverarbeitung. |
+| `PDFDocumentStore.swift` | Öffnen, Speichern, Seitenaktionen einschließlich Extrahieren/Teilen, Suche, Zoom, Link- und andere Annotationen; interne Linkziele werden beim Teil-Export auf kopierte Seiten umgebogen oder entfernt. |
 | `PDFModels.swift` | UI-Enums für Seitenleistenbereiche, Werkzeuge, Farben und Layouts. |
 | `PDFUtilities.swift` | Hilfsfunktionen für leere Seiten, Anzeigegrößen und Dateinamen. |
 
@@ -45,16 +46,16 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 ## Aktuelle technische Grenzen
 
 - PDFKit ist stark für Anzeige, Annotationen und Seitenorganisation, aber kein vollständiger Inhaltseditor für bestehende Text- und Bildobjekte.
-- Textfelder, Stempel und Signaturfelder sind Annotationen, keine direkte Bearbeitung des ursprünglichen PDF-Content-Streams.
+- Textfelder, Stempel und Signaturfelder sind Annotationen, keine direkte Bearbeitung des ursprünglichen PDF-Content-Streams. Automatisch erzeugte PDFKit-Popup-Begleitanmerkungen werden nicht als eigenständige Nutzeranmerkungen ausgewählt oder gelöscht.
+- Beim Löschen von Seiten werden interne Links zu dieser Zielseite entfernt. Extraktion und Teilen remappen interne Ziele innerhalb des Ausgabeteils und entfernen bereichsüberschreitende Links; beide Split-Ausgaben werden vor dem Ersetzen vorhandener Zieldateien vorbereitet.
 - Schwärzung muss später als echte Entfernung oder sichere Redaction implementiert werden. Eine überdeckende schwarze Fläche wäre fachlich unsicher.
 - OCR, Office-Konvertierung und KI-Funktionen benötigen zusätzliche Frameworks oder Dienste.
 - Formularfelder können mit PDFKit gelesen und teilweise ausgefüllt werden, aber die App hat dafür noch keine eigene UI.
 
 ## Nächste sinnvolle technische Schritte
 
-1. Tests für `PDFDocumentStore` mit temporären PDFs und Bildseiten.
+1. Die vorhandenen `PDFDocumentStore`-Tests unter vollständigem Xcode in CI ausführen und um reale Fixture-PDFs sowie UI-Automation ergänzen.
 2. Drag-and-drop für PDF- und Bildimport.
-3. Annotation-Auswahl, Verschieben und Bearbeiten vorhandener Annotationen.
-4. Link-Annotationen und Lesezeichen/Outlines.
-5. Sichere Redaction-Implementierung mit Validierung, dass Inhalte wirklich entfernt sind.
-6. Export- und OCR-Strategie evaluieren.
+3. Lesezeichen/Outlines und erweiterte Linkverwaltung.
+4. Sichere Redaction-Implementierung mit Validierung, dass Inhalte wirklich entfernt sind.
+5. Export- und OCR-Strategie evaluieren.

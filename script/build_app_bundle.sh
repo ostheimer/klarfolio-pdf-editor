@@ -8,6 +8,7 @@ usage: $0 [--configuration debug|release] [--output path] [--sign-identity ident
 Builds Klarfolio PDF Editor and assembles a macOS .app bundle.
 
 Environment overrides:
+  APP_NAME               Display and bundle name, default: Klarfolio PDF Editor
   APP_VERSION            Marketing version, default: 0.1.0
   APP_BUILD              Build number, default: 1
   BUNDLE_ID              Bundle identifier, default: at.ostheimer.klarfoliopdf
@@ -59,7 +60,7 @@ case "$CONFIGURATION" in
     ;;
 esac
 
-APP_NAME="Klarfolio PDF Editor"
+APP_NAME="${APP_NAME:-Klarfolio PDF Editor}"
 EXECUTABLE_NAME="KlarfolioPDFEditor"
 APP_VERSION="${APP_VERSION:-0.1.0}"
 APP_BUILD="${APP_BUILD:-1}"

@@ -1,9 +1,18 @@
+// Set this once when a public primary domain is available, for example "https://klarfolio.com".
+const configuredSiteUrl = "";
+
 const translations = {
   en: {
     skip: "Skip to content",
     menu: "Menu",
     download: "Free download for macOS",
+    "download.coming": "Download coming soon",
+    "download.status.coming": "The first signed release is being prepared. The download will appear here once it is available.",
+    "download.status.ready": "Klarfolio PDF Editor is ready to download.",
     viewFeatures: "View features",
+    "nav.primary": "Primary navigation",
+    "brand.home": "Klarfolio PDF Editor home",
+    "language.label": "Language",
     "nav.features": "Features",
     "nav.compare": "Compare",
     "nav.languages": "Languages",
@@ -13,6 +22,9 @@ const translations = {
     "hero.trust.free": "Free, no subscription",
     "hero.trust.native": "Native macOS interface",
     "hero.trust.offline": "Works offline",
+    "hero.trust.label": "Product highlights",
+    "hero.preview.label": "Klarfolio PDF Editor app interface preview",
+    "hero.preview.alt": "Klarfolio PDF Editor for macOS showing page thumbnails, highlighted PDF text, search, and annotation tools.",
     "features.title": "Everything you need in one native app.",
     "features.lede": "Fast, local, and designed around everyday PDF work.",
     "features.read.title": "Read with clarity",
@@ -38,6 +50,7 @@ const translations = {
     "workflow.item2.body": "Built for offline-first document handling.",
     "workflow.item3.title": "Native foundation",
     "workflow.item3.body": "SwiftUI and PDFKit keep the app aligned with macOS.",
+    "workflow.preview.alt": "Klarfolio PDF Editor detail view with highlighted contract text and signature placeholder.",
     "compare.title": "A modern alternative for Mac.",
     "compare.body": "PDF Expert is a mature commercial benchmark. Klarfolio PDF Editor starts smaller: free, local, native, and focused on core PDF workflows first.",
     "compare.col.capability": "Capability",
@@ -52,11 +65,13 @@ const translations = {
     "compare.position.core": "Core workflow",
     "compare.position.growing": "Growing feature set",
     "compare.position.roadmap": "Roadmap area",
-    "languages.title": "Klarfolio PDF Editor will speak your language.",
-    "languages.body": "English and German are built in first. The localization layer is ready for more major languages later.",
-    "languages.available": "Available",
+    "compare.label": "Klarfolio PDF Editor positioning",
+    "languages.title": "Product information in your language.",
+    "languages.body": "This website is available in English and German. The current app interface is German; further app localization remains future work.",
+    "languages.available": "Website available",
     "languages.planned": "Planned",
     "languages.more": "More languages",
+    "languages.label": "Localization roadmap",
     "roadmap.title": "Roadmap / Coming soon",
     "roadmap.body": "Klarfolio PDF Editor grows step by step, starting with the features that make daily PDF work easier.",
     "roadmap.forms.title": "Forms",
@@ -74,13 +89,43 @@ const translations = {
     "footer.resources": "Resources",
     "footer.guide": "User guide",
     "footer.docs": "Documentation",
-    "footer.positioning": "Positioning"
+    "footer.support": "Support",
+    "footer.privacy": "Privacy",
+    "support.title": "Support",
+    "support.intro": "Practical help for Klarfolio PDF Editor",
+    "support.selfhelp.title": "Start with the guides",
+    "support.selfhelp.body": "The user guide and feature overview explain the available PDF workflows, shortcuts, and current product scope.",
+    "support.tracker.title": "Report a problem",
+    "support.tracker.body": "For reproducible bugs or feature requests, use the public GitHub issue tracker. Please do not attach documents or share sensitive information there.",
+    "support.tracker.link": "Open the public issue tracker",
+    "support.privacy.title": "Privacy and sensitive documents",
+    "support.privacy.body": "Klarfolio PDF Editor is designed for local document work. Read the privacy information before contacting support.",
+    "support.privacy.link": "Read privacy information",
+    "privacy.title": "Privacy information",
+    "privacy.intro": "How Klarfolio PDF Editor handles information",
+    "privacy.content.label": "Privacy information",
+    "privacy.local.title": "Your documents stay on your Mac",
+    "privacy.local.body": "Klarfolio PDF Editor is designed to open, edit, and save PDF files locally. The app does not require an account and does not include a cloud upload service.",
+    "privacy.website.title": "This website",
+    "privacy.website.body": "This static website does not use analytics, advertising pixels, contact forms, or non-essential cookies. It stores only your English/German language choice in your browser's local storage so the selection remains available across pages and later visits. Your browser may still send technical request data, such as an IP address and user-agent, to the hosting provider in order to load the site.",
+    "privacy.support.title": "Support requests",
+    "privacy.support.body": "Support is handled through the public GitHub issue tracker. Do not include PDFs, personal data, passwords, license keys, or other sensitive information in an issue.",
+    "privacy.contact.title": "Contact and publication status",
+    "privacy.contact.body": "The final website operator details, hosting provider details, and a direct privacy contact must be added before a public-domain launch. Until then, this page describes the product and website behavior only.",
+    "privacy.support.link": "Open the support tracker",
+    "privacy.back": "Back to product page"
   },
   de: {
     skip: "Zum Inhalt springen",
     menu: "Menü",
     download: "Kostenlos für macOS laden",
+    "download.coming": "Download demnächst verfügbar",
+    "download.status.coming": "Die erste signierte Version wird vorbereitet. Der Download erscheint hier, sobald sie verfügbar ist.",
+    "download.status.ready": "Klarfolio PDF Editor kann jetzt heruntergeladen werden.",
     viewFeatures: "Funktionen ansehen",
+    "nav.primary": "Hauptnavigation",
+    "brand.home": "Startseite von Klarfolio PDF Editor",
+    "language.label": "Sprache",
     "nav.features": "Funktionen",
     "nav.compare": "Vergleich",
     "nav.languages": "Sprachen",
@@ -90,6 +135,9 @@ const translations = {
     "hero.trust.free": "Kostenlos, ohne Abo",
     "hero.trust.native": "Native macOS-Oberfläche",
     "hero.trust.offline": "Funktioniert offline",
+    "hero.trust.label": "Produktvorteile",
+    "hero.preview.label": "Vorschau der Klarfolio-PDF-Editor-Oberfläche",
+    "hero.preview.alt": "Klarfolio PDF Editor für macOS mit Seitenminiaturen, hervorgehobenem PDF-Text, Suche und Anmerkungswerkzeugen.",
     "features.title": "Alles Wichtige in einer nativen App.",
     "features.lede": "Schnell, lokal und auf tägliche PDF-Arbeit ausgelegt.",
     "features.read.title": "Klar lesen",
@@ -115,6 +163,7 @@ const translations = {
     "workflow.item2.body": "Für Offline-Dokumentarbeit entwickelt.",
     "workflow.item3.title": "Native Grundlage",
     "workflow.item3.body": "SwiftUI und PDFKit halten die App nah an macOS.",
+    "workflow.preview.alt": "Detailansicht des Klarfolio PDF Editors mit hervorgehobenem Vertragstext und Signaturfeld.",
     "compare.title": "Eine moderne Alternative für den Mac.",
     "compare.body": "PDF Expert ist ein ausgereifter kommerzieller Maßstab. Klarfolio PDF Editor startet kleiner: kostenlos, lokal, nativ und zuerst auf zentrale PDF-Workflows fokussiert.",
     "compare.col.capability": "Funktion",
@@ -129,11 +178,13 @@ const translations = {
     "compare.position.core": "Kernworkflow",
     "compare.position.growing": "Wachsender Funktionsumfang",
     "compare.position.roadmap": "Roadmap-Bereich",
-    "languages.title": "Klarfolio PDF Editor spricht Deine Sprache.",
-    "languages.body": "Englisch und Deutsch sind zuerst integriert. Die Lokalisierungsschicht ist für weitere wichtige Sprachen vorbereitet.",
-    "languages.available": "Verfügbar",
+    "compare.label": "Einordnung des Klarfolio PDF Editors",
+    "languages.title": "Produktinformationen in Deiner Sprache.",
+    "languages.body": "Diese Website ist auf Deutsch und Englisch verfügbar. Die aktuelle App-Oberfläche ist deutsch; weitere App-Lokalisierungen bleiben Zukunftsarbeit.",
+    "languages.available": "Website verfügbar",
     "languages.planned": "Geplant",
     "languages.more": "Weitere Sprachen",
+    "languages.label": "Lokalisierungs-Roadmap",
     "roadmap.title": "Roadmap / Demnächst",
     "roadmap.body": "Klarfolio PDF Editor wächst Schritt für Schritt, beginnend mit Funktionen, die tägliche PDF-Arbeit leichter machen.",
     "roadmap.forms.title": "Formulare",
@@ -151,21 +202,56 @@ const translations = {
     "footer.resources": "Ressourcen",
     "footer.guide": "Nutzerhandbuch",
     "footer.docs": "Dokumentation",
-    "footer.positioning": "Einordnung"
+    "footer.support": "Support",
+    "footer.privacy": "Datenschutz",
+    "support.title": "Support",
+    "support.intro": "Praktische Hilfe für Klarfolio PDF Editor",
+    "support.selfhelp.title": "Zuerst in den Anleitungen nachsehen",
+    "support.selfhelp.body": "Nutzerhandbuch und Funktionsübersicht erklären die verfügbaren PDF-Workflows, Kurzbefehle und den aktuellen Produktumfang.",
+    "support.tracker.title": "Problem melden",
+    "support.tracker.body": "Für nachvollziehbare Fehler oder Funktionswünsche steht der öffentliche GitHub-Issue-Tracker zur Verfügung. Bitte füge dort keine Dokumente an und teile keine vertraulichen Informationen.",
+    "support.tracker.link": "Öffentlichen Issue-Tracker öffnen",
+    "support.privacy.title": "Datenschutz und vertrauliche Dokumente",
+    "support.privacy.body": "Klarfolio PDF Editor ist für lokale Dokumentarbeit konzipiert. Lies die Datenschutzinformationen, bevor Du den Support kontaktierst.",
+    "support.privacy.link": "Datenschutzinformationen lesen",
+    "privacy.title": "Datenschutzinformationen",
+    "privacy.intro": "So geht Klarfolio PDF Editor mit Informationen um",
+    "privacy.content.label": "Datenschutzinformationen",
+    "privacy.local.title": "Deine Dokumente bleiben auf Deinem Mac",
+    "privacy.local.body": "Klarfolio PDF Editor ist dafür ausgelegt, PDF-Dateien lokal zu öffnen, zu bearbeiten und zu speichern. Die App benötigt kein Konto und enthält keinen Cloud-Upload-Dienst.",
+    "privacy.website.title": "Diese Website",
+    "privacy.website.body": "Diese statische Website verwendet keine Analytik, Werbepixel, Kontaktformulare oder nicht erforderlichen Cookies. Sie speichert ausschließlich Deine Sprachwahl Deutsch/Englisch im lokalen Browserspeicher, damit die Auswahl auf weiteren Seiten und bei späteren Besuchen erhalten bleibt. Dein Browser kann dennoch technische Anfragedaten wie IP-Adresse und User-Agent an den Hosting-Anbieter übermitteln, damit die Website geladen werden kann.",
+    "privacy.support.title": "Supportanfragen",
+    "privacy.support.body": "Support wird über den öffentlichen GitHub-Issue-Tracker abgewickelt. Bitte veröffentliche dort keine PDFs, personenbezogenen Daten, Passwörter, Lizenzschlüssel oder andere vertrauliche Informationen.",
+    "privacy.contact.title": "Kontakt und Veröffentlichungsstatus",
+    "privacy.contact.body": "Vor einem Start unter einer öffentlichen Domain müssen die endgültigen Angaben zum Websitebetreiber, Hosting-Anbieter und ein direkter Datenschutzkontakt ergänzt werden. Bis dahin beschreibt diese Seite nur das Verhalten von Produkt und Website.",
+    "privacy.support.link": "Support-Tracker öffnen",
+    "privacy.back": "Zur Produktseite"
   }
 };
 
 const futureLocales = ["fr", "es", "it", "pt", "ja", "ko", "zh", "ar", "hi"];
 
-const documentTitle = {
-  en: "Klarfolio PDF Editor - Free PDF Editing for Mac",
-  de: "Klarfolio PDF Editor - PDFs kostenlos auf dem Mac bearbeiten"
+const documentTitles = {
+  home: {
+    en: "Klarfolio PDF Editor - Free PDF Editing for Mac",
+    de: "Klarfolio PDF Editor - PDFs kostenlos auf dem Mac bearbeiten"
+  },
+  privacy: {
+    en: "Privacy information - Klarfolio PDF Editor",
+    de: "Datenschutzinformationen - Klarfolio PDF Editor"
+  },
+  support: {
+    en: "Support - Klarfolio PDF Editor",
+    de: "Support - Klarfolio PDF Editor"
+  }
 };
 
 function setLanguage(language) {
   const activeLanguage = translations[language] ? language : "en";
   document.documentElement.lang = activeLanguage;
-  document.title = documentTitle[activeLanguage];
+  const page = document.body.dataset.page || "home";
+  document.title = (documentTitles[page] || documentTitles.home)[activeLanguage];
 
   document.querySelectorAll("[data-i18n]").forEach((node) => {
     const key = node.getAttribute("data-i18n");
@@ -175,6 +261,16 @@ function setLanguage(language) {
     }
   });
 
+  document.querySelectorAll("[data-i18n-aria]").forEach((node) => {
+    const text = translations[activeLanguage][node.getAttribute("data-i18n-aria")];
+    if (text) node.setAttribute("aria-label", text);
+  });
+
+  document.querySelectorAll("[data-i18n-alt]").forEach((node) => {
+    const text = translations[activeLanguage][node.getAttribute("data-i18n-alt")];
+    if (text) node.setAttribute("alt", text);
+  });
+
   document.querySelectorAll(".language-option").forEach((button) => {
     const isActive = button.dataset.lang === activeLanguage;
     button.classList.toggle("is-active", isActive);
@@ -182,6 +278,58 @@ function setLanguage(language) {
   });
 
   localStorage.setItem("klarfolio-language", activeLanguage);
+  setDownloadState(activeLanguage);
+}
+
+function getReleaseUrl() {
+  const configuredUrl = window.KLARFOLIO_DOWNLOAD_URL
+    || document.querySelector('meta[name="klarfolio-download-url"]')?.content.trim();
+
+  if (!configuredUrl) return null;
+
+  try {
+    const releaseUrl = new URL(configuredUrl, window.location.href);
+    return releaseUrl.protocol === "https:" ? releaseUrl.href : null;
+  } catch {
+    return null;
+  }
+}
+
+function setDownloadState(language) {
+  const releaseUrl = getReleaseUrl();
+  const isReady = Boolean(releaseUrl);
+
+  document.querySelectorAll("[data-download]").forEach((link) => {
+    link.classList.toggle("is-disabled", !isReady);
+    link.setAttribute("aria-disabled", String(!isReady));
+
+    if (isReady) {
+      link.href = releaseUrl;
+      link.textContent = translations[language].download;
+    } else {
+      link.removeAttribute("href");
+      link.textContent = translations[language]["download.coming"];
+    }
+  });
+
+  const status = document.getElementById("download-status");
+  if (status) {
+    status.textContent = translations[language][isReady ? "download.status.ready" : "download.status.coming"];
+  }
+}
+
+function setCanonicalUrl() {
+  const canonical = document.querySelector("[data-site-canonical]");
+  if (!canonical || !configuredSiteUrl) return;
+
+  try {
+    const siteUrl = new URL(configuredSiteUrl);
+    if (siteUrl.protocol !== "https:") return;
+    const page = document.body.dataset.page;
+    canonical.href = new URL(page ? `${page}.html` : "", siteUrl).href;
+  } catch {
+    // An invalid development value must not produce an invalid canonical URL.
+  }
 }
 
 document.querySelectorAll(".language-option").forEach((button) => {
@@ -196,16 +344,19 @@ window.KlarfolioLocales = {
 const navToggle = document.querySelector(".nav-toggle");
 const navMenu = document.querySelector(".nav-menu");
 
-navToggle.addEventListener("click", () => {
-  const isOpen = navMenu.classList.toggle("is-open");
-  navToggle.setAttribute("aria-expanded", String(isOpen));
-});
-
-navMenu.querySelectorAll("a").forEach((link) => {
-  link.addEventListener("click", () => {
-    navMenu.classList.remove("is-open");
-    navToggle.setAttribute("aria-expanded", "false");
+if (navToggle && navMenu) {
+  navToggle.addEventListener("click", () => {
+    const isOpen = navMenu.classList.toggle("is-open");
+    navToggle.setAttribute("aria-expanded", String(isOpen));
   });
-});
+
+  navMenu.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => {
+      navMenu.classList.remove("is-open");
+      navToggle.setAttribute("aria-expanded", "false");
+    });
+  });
+}
 
 setLanguage(localStorage.getItem("klarfolio-language") || "en");
+setCanonicalUrl();
