@@ -54,6 +54,19 @@ Diese Datei dokumentiert den aktuellen Funktionsumfang aus Nutzersicht.
 | Formen | Nicht umgesetzt | Rechteck, Linie, Pfeil und Polygon fehlen noch. |
 | Audio-Kommentare | Nicht umgesetzt | Nicht Teil des aktuellen MVP. |
 
+## PDF-Formulare
+
+| Feature | Status | Beschreibung |
+| --- | --- | --- |
+| Vorhandene Textfelder ausfüllen | Umgesetzt | Erkennt unterstützte PDF-Formularfelder und bietet ihre sichere Bearbeitung ausschließlich im Bereich `Formularfelder` des Bearbeitungsmodus an. |
+| Checkboxen ändern | Umgesetzt | Schaltet vorhandene Formular-Checkboxen über denselben zentralen, nachvollziehbaren Bearbeitungspfad um. |
+| Formularänderungen speichern | Umgesetzt | Kennzeichnet tatsächliche Änderungen als ungespeichert, schützt sie beim Dokumentwechsel und erhält Text- sowie Checkboxwerte nach dem erneuten Öffnen. |
+| Schreibgeschützte Formularfelder | Umgesetzt | Respektiert als schreibgeschützt markierte PDF-Felder; im Lesemodus bleiben sämtliche Formular-Widgets unveränderbar. |
+| Formularfelder erstellen | Nicht umgesetzt | Es werden ausschließlich bereits vorhandene, unterstützte Textfelder und Checkboxen ausgefüllt. |
+| Passwort-Formularfelder | Nicht umgesetzt | Als Passwort markierte PDF-Felder werden nicht als lesbares Textfeld angezeigt. |
+| Radio- und Auswahlfelder | Nicht umgesetzt | Weitere Formularfeldtypen werden erst bei konkretem lokalem Bedarf ergänzt. |
+| Digitale Signaturen | Nicht umgesetzt | Kryptografische Signaturfelder und Zertifikatssignaturen sind nicht Teil der Formularfunktion. |
+
 ## Seitenorganisation
 
 | Feature | Status | Beschreibung |

@@ -37,7 +37,7 @@ Ungespeicherte Änderungen werden im Bearbeitungsmodus unten in der Statusleiste
 
 ## Ungespeicherte Änderungen schützen
 
-Wenn das aktuelle Dokument noch nicht gesicherte Änderungen enthält, fragt Klarfolio vor einem neuen Dokument, dem Öffnen einer anderen PDF, dem Öffnen über den Finder, dem Schließen des Fensters oder dem Beenden der App nach:
+Wenn das aktuelle Dokument noch nicht gesicherte Änderungen enthält, fragt Klarfolio vor einem neuen Dokument, dem Öffnen einer anderen PDF, dem Öffnen über den Finder, dem Schließen des Fensters oder dem Beenden der App nach. Das gilt ausdrücklich auch für ausgefüllte Textfelder und geänderte Checkboxen:
 
 - `Speichern` sichert das aktuelle Dokument und führt die gewünschte Aktion erst nach erfolgreichem Schreiben aus.
 - `Verwerfen` verwirft die offenen Änderungen und führt die gewünschte Aktion aus.
@@ -63,6 +63,19 @@ Das Suchfeld in der Werkzeugleiste ist im Bearbeitungsmodus sichtbar und sucht i
 - Das Löschsymbol setzt die Suche zurück.
 
 Hinweis: Gescannte PDFs ohne eingebetteten Text benötigen OCR, bevor sie zuverlässig durchsucht werden können. OCR ist aktuell noch nicht implementiert.
+
+## PDF-Formulare ausfüllen
+
+Vorhandene PDF-Formulare können auf dem Mac sicher ausgefüllt werden:
+
+1. Öffne die PDF und wechsle mit `Bearbeiten` in den Bearbeitungsmodus.
+2. Enthält das Dokument unterstützte Formularfelder, erscheint rechts oben der Bereich `Formularfelder`.
+3. Gib neue Werte in vorhandene Textfelder ein oder aktiviere beziehungsweise deaktiviere vorhandene Checkboxen.
+4. Speichere das Dokument. Die neuen Formularwerte bleiben beim erneuten Öffnen erhalten.
+
+Jede tatsächliche Änderung wird als ungespeichert gekennzeichnet und durch dieselbe Sicherheitsabfrage geschützt wie andere PDF-Bearbeitungen. Als schreibgeschützt markierte Formularfelder können nicht verändert werden; vorhandene Zeichenlimits werden berücksichtigt. Im Lesemodus ist die Formularoberfläche ausgeblendet; direkte Eingaben in PDF-Widgets und formularzurücksetzende Link-Aktionen bleiben ebenfalls gesperrt. Auch im Bearbeitungsmodus erfolgt die Änderung bewusst über `Formularfelder`, damit sie zuverlässig erkannt, angezeigt und gespeichert wird.
+
+Die Funktion füllt bereits vorhandene Textfelder und Checkboxen aus. Passwortfelder werden bewusst nicht als lesbarer Text dargestellt. Die App erstellt keine neuen Formularfelder und bietet keine kryptografischen Signaturen an.
 
 ## Seiten bearbeiten
 
@@ -100,7 +113,7 @@ Farbe und Schriftgröße werden im Werkzeugbereich eingestellt. Für Marker, Unt
 
 ## Grenzen des aktuellen MVP
 
-Klarfolio PDF Editor bearbeitet derzeit keine vorhandenen PDF-Textobjekte direkt. Textfelder sind Anmerkungen, keine Änderungen am ursprünglichen PDF-Inhalt. Vorhandene PDF-Formularfelder werden angezeigt, bleiben aber bis zur Einführung einer verlässlichen Formular- und Speicherfunktion in beiden Arbeitsmodi schreibgeschützt. Ebenso fehlen aktuell OCR, Schwärzung, Passwortschutz, Komprimierung, Office-Export und KI-gestützte Zusammenfassungen.
+Klarfolio PDF Editor bearbeitet derzeit keine vorhandenen PDF-Textobjekte direkt. Frei eingefügte Textfelder sind Anmerkungen, keine Änderungen am ursprünglichen PDF-Inhalt; vorhandene PDF-Formular-Textfelder und Checkboxen können dagegen über den eigenen Bereich `Formularfelder` ausgefüllt werden. Das Erstellen neuer Formularfelder sowie kryptografische Signaturen werden nicht unterstützt. Ebenso fehlen aktuell OCR, Schwärzung, Passwortschutz, Komprimierung, Office-Export und KI-gestützte Zusammenfassungen.
 
 ## Datenschutz
 
