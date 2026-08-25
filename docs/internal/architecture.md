@@ -19,7 +19,8 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 - PDFKit besitzt die PDF-Anzeige, PDF-Dokumente, Seiten und Annotationen.
 - AppKit-Brücken bleiben auf `PDFCanvasView` und die kleine native Fensteranbindung für Dokumentkennzeichnung und Schließschutz begrenzt.
 - `PDFDocumentStore` ist die zentrale Main-Actor-Quelle für Dokumentzustand, Auswahl, Statusmeldungen, Arbeitsmodus und PDF-Aktionen.
-- Der Arbeitsmodus startet ohne gespeicherte Einstellung im Lesemodus und wird ausschließlich lokal in `UserDefaults` persistiert; für Tests können isolierte Preference-Suites injiziert werden.
+- Jeder neu initialisierte Store startet ausdrücklich im Lesemodus, auch wenn `UserDefaults` aus einer früheren Sitzung noch `editing` enthält. Moduswechsel werden weiterhin ausschließlich lokal abgelegt; sie dürfen weder einen App-Neustart noch das erfolgreiche Öffnen einer vorhandenen PDF in die Bearbeitung zwingen. Für Tests können isolierte Preference-Suites injiziert werden.
+- Eine erfolgreich geladene vorhandene PDF setzt den Arbeitsmodus erst nach bestandenem Dokumentwechsel-Guard und erfolgreichem PDF-Laden auf `reading`; ein abgebrochener Guard oder eine ungültige Datei lässt Dokument, Dirty-State und bisherigen Arbeitsmodus unverändert.
 - Ein zentraler Dokumentwechsel-Guard bewertet `isDirty`, fragt `Speichern`/`Verwerfen`/`Abbrechen` ab und setzt Aktionen nur nach tatsächlichem Speichererfolg fort; Dialog- und Speicherentscheidungen sind für Regressionstests injizierbar.
 - Vorhandene PDF-Textfelder und Checkboxen werden im Store als überprüfbare Feldmodelle erfasst; Passwort-, Radio- und andere nicht unterstützte Felder bleiben ausgeschlossen. Jede zulässige Änderung läuft ausschließlich im Bearbeitungsmodus über zentrale Store-Aktionen mit Dirty-Tracking, Statusmeldung und regulärer PDF-Speicherung.
 - Der Lesemodus ist auch auf Menü-, Tastenkürzel- und Fensterzustandsebene schreibgeschützt; `NSWindow.isDocumentEdited` bleibt unabhängig von der ausgeblendeten Statusleiste aktuell.
@@ -36,12 +37,14 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 | `InspectorView.swift` | Werkzeug-, Anmerkungs-, Seiten- und Dokumentaktionen sowie die sichere Oberfläche für vorhandene PDF-Textfelder und Checkboxen. |
 | `PDFCanvasView.swift` | `NSViewRepresentable` für `PDFView`, PDFKit-Benachrichtigungen, native Dateidrops und Anmerkungsinteraktionen ausschließlich im Bearbeitungsmodus. |
 | `PrivacyNoticeView.swift` | Direkt in der App erreichbare Zusammenfassung der lokalen Datenverarbeitung. |
-| `PDFDocumentStore.swift` | Persistierter Lese-/Bearbeitungsmodus, zentraler Schutz ungespeicherter Änderungen, nachvollziehbare Formularerkennung/-bearbeitung, erfolgsbasierte Speicheraktionen, Öffnen, Seitenaktionen einschließlich Extrahieren/Teilen, Suche, Zoom, Link- und andere Annotationen. |
+| `PDFDocumentStore.swift` | Deterministischer Lesemodus bei App-Start und erfolgreichem Öffnen vorhandener PDFs, expliziter Bearbeitungswechsel, zentraler Schutz ungespeicherter Änderungen, nachvollziehbare Formularerkennung/-bearbeitung, erfolgsbasierte Speicheraktionen, Seitenaktionen einschließlich Extrahieren/Teilen, Suche, Zoom, Link- und andere Annotationen. |
 | `PDFModels.swift` | UI-Enums für Arbeitsmodus, Seitenleistenbereiche, Werkzeuge, Farben und Layouts. |
 | `PDFFormModels.swift` | Stabile, überprüfbare Modelle vorhandener PDF-Textfelder und Checkboxen mit Feldidentität, Seite, Wert, Schreibschutz und Zeichenlimit. |
 | `PDFUtilities.swift` | Hilfsfunktionen für leere Seiten, Anzeigegrößen und Dateinamen. |
 | `PDFFileDrop.swift` | Reine, testbare Klassifikation lokaler PDF- und Bild-Drops einschließlich Lese-/Bearbeitungsmodus und Ablehnung mehrdeutiger Eingaben. |
 | `TestFixtures/` | Synthetische, versionierte und lizenzfreie Referenz-PDFs mit dokumentierter Herkunft und erwartetem Verhalten. |
+| `script/install_local_dev.sh` | Aktualisiert ausschließlich die Entwicklungs-App, verweigert den Build bei laufendem exakt identifiziertem Dev-Prozess und beendet niemals andere App-Varianten oder isolierte UI-Smokes. |
+| `script/build_and_run.sh` | Baut ausschließlich das Repository-Bundle unter `dist/`, blockiert bei dessen laufendem exakt identifiziertem Prozess und prüft mit `--verify` ausschließlich diesen Executable-Pfad; installierte Apps und UI-Smokes bleiben unberührt. |
 | `script/run_ui_smoke.sh` | Reproduzierbarer macOS-Smoke für zentrale App-, Dokumentenschutz-, Formular- und Oberflächenabläufe. |
 
 ## Datenfluss
@@ -51,9 +54,9 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 3. `PDFCanvasView` synchronisiert das SwiftUI-Modell mit `PDFView`.
 4. `PDFView` sendet Seiten- und Zoomänderungen über PDFKit-Benachrichtigungen zurück an den Store.
 5. Der Store veröffentlicht Status, Seitenindex, Zoom und Dirty-State an die Oberfläche.
-6. Der Arbeitsmodus steuert Seitenleistensichtbarkeit, Inspektor, Toolbar und Statusleiste; beim Wechsel in den Lesemodus werden Anmerkungsauswahl und Bearbeitungswerkzeug zurückgesetzt, ohne das Dokument zu verändern.
-7. Bevor ein dirty Dokument ersetzt, ein Fenster geschlossen oder die App beendet wird, entscheidet derselbe Store-Guard zwischen Speichern, Verwerfen und Abbrechen; fehlgeschlagene oder abgebrochene Speicherung blockiert den Folgeschritt.
-8. Finder-Drops auf `PDFView` werden über `UTType` klassifiziert: einzelne PDFs öffnen in beiden Modi über den Dokumentwechsel-Guard; Bilddateien importiert ausschließlich der Bearbeitungsmodus.
+6. Der Arbeitsmodus steuert Seitenleistensichtbarkeit, Inspektor, Toolbar und Statusleiste; bei jedem App-Start und erfolgreichen Öffnen einer vorhandenen PDF gilt der Lesemodus. Beim Wechsel in den Lesemodus werden Anmerkungsauswahl und Bearbeitungswerkzeug zurückgesetzt, ohne das Dokument zu verändern.
+7. Bevor ein dirty Dokument ersetzt, ein Fenster geschlossen oder die App beendet wird, entscheidet derselbe Store-Guard zwischen Speichern, Verwerfen und Abbrechen; fehlgeschlagene oder abgebrochene Speicherung blockiert den Folgeschritt und erhält den bisherigen Arbeitsmodus.
+8. Finder-Drops auf `PDFView` werden über `UTType` klassifiziert: einzelne PDFs öffnen in beiden Modi über den Dokumentwechsel-Guard und erscheinen nach erfolgreichem Laden im Lesemodus; Bilddateien importiert ausschließlich der Bearbeitungsmodus. Das ausdrückliche Erstellen eines neuen PDFs darf dagegen unmittelbar in die Bearbeitung wechseln.
 9. Nach dem Dokumentwechsel erfasst der Store unterstützte Formular-Widgets; Text- und Checkboxänderungen aus dem SwiftUI-Inspektor prüfen Bearbeitungsmodus, Feldtyp, Schreibschutz und tatsächliche Wertänderung, bevor sie PDFKit und Dirty-State aktualisieren.
 10. Direkte PDFKit-Widget-Eingaben sowie formularzurücksetzende Link-Aktionen bleiben in beiden Arbeitsmodi blockiert, damit keine Änderung den zentralen Dokumentenschutz umgehen kann.
 

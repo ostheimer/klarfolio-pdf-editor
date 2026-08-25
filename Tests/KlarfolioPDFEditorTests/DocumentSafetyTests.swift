@@ -60,9 +60,17 @@ struct DocumentSafetyTests {
         defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
 
         let replacementURL = try makePDF(in: temporaryDirectory, named: "Anderes Dokument.pdf")
-        let store = PDFDocumentStore(unsavedChangesDecisionProvider: { _ in .cancel })
+        let suiteName = "at.ostheimer.klarfoliopdf.DocumentSafety.\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+        let store = PDFDocumentStore(
+            preferences: preferences,
+            unsavedChangesDecisionProvider: { _ in .cancel }
+        )
         #expect(store.createBlankDocument())
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
+        store.selectedTool = .text
 
         let originalDocument = try #require(store.document)
         let originalRevision = store.revision
@@ -76,6 +84,8 @@ struct DocumentSafetyTests {
         #expect(store.isDirty)
         #expect(store.revision == originalRevision)
         #expect(store.statusMessage == originalStatus)
+        #expect(store.workspaceMode == .editing)
+        #expect(store.selectedTool == .text)
     }
 
     @Test("Verwerfen ermöglicht das Erstellen eines neuen Dokuments")
@@ -107,15 +117,27 @@ struct DocumentSafetyTests {
         defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
 
         let replacementURL = try makePDF(in: temporaryDirectory, named: "Ersatz.pdf")
-        let store = PDFDocumentStore(unsavedChangesDecisionProvider: { _ in .discard })
+        let suiteName = "at.ostheimer.klarfoliopdf.DocumentSafety.\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+        var modeDuringConfirmation: PDFWorkspaceMode?
+        let store = PDFDocumentStore(preferences: preferences, unsavedChangesDecisionProvider: { store in
+            modeDuringConfirmation = store.workspaceMode
+            return .discard
+        })
         #expect(store.createBlankDocument())
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
+        store.selectedTool = .text
 
         #expect(store.loadDocument(from: replacementURL))
         #expect(store.fileURL == replacementURL)
         #expect(store.pageCount == 1)
         #expect(!store.isDirty)
         #expect(store.statusMessage == "Ersatz.pdf geöffnet")
+        #expect(modeDuringConfirmation == .editing)
+        #expect(store.workspaceMode == .reading)
+        #expect(store.selectedTool == .select)
     }
 
     @Test("Speichern schreibt Änderungen vor dem Dokumentwechsel tatsächlich auf die Festplatte")
@@ -126,12 +148,18 @@ struct DocumentSafetyTests {
 
         let originalURL = try makePDF(in: temporaryDirectory, named: "Original.pdf")
         let replacementURL = try makePDF(in: temporaryDirectory, named: "Ersatz.pdf")
+        let suiteName = "at.ostheimer.klarfoliopdf.DocumentSafety.\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
         var confirmationCount = 0
-        let store = PDFDocumentStore(unsavedChangesDecisionProvider: { _ in
+        var modeDuringConfirmation: PDFWorkspaceMode?
+        let store = PDFDocumentStore(preferences: preferences, unsavedChangesDecisionProvider: { store in
             confirmationCount += 1
+            modeDuringConfirmation = store.workspaceMode
             return .save
         })
         #expect(store.loadDocument(from: originalURL))
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
 
         #expect(store.isDirty)
@@ -142,6 +170,8 @@ struct DocumentSafetyTests {
         #expect(store.pageCount == 1)
         #expect(!store.isDirty)
         #expect(confirmationCount == 1)
+        #expect(modeDuringConfirmation == .editing)
+        #expect(store.workspaceMode == .reading)
     }
 
     @Test("Formularänderungen werden vor einem Dokumentwechsel vollständig gespeichert")
@@ -164,6 +194,8 @@ struct DocumentSafetyTests {
         })
         store.setWorkspaceMode(.editing)
         #expect(store.loadDocument(from: sourceURL))
+        #expect(store.workspaceMode == .reading)
+        store.setWorkspaceMode(.editing)
 
         let textField = try #require(store.formFields.first { $0.name == "KlarfolioName" })
         let checkbox = try #require(store.formFields.first { $0.name == "KlarfolioConsent" })
@@ -189,6 +221,7 @@ struct DocumentSafetyTests {
         #expect(store.formFields.isEmpty)
         #expect(!store.isDirty)
         #expect(confirmationCount == 1)
+        #expect(store.workspaceMode == .reading)
     }
 
     @Test("Abbrechen schützt ungespeicherte Formularwerte auch im Lesemodus")
@@ -210,6 +243,8 @@ struct DocumentSafetyTests {
         })
         store.setWorkspaceMode(.editing)
         #expect(store.loadDocument(from: sourceURL))
+        #expect(store.workspaceMode == .reading)
+        store.setWorkspaceMode(.editing)
 
         let textField = try #require(store.formFields.first { $0.name == "KlarfolioName" })
         #expect(store.updateFormTextField(textField.id, value: "Noch nicht gespeichert"))
@@ -252,6 +287,8 @@ struct DocumentSafetyTests {
         )
         store.setWorkspaceMode(.editing)
         #expect(store.loadDocument(from: sourceURL))
+        #expect(store.workspaceMode == .reading)
+        store.setWorkspaceMode(.editing)
 
         let checkbox = try #require(store.formFields.first { $0.name == "KlarfolioConsent" })
         #expect(store.updateFormCheckbox(checkbox.id, isOn: false))
@@ -267,6 +304,7 @@ struct DocumentSafetyTests {
             $0.fieldName == "KlarfolioConsent"
         }?.buttonWidgetState == .onState)
         #expect(saveAttemptCount == 1)
+        #expect(store.workspaceMode == .editing)
     }
 
     @Test("Abgebrochenes oder fehlgeschlagenes Speichern verhindert den Dokumentwechsel")
@@ -276,8 +314,12 @@ struct DocumentSafetyTests {
         defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
 
         let replacementURL = try makePDF(in: temporaryDirectory, named: "Ersatz.pdf")
+        let suiteName = "at.ostheimer.klarfoliopdf.DocumentSafety.\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
         var saveAttemptCount = 0
         let store = PDFDocumentStore(
+            preferences: preferences,
             unsavedChangesDecisionProvider: { _ in .save },
             saveChangesHandler: { _ in
                 saveAttemptCount += 1
@@ -285,6 +327,7 @@ struct DocumentSafetyTests {
             }
         )
         #expect(store.createBlankDocument())
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
         let originalDocument = try #require(store.document)
 
@@ -294,6 +337,7 @@ struct DocumentSafetyTests {
         #expect(store.pageCount == 2)
         #expect(store.isDirty)
         #expect(saveAttemptCount == 1)
+        #expect(store.workspaceMode == .editing)
     }
 
     @Test("Ein angeblich erfolgreiches Speichern mit verbleibenden Änderungen wird zurückgewiesen")
@@ -409,8 +453,13 @@ struct DocumentSafetyTests {
 
         let firstURL = try makePDF(in: temporaryDirectory, named: "Erstes Finder-Dokument.pdf")
         let ignoredURL = try makePDF(in: temporaryDirectory, named: "Weiteres Finder-Dokument.pdf")
+        let suiteName = "at.ostheimer.klarfoliopdf.DocumentSafety.\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
         let delegate = AppDelegate()
-        let store = PDFDocumentStore()
+        let store = PDFDocumentStore(preferences: preferences)
+        store.setWorkspaceMode(.editing)
+        store.selectedTool = .text
 
         #expect(!delegate.openExternalDocumentURLs([firstURL]))
         #expect(!delegate.openExternalDocumentURLs([ignoredURL]))
@@ -422,6 +471,8 @@ struct DocumentSafetyTests {
         #expect(store.fileURL == firstURL)
         #expect(store.pageCount == 1)
         #expect(!store.isDirty)
+        #expect(store.workspaceMode == .reading)
+        #expect(store.selectedTool == .select)
 
         delegate.register(documentStore: store)
         #expect(store.document === loadedDocument)
@@ -438,12 +489,16 @@ struct DocumentSafetyTests {
         let equivalentURL = URL(
             fileURLWithPath: temporaryDirectory.path + "/./" + replacementURL.lastPathComponent
         )
+        let suiteName = "at.ostheimer.klarfoliopdf.DocumentSafety.\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
         var confirmationCount = 0
-        let store = PDFDocumentStore(unsavedChangesDecisionProvider: { _ in
+        let store = PDFDocumentStore(preferences: preferences, unsavedChangesDecisionProvider: { _ in
             confirmationCount += 1
             return .cancel
         })
         #expect(store.createBlankDocument())
+        store.setWorkspaceMode(.editing)
         let originalDocument = try #require(store.document)
         let delegate = AppDelegate()
         delegate.register(documentStore: store)
@@ -454,6 +509,7 @@ struct DocumentSafetyTests {
         #expect(store.document === originalDocument)
         #expect(store.fileURL == nil)
         #expect(store.isDirty)
+        #expect(store.workspaceMode == .editing)
     }
 
     @Test("Reentrante Finder-Zustellungen können keinen zweiten Dialog öffnen")
@@ -515,12 +571,16 @@ struct DocumentSafetyTests {
 
         let invalidURL = temporaryDirectory.appendingPathComponent("Defekt.pdf")
         try Data("Das ist keine PDF-Datei".utf8).write(to: invalidURL)
+        let suiteName = "at.ostheimer.klarfoliopdf.DocumentSafety.\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
         var confirmationCount = 0
-        let store = PDFDocumentStore(unsavedChangesDecisionProvider: { _ in
+        let store = PDFDocumentStore(preferences: preferences, unsavedChangesDecisionProvider: { _ in
             confirmationCount += 1
             return .discard
         })
         #expect(store.createBlankDocument())
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
         let originalDocument = try #require(store.document)
 
@@ -530,6 +590,7 @@ struct DocumentSafetyTests {
         #expect(store.isDirty)
         #expect(store.statusMessage == "Die Datei konnte nicht geöffnet werden.")
         #expect(confirmationCount == 0)
+        #expect(store.workspaceMode == .editing)
     }
 
     @Test("Speichern ohne geöffnetes Dokument meldet keinen Erfolg")

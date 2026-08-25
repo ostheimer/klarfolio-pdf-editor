@@ -12,7 +12,7 @@ usage() {
     "  - dirty-state visibility and protection for New, Close, and Quit" \
     "  - safely filling and saving a private copy of the PDF form fixture" \
     "  - read-only form protection and PDFKit persistence readback" \
-    "  - restoring editing mode after an application restart" \
+    "  - resetting to reading mode after every successful open and app restart" \
     "" \
     "--require-ui fails when no graphical session or accessibility access exists." \
     "--allow-headless reports an explicit skipped UI check in that situation."
@@ -152,6 +152,10 @@ func button(titled expectedTitle: String, in application: NSRunningApplication) 
 
 func pauseBriefly() {
     RunLoop.current.run(until: Date().addingTimeInterval(0.12))
+}
+
+func pause(for duration: TimeInterval) {
+    RunLoop.current.run(until: Date().addingTimeInterval(duration))
 }
 
 func awaitCondition(
@@ -475,7 +479,9 @@ do {
     defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
 
     let writableFormURL = temporaryDirectory.appendingPathComponent("Klarfolio-Formular-UI-Smoke.pdf")
+    let unreadablePDFURL = temporaryDirectory.appendingPathComponent("Nicht-lesbare-UI-Smoke.pdf")
     try FileManager.default.copyItem(at: formFixtureURL, to: writableFormURL)
+    try Data("This is intentionally not a PDF.".utf8).write(to: unreadablePDFURL)
     var activeApplication: NSRunningApplication?
     defer {
         if let activeApplication, !activeApplication.isTerminated {
@@ -500,15 +506,8 @@ do {
     try awaitCondition("the workspace-mode toolbar button") {
         element(named: "workspaceModeToggle", in: application) != nil
     }
-    guard let initialToggle = element(named: "workspaceModeToggle", in: application) else {
-        throw SmokeFailure(description: "the initial workspace-mode button disappeared")
-    }
-    let originalModeWasEditing = visibleText(of: initialToggle).contains("Lesen")
-
-    if originalModeWasEditing {
-        try pressWorkspaceToggle(in: application)
-    }
     try expectReadingMode(in: application)
+    print("PASS a fresh app launch starts in reading mode")
 
     try openFixture()
     try awaitCondition("the three-page PDF fixture to appear in the window title") {
@@ -541,16 +540,19 @@ do {
     try pressCommandShortcut(keyCode: 13, description: "Command-W", in: application)
     try expectUnsavedChangesAlert(in: application)
     try cancelAndExpectOriginalDocument(in: application)
+    try expectEditingMode(in: application)
     print("PASS Command-W warns before closing and Cancel preserves the dirty PDF")
 
     try pressCommandShortcut(keyCode: 12, description: "Command-Q", in: application)
     try expectUnsavedChangesAlert(in: application)
     try cancelAndExpectOriginalDocument(in: application)
+    try expectEditingMode(in: application)
     print("PASS Command-Q warns before quitting and Cancel keeps the application open")
 
     try pressCommandShortcut(keyCode: 45, description: "Command-N", in: application)
     try expectUnsavedChangesAlert(in: application)
     try cancelAndExpectOriginalDocument(in: application)
+    try expectEditingMode(in: application)
     print("PASS Command-N warns before document loss and Cancel preserves the dirty PDF")
 
     try openFixture()
@@ -558,18 +560,28 @@ do {
     try pressSafetyAction("documentSafety.discard", in: application)
     try awaitCondition("Discard to reopen the unchanged source PDF") {
         element(named: "documentSafety.discard", in: application) == nil
-            && snapshot(for: application).contains {
-                visibleText(of: $0) == "Gespeichert"
-            }
+            && (element(named: "workspaceModeToggle", in: application).map {
+                visibleText(of: $0).contains("Bearbeiten")
+            } ?? false)
     }
     try check(
         try Data(contentsOf: fixtureURL) == originalFixtureData,
         "the UI smoke unexpectedly modified the versioned source fixture"
     )
-    print("PASS explicitly discarding changes reopens the original PDF without modifying it")
+    try expectReadingMode(in: application)
+    print("PASS explicitly discarding changes reopens the original PDF in reading mode without modifying it")
 
     try pressWorkspaceToggle(in: application)
-    try expectReadingMode(in: application)
+    try expectEditingMode(in: application)
+    try openFixture(unreadablePDFURL)
+    pause(for: 0.8)
+    try check(
+        snapshot(for: application).contains { visibleText(of: $0).contains(fixtureURL.lastPathComponent) },
+        "opening an unreadable PDF replaced the valid current document"
+    )
+    try expectEditingMode(in: application)
+    print("PASS an unreadable PDF keeps the current document and explicit editing mode")
+
     try openFixture(writableFormURL)
     try awaitCondition("the private PDF form copy to appear in reading mode") {
         snapshot(for: application).contains {
@@ -643,7 +655,16 @@ do {
             visibleText(of: $0).contains(fixtureURL.lastPathComponent)
         }
     }
+    try expectReadingMode(in: application)
     try openFixture(writableFormURL)
+    try awaitCondition("the saved PDF form to reopen in reading mode") {
+        snapshot(for: application).contains {
+            visibleText(of: $0).contains(writableFormURL.lastPathComponent)
+        }
+    }
+    try expectReadingMode(in: application)
+    try pressWorkspaceToggle(in: application)
+    try expectEditingMode(in: application)
     try awaitCondition("the saved PDF form to reopen with both persisted field values") {
         snapshot(for: application).contains {
             visibleText(of: $0).contains(writableFormURL.lastPathComponent)
@@ -671,8 +692,11 @@ do {
             && snapshot(for: application).contains {
                 visibleText(of: $0).contains(fixtureURL.lastPathComponent)
             }
-            && snapshot(for: application).contains { visibleText(of: $0) == "Gespeichert" }
+            && (element(named: "workspaceModeToggle", in: application).map {
+                visibleText(of: $0).contains("Bearbeiten")
+            } ?? false)
     }
+    try expectReadingMode(in: application)
     try expectPersistedForm(at: writableFormURL, text: savedOnReplacementText, checkbox: true)
     try check(
         try Data(contentsOf: formFixtureURL) == originalFormFixtureData,
@@ -684,23 +708,17 @@ do {
     )
     print("PASS saving through the replacement warning preserves the form without touching either source fixture")
 
+    try pressWorkspaceToggle(in: application)
+    try expectEditingMode(in: application)
+    print("PASS editing mode remains an explicit opt-in before restart")
+
     try terminate(application)
     activeApplication = nil
 
     application = try launch()
     activeApplication = application
-    try expectEditingMode(in: application)
-    print("PASS editing mode persists after a clean app restart")
-
-    try pressWorkspaceToggle(in: application)
     try expectReadingMode(in: application)
-    print("PASS switching back to reading mode restores the reduced interface")
-
-    if originalModeWasEditing {
-        try pressWorkspaceToggle(in: application)
-        try expectEditingMode(in: application)
-        print("PASS the pre-existing editing-mode preference was restored")
-    }
+    print("PASS a clean restart resets an earlier editing session to reading mode")
 
     try terminate(application)
     activeApplication = nil

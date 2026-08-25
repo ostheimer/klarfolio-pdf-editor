@@ -20,7 +20,7 @@ Klarfolio PDF Editor ist aktuell ein lokales macOS-MVP. Es deckt die Grundfläch
 
 | Bereich | PDF Expert laut öffentlicher Produktseiten | Klarfolio PDF Editor aktuell | Einordnung |
 | --- | --- | --- | --- |
-| PDF lesen | Mehrere Lese- und Ansichtsmodi, Tag/Nacht/Sepia, vertikales und horizontales Scrollen. | Native PDFKit-Anzeige mit schreibgeschütztem, ablenkungsarmem Lesemodus, fortlaufender Ansicht, Einzelseite, Doppelseite und Zoom. | Guter lokaler Reader-Grundstock; Lesethemen und weitere Komfortmodi fehlen. |
+| PDF lesen | Mehrere Lese- und Ansichtsmodi, Tag/Nacht/Sepia, vertikales und horizontales Scrollen. | Native PDFKit-Anzeige mit schreibgeschütztem, ablenkungsarmem Lesemodus bei jedem App-Start und jeder erfolgreich geöffneten vorhandenen PDF, fortlaufender Ansicht, Einzelseite, Doppelseite und Zoom. | Guter lokaler Reader-Grundstock mit ausdrücklichem Wechsel zur Bearbeitung; Lesethemen und weitere Komfortmodi fehlen. |
 | Suche | Suche in PDFs, laut Featureseite auch über mehrere PDFs und Notizen. | Suche im geöffneten PDF mit Treffer-Hervorhebung. | Basis vorhanden, Multi-Dokument- und Notizsuche fehlen. |
 | Anmerkungen | Hervorheben, Kommentare, Stempel, Text, Sticker, teils Audio und Formen. | Textfeld, Notiz, Marker, Unterstreichen, Durchstreichen, Stempel, Signaturfeld-Platzhalter sowie Auswahl, Verschieben und Bearbeiten vorhandener Nicht-Widget-Anmerkungen. | Kern vorhanden; Zeichenwerkzeuge, Formen und Audio fehlen. |
 | Direkte Textbearbeitung | Vorhandenen PDF-Text ändern, Absätze ergänzen, Schriften bearbeiten. | Nicht umgesetzt. Textfelder sind Annotationen. | Große Lücke gegenüber PDF Expert. |
@@ -55,7 +55,7 @@ Klarfolio PDF Editor sollte kurzfristig nicht als vollständiger PDF-Expert-Ersa
 | Abgeschlossen (P1) | Annotationen auswählen, verschieben und bearbeiten | Macht vorhandene MVP-Funktionen wirklich nutzbar. |
 | Abgeschlossen (P1) | Seiten extrahieren und Dokument teilen | Nahe an bestehender Seitenlogik, hoher Alltagsnutzen. |
 | Abgeschlossen (P1) | Link-Annotationen | Schließt eine sichtbare Lücke mit überschaubarem PDFKit-Aufwand. |
-| Abgeschlossen (lokaler Betrieb) | Schreibgeschützter Lesemodus und Schutz ungespeicherter Änderungen | Verhindert versehentliche Bearbeitung und Datenverlust beim täglichen Arbeiten auf dem Mac. |
+| Abgeschlossen (lokaler Betrieb) | Schreibgeschützter Lesemodus bei jedem Start/Öffnen und Schutz ungespeicherter Änderungen | Verhindert versehentliche Bearbeitung und Datenverlust beim täglichen Arbeiten auf dem Mac; vorhandene PDFs öffnen sich nie unmittelbar mit eingeblendeten Werkzeugen. |
 | Abgeschlossen (P2) | Sicherer PDF- und Bild-Drag-and-drop | Öffnet lokale PDFs direkt und importiert Bilder ausschließlich im Bearbeitungsmodus. |
 | Abgeschlossen (P2) | Vorhandene Textfelder und Checkboxen sicher ausfüllen | Hilft bei Verträgen, Bewerbungen und Behörden-PDFs; Änderungen bleiben nachvollziehbar, speicherbar und im Lesemodus gesperrt. |
 | P2 | Sichere Schwärzung | Hoher Nutzen, aber nur mit echter Inhaltsentfernung veröffentlichen. |

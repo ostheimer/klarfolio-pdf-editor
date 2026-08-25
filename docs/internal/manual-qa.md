@@ -6,7 +6,7 @@ Dieser Katalog ist die Freigabegrundlage für eine sandboxed Release-App. Er erg
 
 Teste einen **release-signierten** Build auf einem Mac mit macOS 14 oder neuer. Die Testperson hält pro Fall fest: Test-ID, Build/Bundle-ID, macOS-Version, Datum, Ergebnis (`PASS`, `FAIL` oder `BLOCKED`), tatsächliches Ergebnis und einen Evidenzverweis. Ein `PASS` ohne passende Evidenz gilt nicht als abgeschlossen.
 
-Für Fälle, die Seitenleiste, Inspektor, Suche oder Statuszeile voraussetzen, zunächst über `Bearbeiten` in den Bearbeitungsmodus wechseln. Den reduzierten Standardzustand und die Umschaltung prüfen QA-44 bis QA-46 gesondert.
+Für Fälle, die Seitenleiste, Inspektor, Suche oder Statuszeile voraussetzen, zunächst über `Bearbeiten` in den Bearbeitungsmodus wechseln. Jeder App-Start und jedes erfolgreiche Öffnen einer vorhandenen PDF beginnen wieder im Lesemodus; nach jedem Dokumentwechsel ist Bearbeitung daher bei Bedarf erneut ausdrücklich zu aktivieren. Den reduzierten Standardzustand, sämtliche Öffnungspfade, die Umschaltung und den sicheren lokalen Installer prüfen QA-44 bis QA-46 sowie QA-66 bis QA-74 gesondert.
 
 Zulässige Evidenz sind ein Screenshot oder eine kurze Bildschirmaufnahme mit sichtbarem erwarteten Zustand (`QA-<ID>-<kurzname>.png` bzw. `.mov`), eine gespeicherte Ausgabedatei mit SHA-256 plus Wiederöffnungsnachweis oder ein präziser Fehlerdialog bzw. Statuszeilentext bei einem Negativfall. Kritisch sind Datenverlust, unbeabsichtigtes Überschreiben, Absturz, Startfehler und fehlerhafte Signatur-/Sandbox-Prüfung; dafür ist eine Bildschirmaufnahme erforderlich.
 
@@ -33,15 +33,15 @@ Verwende vor dem Test die synthetischen, lizenzfreien Dateien aus [`TestFixtures
 | QA-01 | Kritisch | Finales `.pkg` installieren; App über Finder starten. | Installation und Start gelingen ohne Absturz. Hauptfenster zeigt Öffnen/Neues PDF und keine vorherige Testdatei. | Startaufnahme + `pkgutil --check-signature` |
 | QA-02 | Kritisch | Signatur und Sandbox des installierten Bundles prüfen. | `codesign --verify --strict --verbose=2` endet erfolgreich; Entitlements enthalten nur App Sandbox und user-selected-read-write. | Terminalausgabe |
 | QA-03 | Hoch | App beenden und erneut starten. | Die App beendet bzw. startet sauber; nach Schließen des letzten Fensters bleibt sie erwartungsgemäß aktiv oder kann über das Menü beendet werden. | Aufnahme |
-| QA-04 | Hoch | Eine PDF per Finder mit „Öffnen mit Klarfolio PDF Editor“ öffnen. | Die gewählte PDF wird im vorhandenen App-Fenster angezeigt. | Screenshot |
-| QA-05 | Mittel | **Neues PDF** wählen. | Ein einseitiges, ungespeichertes Dokument entsteht; Status zeigt „Ungespeichert“. | Screenshot |
-| QA-06 | Mittel | Einen Datei- oder Speicherdialog abbrechen. | Dokument und Bearbeitungszustand ändern sich nicht; kein Absturz. | Aufnahme vor/nach |
+| QA-04 | Hoch | Eine PDF per Finder mit „Öffnen mit Klarfolio PDF Editor“ öffnen. | Die gewählte PDF wird im vorhandenen App-Fenster ausschließlich im Lesemodus angezeigt; Seitenleiste und Inspektor bleiben ausgeblendet. | Screenshot |
+| QA-05 | Mittel | **Neues PDF** wählen. | Ein einseitiges, ungespeichertes Dokument entsteht und die ausdrücklich angeforderte Bearbeitungsoberfläche ist sichtbar; Status zeigt „Ungespeichert“. | Screenshot |
+| QA-06 | Mittel | Einen Datei- oder Speicherdialog abbrechen. | Dokument, Dirty-State und bisheriger Lese- oder Bearbeitungsmodus ändern sich nicht; kein Absturz. | Aufnahme vor/nach |
 
 ## Öffnen, Speichern und Wiederherstellen
 
 | ID | Prio | Aktion | Pass-Kriterium | Evidenz |
 | --- | --- | --- | --- | --- |
-| QA-07 | Kritisch | `fixture-text-3-pages.pdf` über **Öffnen** laden. | Dokumentname, drei Miniaturen und Seite 1/3 sind sichtbar; Status bestätigt das Öffnen. | Screenshot |
+| QA-07 | Kritisch | `fixture-text-3-pages.pdf` über **Öffnen** laden; anschließend ausdrücklich `Bearbeiten` wählen. | Die PDF erscheint zuerst ohne Bearbeitungsoberfläche im Lesemodus; erst nach `Bearbeiten` sind Dokumentname, drei Miniaturen, Seite 1/3 und der Öffnen-Status sichtbar. | Aufnahme + Screenshot |
 | QA-08 | Hoch | Ungültige bzw. nicht lesbare PDF auswählen, soweit der Dialog dies zulässt. | Status „Die Datei konnte nicht geöffnet werden.“ oder Auswahl wird verhindert; vorheriges Dokument bleibt nutzbar. | Aufnahme/Status |
 | QA-09 | Kritisch | In geöffneter Fixture Änderung vornehmen, **Speichern**, App beenden und Datei erneut öffnen. | Änderung bleibt erhalten; Status wechselt auf „Gespeichert“. | Vorher/Nachher + Dateihash |
 | QA-10 | Kritisch | **Sichern unter** mit neuem Namen verwenden. | Neue Datei existiert im gewählten Ordner; Quelle wird nicht überschrieben; App arbeitet anschließend mit der neuen Datei. | Finder-Screenshot + beide Hashes |
@@ -105,16 +105,16 @@ QA-43 bleibt bis zur Store-Einreichung ein offenes Release-Gate: Der App-Hinweis
 
 | ID | Prio | Aktion | Pass-Kriterium | Evidenz |
 | --- | --- | --- | --- | --- |
-| QA-44 | Hoch | App ohne zuvor gespeicherten Arbeitsmodus starten und eine PDF öffnen. | Standardmäßig erscheint der Lesemodus: PDF und `Öffnen`/`Bearbeiten` sind sichtbar; Seitenleiste, Inspektor, Suchfeld, Seiten-/Zoom-Toolbar und Statusleiste fehlen. | Screenshot |
+| QA-44 | Hoch | App ohne zuvor gespeicherten Arbeitsmodus starten und eine PDF öffnen. | App-Start und geöffnete PDF erscheinen im Lesemodus: PDF und `Öffnen`/`Bearbeiten` sind sichtbar; Seitenleiste, Inspektor, Suchfeld, Seiten-/Zoom-Toolbar und Statusleiste fehlen. | Screenshot |
 | QA-45 | Hoch | Mit `Bearbeiten`, `Lesen`, dem Menü `Darstellung` und `⌘⇧E` zwischen beiden Modi wechseln. | Jede Umschaltmöglichkeit funktioniert; im Bearbeitungsmodus stehen Seitenleiste, Anmerkungswerkzeuge, Suche, Navigation, Zoom und Status vollständig bereit. | Aufnahme |
-| QA-46 | Hoch | Modus wechseln, App neu starten; im Lesemodus eine vorhandene Anmerkung anklicken, ziehen und Löschen/Pfeiltasten drücken. | Der zuletzt gewählte Modus bleibt erhalten; vorhandene Anmerkungen werden im Lesemodus nicht ausgewählt, verschoben oder gelöscht und das Dokument bleibt unverändert. | Aufnahme + Vorher/Nachher |
+| QA-46 | Hoch | Bearbeitungsmodus aktivieren, App neu starten; im Lesemodus eine vorhandene Anmerkung anklicken, ziehen und Löschen/Pfeiltasten drücken. | Der Neustart beginnt trotz vorheriger Bearbeitung wieder im Lesemodus; vorhandene Anmerkungen werden nicht ausgewählt, verschoben oder gelöscht und das Dokument bleibt unverändert. | Aufnahme + Vorher/Nachher |
 
 ## Dokumentenschutz und schreibgeschütztes Lesen
 
 | ID | Prio | Aktion | Pass-Kriterium | Evidenz |
 | --- | --- | --- | --- | --- |
 | QA-47 | Kritisch | Ungespeichertes Dokument erstellen oder bearbeiten; anschließend `Neues PDF` wählen und nacheinander `Abbrechen`, `Verwerfen` sowie `Speichern` prüfen. | `Abbrechen` erhält das alte Dokument; `Verwerfen` öffnet das neue; `Speichern` öffnet das neue erst nach erfolgreicher Sicherung des bisherigen Dokuments. | Bildschirmaufnahme + Wiederöffnung |
-| QA-48 | Kritisch | Geändertes Dokument per `Öffnen` und anschließend über den Finder durch eine andere PDF ersetzen. | Beide Einstiegspfade fragen vor dem Dokumentwechsel; ein Abbruch verändert weder Seiten, Anmerkungen, Dateinamen noch Dirty-State. | Bildschirmaufnahme + Vorher/Nachher |
+| QA-48 | Kritisch | Geändertes Dokument per `Öffnen` und anschließend über den Finder durch eine andere PDF ersetzen. | Beide Einstiegspfade fragen vor dem Dokumentwechsel; ein Abbruch verändert weder Seiten, Anmerkungen, Dateinamen, Dirty-State noch Arbeitsmodus. Erfolgreiche Wechsel zeigen die neue PDF im Lesemodus. | Bildschirmaufnahme + Vorher/Nachher |
 | QA-49 | Kritisch | Fenster mit offenen Änderungen über die rote Ampel und `⌘W` schließen; die App anschließend mit `⌘Q` beenden und jeweils `Abbrechen`, `Verwerfen` sowie `Speichern` prüfen. | Abbrechen hält das Fenster beziehungsweise die App offen; Speichern beendet erst nach erfolgreicher Sicherung; Verwerfen beendet bewusst ohne Speicherung. Automatische und abrupte macOS-Terminierung sind im App-Bundle deaktiviert. | Bildschirmaufnahme + Wiederöffnung + `Info.plist` |
 | QA-50 | Kritisch | Bei einem neuen, ungespeicherten Dokument in der Sicherheitsabfrage `Speichern` wählen, anschließend `Sichern unter` abbrechen oder einen Schreibfehler provozieren. | Die angeforderte Folgeaktion wird nicht ausgeführt; ursprüngliches Dokument, offenes Fenster und Dirty-State bleiben erhalten. | Bildschirmaufnahme + Fehlerzustand |
 | QA-51 | Hoch | Im Lesemodus PDF-Menü öffnen und `⌘⇧P`, `⌘⇧H`, `⌘⇧T`, `⌘⇧M` sowie `⌘⇧L` ausprobieren. | Alle schreibenden Menüaktionen sind deaktiviert und sämtliche Tastenkürzel verändern weder Seitenzahl noch Annotationen. | Bildschirmaufnahme + Vorher/Nachher |
@@ -125,7 +125,7 @@ QA-43 bleibt bis zur Store-Einreichung ein offenes Release-Gate: Der App-Hinweis
 
 | ID | Prio | Aktion | Pass-Kriterium | Evidenz |
 | --- | --- | --- | --- | --- |
-| QA-54 | Hoch | Einzelne PDF im Lese- und Bearbeitungsmodus aus dem Finder auf die Dokumentansicht ziehen; zusätzlich mit ungespeichertem Ausgangsdokument wiederholen. | Die PDF wird in beiden Modi geöffnet; vorhandene offene Änderungen lösen zuvor dieselbe Speichern-/Verwerfen-/Abbrechen-Abfrage aus. | Bildschirmaufnahme + Vorher/Nachher |
+| QA-54 | Hoch | Einzelne PDF im Lese- und Bearbeitungsmodus aus dem Finder auf die Dokumentansicht ziehen; zusätzlich mit ungespeichertem Ausgangsdokument wiederholen. | Die PDF kann aus beiden Modi geöffnet werden, erscheint nach Erfolg aber immer im Lesemodus; vorhandene offene Änderungen lösen zuvor dieselbe Speichern-/Verwerfen-/Abbrechen-Abfrage aus. | Bildschirmaufnahme + Vorher/Nachher |
 | QA-55 | Hoch | Im Bearbeitungsmodus eine PNG-Datei und anschließend mehrere PNG/JPG-Dateien auf das geöffnete PDF ziehen. | Jede lesbare Bilddatei wird als neue Seite angehängt, Seitenzahl und Dirty-Kennzeichnung stimmen. | Bildschirmaufnahme + Wiederöffnung |
 | QA-56 | Hoch | Im Lesemodus Bilder sowie in beiden Modi mehrere PDFs, gemischte PDF-/Bild-Drops und unbekannte Dateitypen auf das Dokument ziehen. | Nicht unterstützte oder schreibende Drops werden abgelehnt; aktives PDF, Seitenzahl, Annotationen und Dirty-State bleiben unverändert. | Bildschirmaufnahme + Vorher/Nachher |
 
@@ -142,3 +142,17 @@ QA-43 bleibt bis zur Store-Einreichung ein offenes Release-Gate: Der App-Hinweis
 | QA-63 | Hoch | Ein Formularfeld mit hinterlegter maximaler Textlänge sowie mehrfach vorkommende Feldnamen auf unterschiedlichen Seiten prüfen. | Zeichenlimits werden eingehalten; jede Formularzeile ist stabil ihrem tatsächlichen PDF-Feld und ihrer Seite zugeordnet. | Screenshot + Wiederöffnung |
 | QA-64 | Hoch | Eine PDF mit formularzurücksetzender Aktion auf einer Link-Anmerkung in beiden Modi öffnen und den Link anklicken. | Die Reset-Aktion bleibt blockiert; vorhandene Formularwerte und Dirty-State verändern sich nicht außerhalb des sicheren Formularbereichs. | Bildschirmaufnahme + Vorher/Nachher |
 | QA-65 | Hoch | Eine PDF mit Passwort-, Radio- oder anderen nicht unterstützten Formularfeldern in beiden Modi öffnen. | Nicht unterstützte Felder erscheinen nicht im Formularbereich; Passwortwerte werden niemals als lesbarer Text dargestellt und direkte PDFKit-Widget-Eingaben bleiben gesperrt. | Screenshot + Vorher/Nachher |
+
+## Lesemodus bei jedem Start, Dokumentwechsel und lokaler Installation
+
+| ID | Prio | Aktion | Pass-Kriterium | Evidenz |
+| --- | --- | --- | --- | --- |
+| QA-66 | Kritisch | Bearbeitungsmodus ausdrücklich aktivieren, App vollständig beenden und mit zuvor gespeicherter `editing`-Einstellung neu starten. | Das neue App-Fenster beginnt ohne Ausnahme im Lesemodus; Seitenleiste, Inspektor und Statusleiste bleiben ausgeblendet. | Bildschirmaufnahme + Vorher/Nachher |
+| QA-67 | Hoch | Im Bearbeitungsmodus eine vorhandene PDF über `Öffnen` und anschließend eine weitere über Finder/`Öffnen mit` laden. | Jeder erfolgreiche Einstiegspfad zeigt das neu geöffnete Dokument unmittelbar im Lesemodus; Bearbeitungswerkzeuge erscheinen erst nach ausdrücklichem `Bearbeiten`. | Bildschirmaufnahme |
+| QA-68 | Hoch | Im Bearbeitungsmodus eine einzelne gültige PDF per Drag-and-drop auf die Dokumentansicht ziehen. | Die neue PDF erscheint nach erfolgreichem Laden im Lesemodus; bisherige Anmerkungsauswahl und Bearbeitungswerkzeuge sind zurückgesetzt. | Bildschirmaufnahme + Screenshot |
+| QA-69 | Kritisch | Ein geändertes Dokument im Bearbeitungsmodus per Öffnen/Finder/PDF-Drop ersetzen und die Sicherheitsabfrage jeweils mit `Abbrechen` schließen. | Ursprüngliches Dokument, Dateipfad, Dirty-State, Auswahl und Bearbeitungsmodus bleiben vollständig erhalten. | Bildschirmaufnahme + Vorher/Nachher |
+| QA-70 | Hoch | Im Bearbeitungsmodus einen Öffnen-Dialog abbrechen beziehungsweise `fixture-invalid.pdf` auswählen oder droppen. | Der fehlgeschlagene Öffnungsversuch verändert weder das bestehende Dokument noch seinen Arbeitsmodus oder Dirty-State. | Bildschirmaufnahme + Vorher/Nachher |
+| QA-71 | Hoch | Aus dem Lesemodus ausdrücklich `Neues PDF` wählen; danach eine vorhandene PDF öffnen. | Das neue leere Dokument darf unmittelbar im Bearbeitungsmodus erscheinen; die anschließend geöffnete vorhandene PDF beginnt wieder im Lesemodus. | Bildschirmaufnahme |
+| QA-72 | Hoch | Parallel vorhandene `Klarfolio PDF Editor Dev.app` und `Klarfolio PDF Editor.app` anhand von Pfad, Bundle-ID und Signatur vergleichen. | Abweichende lokale Entwicklungsstände werden eindeutig erkannt; die Entwicklungsinstallation wird nicht mit einer älteren normalen lokalen App verwechselt. | Terminalausgabe + beide App-Informationen |
+| QA-73 | Kritisch | Vor dem optionalen Abgleich einer normalen lokalen App exakten Zielpfad, Bundle-ID, Ad-hoc-Signatur, fehlenden App-Store-Beleg, geschlossenen Zustand und vollständiges Backup prüfen. | Ausschließlich eine vorhandene verifizierte lokale Ad-hoc-App darf ersetzt werden; echt signierte, notarisiert verteilte und App-Store-Apps bleiben ebenso unverändert wie die PDF-Standardzuordnung. | Terminalausgabe + Backup-Nachweis + Signaturprüfung |
+| QA-74 | Kritisch | `install_local_dev.sh` beziehungsweise `build_and_run.sh --verify` zunächst bei ihrer jeweils laufenden Ziel-App und anschließend nach deren regulärem Schließen bei gleichzeitig laufenden anderen App-Varianten oder isolierten UI-Test-Bundles ausführen. | Beide Skripte prüfen ausschließlich ihren jeweiligen Dev- beziehungsweise `dist/`-Executable-Pfad, brechen bei laufender Ziel-App vor dem Build eindeutig ab und verifizieren danach nur denselben Pfad. Andere App-Varianten und isolierte Tests bleiben unbeendet und unberührt. | Terminalausgabe + Prozessliste vor/nach |

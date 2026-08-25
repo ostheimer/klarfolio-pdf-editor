@@ -17,6 +17,13 @@ case "$APPLICATIONS_DIR" in
     ;;
 esac
 
+APP_EXECUTABLE="$APP_BUNDLE/Contents/MacOS/$EXECUTABLE_NAME"
+
+if pgrep -f "$APP_EXECUTABLE" >/dev/null 2>&1; then
+  echo "error: close Klarfolio PDF Editor Dev normally before updating it: $APP_BUNDLE" >&2
+  exit 1
+fi
+
 mkdir -p "$APPLICATIONS_DIR"
 
 APP_NAME="$APP_NAME" \
@@ -31,9 +38,8 @@ APP_BUILD="${APP_BUILD:-1}" \
 codesign --verify --strict --verbose=2 "$APP_BUNDLE"
 plutil -lint "$APP_BUNDLE/Contents/Info.plist" >/dev/null
 
-pkill -x "$EXECUTABLE_NAME" >/dev/null 2>&1 || true
 /usr/bin/open -n "$APP_BUNDLE"
 sleep 1
-pgrep -x "$EXECUTABLE_NAME" >/dev/null
+pgrep -f "$APP_EXECUTABLE" >/dev/null
 
 echo "$APP_BUNDLE"
