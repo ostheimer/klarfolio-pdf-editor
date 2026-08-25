@@ -49,6 +49,18 @@ Unter vollständigem Xcode 16 oder neuer:
 swift test --parallel
 ```
 
+Die Suite umfasst Store-, Dokumentenschutz-, Drag-and-drop- und Fixture-Regressionen. Synthetische, lizenzfreie Referenzdateien liegen unter `TestFixtures/`; ihre Herkunft und erwarteten Inhalte sind in `TestFixtures/README.md` dokumentiert.
+
+Für einen tatsächlichen macOS-Oberflächentest mit Bedienungshilfen-Zugriff die zu prüfende App zunächst regulär schließen und danach ausführen:
+
+```bash
+./script/run_ui_smoke.sh \
+  --app "$HOME/Applications/Klarfolio PDF Editor Dev.app" \
+  --require-ui
+```
+
+Der Smoke verwendet ausschließlich die synthetischen Projekt-Fixtures, prüft die echte Accessibility-Oberfläche und stellt die vorherige Modus-Einstellung anschließend wieder her. CI darf mit `--allow-headless` nur dann ausdrücklich als übersprungen kennzeichnen, wenn keine grafische Sitzung oder keine Bedienungshilfen-Berechtigung vorhanden ist; ein solcher Skip ist kein bestandener UI-Test.
+
 Wenn nur die Command Line Tools aktiv sind und Swift das Modul `Testing` nicht findet, kann der bereits validierte lokale Fallback verwendet werden:
 
 ```bash

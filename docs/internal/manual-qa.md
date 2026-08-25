@@ -10,10 +10,12 @@ Für Fälle, die Seitenleiste, Inspektor, Suche oder Statuszeile voraussetzen, z
 
 Zulässige Evidenz sind ein Screenshot oder eine kurze Bildschirmaufnahme mit sichtbarem erwarteten Zustand (`QA-<ID>-<kurzname>.png` bzw. `.mov`), eine gespeicherte Ausgabedatei mit SHA-256 plus Wiederöffnungsnachweis oder ein präziser Fehlerdialog bzw. Statuszeilentext bei einem Negativfall. Kritisch sind Datenverlust, unbeabsichtigtes Überschreiben, Absturz, Startfehler und fehlerhafte Signatur-/Sandbox-Prüfung; dafür ist eine Bildschirmaufnahme erforderlich.
 
-Lege vor dem Test folgende nicht vertrauliche Dateien an:
+Verwende vor dem Test die synthetischen, lizenzfreien Dateien aus [`TestFixtures/`](../../TestFixtures/README.md) und ergänze nur die benötigten Bild- beziehungsweise Ausgabe-Fixtures:
 
 - `fixture-text-3-pages.pdf`: drei Seiten mit eindeutigem Text, darunter mindestens zwei Vorkommen von `Klarfolio-Testwort` und ein mehrzeiliger Satz.
 - `fixture-merge-2-pages.pdf`: zwei sichtbar anders gestaltete Seiten.
+- `fixture-form.pdf`: vorausgefülltes Textfeld, aktivierte Checkbox und vorhandene Notizanmerkung.
+- `fixture-invalid.pdf`: bewusst ungültige Datei mit PDF-Endung.
 - `fixture-image.png`, `fixture-image.jpg` sowie eine nicht lesbare bzw. als Bild umbenannte Textdatei.
 - Einen beschreibbaren Testordner außerhalb des Repositorys.
 
@@ -106,3 +108,23 @@ QA-43 bleibt bis zur Store-Einreichung ein offenes Release-Gate: Der App-Hinweis
 | QA-44 | Hoch | App ohne zuvor gespeicherten Arbeitsmodus starten und eine PDF öffnen. | Standardmäßig erscheint der Lesemodus: PDF und `Öffnen`/`Bearbeiten` sind sichtbar; Seitenleiste, Inspektor, Suchfeld, Seiten-/Zoom-Toolbar und Statusleiste fehlen. | Screenshot |
 | QA-45 | Hoch | Mit `Bearbeiten`, `Lesen`, dem Menü `Darstellung` und `⌘⇧E` zwischen beiden Modi wechseln. | Jede Umschaltmöglichkeit funktioniert; im Bearbeitungsmodus stehen Seitenleiste, Anmerkungswerkzeuge, Suche, Navigation, Zoom und Status vollständig bereit. | Aufnahme |
 | QA-46 | Hoch | Modus wechseln, App neu starten; im Lesemodus eine vorhandene Anmerkung anklicken, ziehen und Löschen/Pfeiltasten drücken. | Der zuletzt gewählte Modus bleibt erhalten; vorhandene Anmerkungen werden im Lesemodus nicht ausgewählt, verschoben oder gelöscht und das Dokument bleibt unverändert. | Aufnahme + Vorher/Nachher |
+
+## Dokumentenschutz und schreibgeschütztes Lesen
+
+| ID | Prio | Aktion | Pass-Kriterium | Evidenz |
+| --- | --- | --- | --- | --- |
+| QA-47 | Kritisch | Ungespeichertes Dokument erstellen oder bearbeiten; anschließend `Neues PDF` wählen und nacheinander `Abbrechen`, `Verwerfen` sowie `Speichern` prüfen. | `Abbrechen` erhält das alte Dokument; `Verwerfen` öffnet das neue; `Speichern` öffnet das neue erst nach erfolgreicher Sicherung des bisherigen Dokuments. | Bildschirmaufnahme + Wiederöffnung |
+| QA-48 | Kritisch | Geändertes Dokument per `Öffnen` und anschließend über den Finder durch eine andere PDF ersetzen. | Beide Einstiegspfade fragen vor dem Dokumentwechsel; ein Abbruch verändert weder Seiten, Anmerkungen, Dateinamen noch Dirty-State. | Bildschirmaufnahme + Vorher/Nachher |
+| QA-49 | Kritisch | Fenster mit offenen Änderungen über die rote Ampel und `⌘W` schließen; die App anschließend mit `⌘Q` beenden und jeweils `Abbrechen`, `Verwerfen` sowie `Speichern` prüfen. | Abbrechen hält das Fenster beziehungsweise die App offen; Speichern beendet erst nach erfolgreicher Sicherung; Verwerfen beendet bewusst ohne Speicherung. Automatische und abrupte macOS-Terminierung sind im App-Bundle deaktiviert. | Bildschirmaufnahme + Wiederöffnung + `Info.plist` |
+| QA-50 | Kritisch | Bei einem neuen, ungespeicherten Dokument in der Sicherheitsabfrage `Speichern` wählen, anschließend `Sichern unter` abbrechen oder einen Schreibfehler provozieren. | Die angeforderte Folgeaktion wird nicht ausgeführt; ursprüngliches Dokument, offenes Fenster und Dirty-State bleiben erhalten. | Bildschirmaufnahme + Fehlerzustand |
+| QA-51 | Hoch | Im Lesemodus PDF-Menü öffnen und `⌘⇧P`, `⌘⇧H`, `⌘⇧T`, `⌘⇧M` sowie `⌘⇧L` ausprobieren. | Alle schreibenden Menüaktionen sind deaktiviert und sämtliche Tastenkürzel verändern weder Seitenzahl noch Annotationen. | Bildschirmaufnahme + Vorher/Nachher |
+| QA-52 | Hoch | Geändertes Dokument aus dem Bearbeitungsmodus in den Lesemodus schalten. | Das native macOS-Fenster kennzeichnet weiterhin offene Änderungen, obwohl die Statusleiste ausgeblendet bleibt. | Screenshot |
+| QA-53 | Hoch | Versionierte synthetische PDF-Fixtures und den automatisierten macOS-UI-Smoke ausführen. | Fixture-Herkunft und Erwartungen sind nachvollziehbar; zentrale Reader-, Bearbeitungs- und Sicherheitsabläufe bestehen ohne benutzereigene Dokumente. | Terminalausgabe + CI-Lauf |
+
+## PDF- und Bild-Drops
+
+| ID | Prio | Aktion | Pass-Kriterium | Evidenz |
+| --- | --- | --- | --- | --- |
+| QA-54 | Hoch | Einzelne PDF im Lese- und Bearbeitungsmodus aus dem Finder auf die Dokumentansicht ziehen; zusätzlich mit ungespeichertem Ausgangsdokument wiederholen. | Die PDF wird in beiden Modi geöffnet; vorhandene offene Änderungen lösen zuvor dieselbe Speichern-/Verwerfen-/Abbrechen-Abfrage aus. | Bildschirmaufnahme + Vorher/Nachher |
+| QA-55 | Hoch | Im Bearbeitungsmodus eine PNG-Datei und anschließend mehrere PNG/JPG-Dateien auf das geöffnete PDF ziehen. | Jede lesbare Bilddatei wird als neue Seite angehängt, Seitenzahl und Dirty-Kennzeichnung stimmen. | Bildschirmaufnahme + Wiederöffnung |
+| QA-56 | Hoch | Im Lesemodus Bilder sowie in beiden Modi mehrere PDFs, gemischte PDF-/Bild-Drops und unbekannte Dateitypen auf das Dokument ziehen. | Nicht unterstützte oder schreibende Drops werden abgelehnt; aktives PDF, Seitenzahl, Annotationen und Dirty-State bleiben unverändert. | Bildschirmaufnahme + Vorher/Nachher |

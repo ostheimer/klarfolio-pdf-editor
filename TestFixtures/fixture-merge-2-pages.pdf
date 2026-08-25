@@ -1,0 +1,74 @@
+%PDF-1.4
+% Klarfolio synthetic QA fixture
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 2 /Kids [3 0 R 4 0 R] >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 7 0 R >> >> /Contents 6 0 R >>
+endobj
+5 0 obj
+<< /Length 166 >>
+stream
+q
+0.12 0.34 0.74 rg
+48 630 499 128 re
+f
+1 1 1 rg
+BT
+/F1 23 Tf
+72 710 Td
+(Kombinieren: Seite 1) Tj
+/F1 13 Tf
+0 -32 Td
+(Blaue Testseite zeigt die Reihenfolge.) Tj
+ET
+Q
+endstream
+endobj
+6 0 obj
+<< /Length 172 >>
+stream
+q
+0.12 0.55 0.32 rg
+48 630 499 128 re
+f
+1 1 1 rg
+BT
+/F1 23 Tf
+72 710 Td
+(Kombinieren: Seite 2) Tj
+/F1 13 Tf
+0 -32 Td
+(Mintfarbene Testseite zeigt die Reihenfolge.) Tj
+ET
+Q
+endstream
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+8 0 obj
+<< /Title (Klarfolio two-page merge fixture) /Producer (Klarfolio deterministic synthetic fixtures) >>
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000042 00000 n 
+0000000091 00000 n 
+0000000154 00000 n 
+0000000280 00000 n 
+0000000406 00000 n 
+0000000622 00000 n 
+0000000844 00000 n 
+0000000914 00000 n 
+trailer
+<< /Size 9 /Root 1 0 R /Info 8 0 R >>
+startxref
+1032
+%%EOF

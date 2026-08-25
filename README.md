@@ -9,6 +9,8 @@ Klarfolio PDF Editor soll ein schneller, kostenloser PDF-Reader und PDF-Editor f
 ## Funktionen
 
 - Ablenkungsarmer Lesemodus mit bei Bedarf einblendbarer vollständiger Bearbeitungsoberfläche
+- Schreibgeschützter Lesemodus und Sicherheitsabfrage vor dem Verwerfen ungespeicherter Änderungen
+- PDF-Dateien und Bildseiten per sicherem Drag-and-drop öffnen beziehungsweise importieren
 - PDF öffnen, neu erstellen, speichern und unter neuem Namen sichern
 - Seitenvorschau mit direkter Seitennavigation
 - Leere Seiten einfügen, Seiten drehen, verschieben und löschen
@@ -59,16 +61,19 @@ Weitere Release-Notizen liegen in
 
 - [Nutzerhandbuch](docs/external/user-guide.md)
 - [Featureübersicht](docs/external/features.md)
+- [Lokale Entwicklung und Installation](docs/internal/local-development.md)
 - [Datenschutzhinweis (Entwurf vor Veröffentlichung)](docs/external/privacy.md)
 - [Interne Architektur](docs/internal/architecture.md)
 - [Einordnung gegenüber PDF Expert](docs/internal/pdf-expert-positioning.md)
+- [Windows-Roadmap für eine spätere Plattformentscheidung](docs/internal/windows-roadmap.md)
 - [Domainentscheidung](docs/internal/domain-decision.md)
 - [Manueller QA-Katalog](docs/internal/manual-qa.md)
+- [Versionierte PDF-Testdateien und ihre Herkunft](TestFixtures/README.md)
 - [App-Store-Metadaten](docs/internal/app-store-metadata.md)
 - [HTML-Website](website/index.html)
 
 ## Status
 
-Die dokumentierte P1-Phase ist funktional abgeschlossen. Aktuell liegt der Schwerpunkt auf der praktischen lokalen Nutzung auf dem Mac: Die App startet standardmäßig als reduzierter PDF-Reader und blendet bei Bedarf die vollständigen Bearbeitungswerkzeuge ein. Eine öffentliche Veröffentlichung ist derzeit nicht vorgesehen; Apple-Signierung/App-Store-Einrichtung, vollständiger Release-QA-Nachweis sowie finale Betreiber-, Support-, Datenschutz- und HTTPS-Downloadangaben bleiben Voraussetzungen für einen späteren öffentlichen Start.
+Die dokumentierte P1-Phase ist funktional abgeschlossen; mit sicherem Drag-and-drop ist die erste lokale P2-Komfortfunktion umgesetzt. Aktuell liegt der Schwerpunkt auf der sicheren praktischen Nutzung auf dem Mac: Die App startet standardmäßig als schreibgeschützter PDF-Reader, blendet Bearbeitungswerkzeuge erst bei Bedarf ein und schützt ungespeicherte Änderungen vor unbeabsichtigtem Verwerfen. Versionierte synthetische PDF-Fixtures, Regressionstests und ein lokaler UI-Smoke begleiten diesen Entwicklungsstand. Eine öffentliche Veröffentlichung ist derzeit nicht vorgesehen; Apple-Signierung/App-Store-Einrichtung, vollständiger Release-QA-Nachweis sowie finale Betreiber-, Support-, Datenschutz- und HTTPS-Downloadangaben bleiben Voraussetzungen für einen späteren öffentlichen Start.
 
 Die App bleibt bewusst lokal, nativ und einfach gehalten. Nicht enthalten sind derzeit OCR, echte Bearbeitung vorhandener PDF-Texte, eine eigene Formular-UI, digitale Zertifikatssignaturen, sichere Schwärzung, Komprimierung, Export nach Office-Formaten und KI-Funktionen.

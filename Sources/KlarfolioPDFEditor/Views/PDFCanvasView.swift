@@ -13,6 +13,7 @@ struct PDFCanvasView: NSViewRepresentable {
         let pdfView = AnnotationEditingPDFView()
         pdfView.editingStore = store
         pdfView.delegate = context.coordinator
+        pdfView.registerForDraggedTypes([.fileURL])
         store.attach(pdfView: pdfView)
         context.coordinator.installNotifications(for: pdfView)
         return pdfView
@@ -27,6 +28,12 @@ struct PDFCanvasView: NSViewRepresentable {
         if pdfView.displayMode != store.layoutMode.pdfDisplayMode {
             pdfView.displayMode = store.layoutMode.pdfDisplayMode
             pdfView.autoScales = true
+        }
+
+        if store.workspaceMode == .reading,
+           let fieldEditor = pdfView.window?.firstResponder as? NSTextView,
+           fieldEditor.isFieldEditor {
+            pdfView.window?.makeFirstResponder(pdfView)
         }
     }
 
@@ -87,16 +94,60 @@ private final class AnnotationEditingPDFView: PDFView {
         true
     }
 
+    override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        fileDropAction(for: sender) == nil ? [] : .copy
+    }
+
+    override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
+        fileDropAction(for: sender) == nil ? [] : .copy
+    }
+
+    override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        fileDropAction(for: sender) != nil
+    }
+
+    override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        guard let editingStore, let action = fileDropAction(for: sender) else {
+            return false
+        }
+
+        switch action {
+        case let .openPDF(url):
+            return editingStore.loadDocument(from: url)
+        case let .importImages(urls):
+            return editingStore.importImages(from: urls) > 0
+        }
+    }
+
     override func mouseDown(with event: NSEvent) {
-        guard let editingStore,
-              editingStore.workspaceMode == .editing,
-              editingStore.selectedTool == .select else {
+        guard let editingStore else {
+            super.mouseDown(with: event)
+            return
+        }
+
+        let viewPoint = convert(event.locationInWindow, from: nil)
+
+        if let page = page(for: viewPoint, nearest: false),
+           PDFReaderInteractionPolicy.blocksFormInteraction(
+               at: convert(viewPoint, to: page),
+               on: page,
+               workspaceMode: editingStore.workspaceMode
+           ) {
+            window?.makeFirstResponder(self)
+            return
+        }
+
+        if editingStore.workspaceMode == .reading {
+            super.mouseDown(with: event)
+            return
+        }
+
+        guard editingStore.selectedTool == .select else {
             super.mouseDown(with: event)
             return
         }
 
         window?.makeFirstResponder(self)
-        let viewPoint = convert(event.locationInWindow, from: nil)
         guard let page = page(for: viewPoint, nearest: false) else {
             editingStore.clearAnnotationSelection()
             super.mouseDown(with: event)
@@ -215,5 +266,20 @@ private final class AnnotationEditingPDFView: PDFView {
                 && !annotation.hasSubtype(.popup)
                 && annotation.bounds.insetBy(dx: -2, dy: -2).contains(point)
         }
+    }
+
+    private func fileDropAction(for draggingInfo: NSDraggingInfo) -> PDFFileDropAction? {
+        guard let editingStore else {
+            return nil
+        }
+
+        let urls = draggingInfo.draggingPasteboard
+            .readObjects(
+                forClasses: [NSURL.self],
+                options: [.urlReadingFileURLsOnly: true]
+            )?
+            .compactMap { ($0 as? NSURL).map { $0 as URL } } ?? []
+
+        return PDFFileDropAction.resolve(urls, workspaceMode: editingStore.workspaceMode)
     }
 }

@@ -99,5 +99,14 @@ jobs:
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$info_plist")" = "at.ostheimer.klarfoliopdf"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$info_plist")" = "KlarfolioPDFEditor"
           test "$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$info_plist")" = "14.0"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :NSSupportsAutomaticTermination' "$info_plist")" = "false"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :NSSupportsSuddenTermination' "$info_plist")" = "false"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDocumentTypes:0:CFBundleTypeRole' "$info_plist")" = "Editor"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDocumentTypes:0:LSItemContentTypes:0' "$info_plist")" = "com.adobe.pdf"
+
+      - name: Run macOS accessibility UI smoke when available
+        run: |
+          set -euo pipefail
+          ./script/run_ui_smoke.sh \
+            --app "$RUNNER_TEMP/Klarfolio-PDF-Editor-CI.app" \
+            --allow-headless

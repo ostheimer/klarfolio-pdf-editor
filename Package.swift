@@ -11,6 +11,17 @@ let package = Package(
         .executable(name: "KlarfolioPDFEditor", targets: ["KlarfolioPDFEditor"])
     ],
     targets: [
+        .target(
+            name: "KlarfolioPDFTestFixtures",
+            path: "TestFixtures",
+            exclude: ["README.md"],
+            resources: [
+                .copy("fixture-text-3-pages.pdf"),
+                .copy("fixture-merge-2-pages.pdf"),
+                .copy("fixture-form.pdf"),
+                .copy("fixture-invalid.pdf")
+            ]
+        ),
         .executableTarget(
             name: "KlarfolioPDFEditor",
             path: "Sources/KlarfolioPDFEditor",
@@ -18,7 +29,7 @@ let package = Package(
         ),
         .testTarget(
             name: "KlarfolioPDFEditorTests",
-            dependencies: ["KlarfolioPDFEditor"],
+            dependencies: ["KlarfolioPDFEditor", "KlarfolioPDFTestFixtures"],
             path: "Tests/KlarfolioPDFEditorTests"
         )
     ],

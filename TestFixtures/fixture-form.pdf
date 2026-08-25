@@ -1,0 +1,64 @@
+%PDF-1.4
+% Klarfolio synthetic QA fixture
+1 0 obj
+<< /Type /Catalog /Pages 3 0 R /AcroForm 2 0 R >>
+endobj
+2 0 obj
+<< /Fields [7 0 R 8 0 R] /NeedAppearances true /DR << /Font << /Helv 9 0 R >> >> /DA (/Helv 12 Tf 0 g) >>
+endobj
+3 0 obj
+<< /Type /Pages /Count 1 /Kids [4 0 R] >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 3 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 9 0 R >> >> /Contents 5 0 R /Annots [7 0 R 8 0 R 10 0 R] >>
+endobj
+5 0 obj
+<< /Length 177 >>
+stream
+BT
+/F1 20 Tf
+72 760 Td
+(Klarfolio Formularfixture) Tj
+/F1 13 Tf
+0 -26 Td
+(Name:) Tj
+0 -26 Td
+(Einwilligung: Ja) Tj
+0 -26 Td
+(Die Notiz ist eine vorhandene PDF-Anmerkung.) Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Title (Klarfolio AcroForm and annotation fixture) /Producer (Klarfolio deterministic synthetic fixtures) >>
+endobj
+7 0 obj
+<< /Type /Annot /Subtype /Widget /FT /Tx /T (KlarfolioName) /V (Andreas Test) /DV (Andreas Test) /Rect [72 676 360 706] /P 4 0 R /F 4 /DA (/Helv 12 Tf 0 g) >>
+endobj
+8 0 obj
+<< /Type /Annot /Subtype /Widget /FT /Btn /T (KlarfolioConsent) /V /Yes /AS /Yes /Rect [72 625 88 641] /P 4 0 R /F 4 >>
+endobj
+9 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+10 0 obj
+<< /Type /Annot /Subtype /Text /Rect [420 700 444 724] /Contents (Klarfolio fixture annotation) /T (Klarfolio QA) /Open false /Name /Comment /F 4 /P 4 0 R >>
+endobj
+xref
+0 11
+0000000000 65535 f 
+0000000042 00000 n 
+0000000107 00000 n 
+0000000228 00000 n 
+0000000285 00000 n 
+0000000440 00000 n 
+0000000667 00000 n 
+0000000794 00000 n 
+0000000968 00000 n 
+0000001103 00000 n 
+0000001173 00000 n 
+trailer
+<< /Size 11 /Root 1 0 R /Info 6 0 R >>
+startxref
+1347
+%%EOF

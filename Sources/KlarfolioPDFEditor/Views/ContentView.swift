@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct ContentView: View {
@@ -9,11 +10,14 @@ struct ContentView: View {
             if store.workspaceMode == .editing, isSidebarVisible {
                 SidebarView(store: store)
                     .frame(minWidth: 220, idealWidth: 260, maxWidth: 320)
+                    .accessibilityIdentifier("documentSidebar")
             }
 
             EditorShellView(store: store)
         }
+        .accessibilityIdentifier("mainDocumentWindow")
         .navigationTitle(store.documentTitle)
+        .background(DocumentWindowObserver(store: store))
         .onChange(of: store.workspaceMode) { _, mode in
             if mode == .editing {
                 isSidebarVisible = true
@@ -37,6 +41,7 @@ struct ContentView: View {
                     } label: {
                         Label("Neues PDF", systemImage: "doc.badge.plus")
                     }
+                    .accessibilityIdentifier("toolbarNewDocument")
                     .help("Neues PDF")
                 }
 
@@ -45,6 +50,7 @@ struct ContentView: View {
                 } label: {
                     Label("Öffnen", systemImage: "folder")
                 }
+                .accessibilityIdentifier("toolbarOpenDocument")
                 .help("PDF öffnen")
 
                 if store.workspaceMode == .editing {
@@ -54,6 +60,7 @@ struct ContentView: View {
                         Label("Speichern", systemImage: "square.and.arrow.down")
                     }
                     .disabled(!store.hasDocument)
+                    .accessibilityIdentifier("toolbarSaveDocument")
                     .help("Speichern")
                 }
             }
@@ -119,6 +126,15 @@ struct ContentView: View {
                     SearchField(store: store)
                 }
 
+                if store.workspaceMode == .reading, store.isDirty {
+                    Image(systemName: "circle.fill")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.orange)
+                        .accessibilityLabel("Ungespeicherte Änderungen")
+                        .accessibilityIdentifier("documentEditedIndicator")
+                        .help("Dieses PDF enthält ungespeicherte Änderungen.")
+                }
+
                 Button {
                     store.toggleWorkspaceMode()
                 } label: {
@@ -146,6 +162,7 @@ private struct EditorShellView: View {
             ZStack {
                 PDFCanvasView(store: store)
                     .ignoresSafeArea(.container, edges: .bottom)
+                    .accessibilityIdentifier("pdfDocumentCanvas")
 
                 if !store.hasDocument {
                     EmptyDocumentView(store: store)
@@ -157,11 +174,13 @@ private struct EditorShellView: View {
 
                 InspectorView(store: store)
                     .frame(minWidth: 276, idealWidth: 304, maxWidth: 340)
+                    .accessibilityIdentifier("documentInspector")
             }
         }
         .safeAreaInset(edge: .bottom) {
             if store.workspaceMode == .editing {
                 StatusBarView(store: store)
+                    .accessibilityIdentifier("documentStatusBar")
             }
         }
     }
@@ -181,7 +200,11 @@ private struct EmptyDocumentView: View {
                     .font(.title)
                     .fontWeight(.semibold)
 
-                Text("PDF öffnen, neu erstellen oder aus Bildern zusammensetzen.")
+                Text(
+                    store.workspaceMode == .reading
+                        ? "PDF öffnen oder ein neues Dokument erstellen."
+                        : "PDF öffnen, neu erstellen oder aus Bildern zusammensetzen."
+                )
                     .foregroundStyle(.secondary)
             }
 
@@ -192,20 +215,27 @@ private struct EmptyDocumentView: View {
                     Label("Öffnen", systemImage: "folder")
                 }
                 .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("emptyOpenDocument")
 
                 Button {
-                    store.createBlankDocument()
+                    if store.createBlankDocument() {
+                        store.setWorkspaceMode(.editing)
+                    }
                 } label: {
                     Label("Neues PDF", systemImage: "doc.badge.plus")
                 }
                 .buttonStyle(.bordered)
+                .accessibilityIdentifier("emptyCreateDocument")
 
-                Button {
-                    store.importImagesAsPages()
-                } label: {
-                    Label("Bilder einfügen", systemImage: "photo.on.rectangle")
+                if store.workspaceMode == .editing {
+                    Button {
+                        store.importImagesAsPages()
+                    } label: {
+                        Label("Bilder einfügen", systemImage: "photo.on.rectangle")
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("emptyImportImages")
                 }
-                .buttonStyle(.bordered)
             }
         }
         .padding(32)
@@ -273,6 +303,7 @@ private struct StatusBarView: View {
                 Text(store.currentPageSizeLabel)
                 Text(store.isDirty ? "Ungespeichert" : "Gespeichert")
                     .foregroundStyle(store.isDirty ? .orange : .secondary)
+                    .accessibilityIdentifier("documentSaveState")
             }
         }
         .font(.caption)
@@ -280,5 +311,101 @@ private struct StatusBarView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(.bar)
+    }
+}
+
+private struct DocumentWindowObserver: NSViewRepresentable {
+    @ObservedObject var store: PDFDocumentStore
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(store: store)
+    }
+
+    func makeNSView(context: Context) -> ObserverView {
+        let view = ObserverView()
+        view.windowDidChange = { [weak coordinator = context.coordinator] window in
+            coordinator?.observe(window)
+        }
+        return view
+    }
+
+    func updateNSView(_ view: ObserverView, context: Context) {
+        context.coordinator.store = store
+        context.coordinator.observe(view.window)
+        context.coordinator.synchronizeDocumentState()
+    }
+
+    final class ObserverView: NSView {
+        var windowDidChange: ((NSWindow?) -> Void)?
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            windowDidChange?(window)
+        }
+    }
+
+    final class Coordinator: NSObject, NSWindowDelegate {
+        weak var store: PDFDocumentStore?
+        private weak var observedWindow: NSWindow?
+        private weak var previousDelegate: (any NSWindowDelegate)?
+
+        init(store: PDFDocumentStore) {
+            self.store = store
+        }
+
+        @MainActor
+        func observe(_ window: NSWindow?) {
+            guard let window else {
+                return
+            }
+
+            if observedWindow !== window || window.delegate !== self {
+                if let observedWindow, observedWindow.delegate === self {
+                    observedWindow.delegate = previousDelegate
+                }
+
+                observedWindow = window
+                previousDelegate = window.delegate
+                window.delegate = self
+            }
+
+            synchronizeDocumentState()
+        }
+
+        @MainActor
+        func synchronizeDocumentState() {
+            guard let observedWindow, let store else {
+                return
+            }
+
+            observedWindow.isDocumentEdited = store.isDirty
+            observedWindow.representedURL = store.fileURL
+        }
+
+        func windowShouldClose(_ sender: NSWindow) -> Bool {
+            if let previousDelegate,
+               previousDelegate.responds(to: #selector(NSWindowDelegate.windowShouldClose(_:))),
+               previousDelegate.windowShouldClose?(sender) == false {
+                return false
+            }
+
+            if let appDelegate = NSApp.delegate as? AppDelegate {
+                return appDelegate.shouldCloseDocumentWindow()
+            }
+
+            return store?.confirmDiscardingUnsavedChanges() ?? true
+        }
+
+        override func responds(to selector: Selector!) -> Bool {
+            super.responds(to: selector) || previousDelegate?.responds(to: selector) == true
+        }
+
+        override func forwardingTarget(for selector: Selector!) -> Any? {
+            if previousDelegate?.responds(to: selector) == true {
+                return previousDelegate
+            }
+
+            return super.forwardingTarget(for: selector)
+        }
     }
 }
