@@ -21,6 +21,9 @@ Diese Datei dokumentiert den aktuellen Funktionsumfang aus Nutzersicht.
 | Native PDF-Anzeige | Umgesetzt | Darstellung über PDFKit. |
 | Ablenkungsarmer Lesemodus | Umgesetzt | Jeder App-Start und jedes erfolgreiche Öffnen einer vorhandenen PDF beginnen in der schreibgeschützten Ansicht ohne Seitenleiste, Werkzeugbereich, Statusleiste und erweiterte Toolbar; schreibende Werkzeuge, Menüaktionen und Tastenkürzel sind deaktiviert. |
 | Umschaltbarer Bearbeitungsmodus | Umgesetzt | `Bearbeiten`, das Menü `Darstellung` oder `⌘⇧E` blenden Seitenleiste, Werkzeuge, Suche, Navigation und Zoom ausdrücklich ein; ein Neustart oder eine neu geöffnete vorhandene PDF kehrt zuverlässig in den Lesemodus zurück. |
+| PDF-Inhaltsverzeichnis | Umgesetzt | Zeigt vorhandene verschachtelte PDF-Kapitel über eine kompakte, ausdrücklich geöffnete Reader-Navigation und springt zur tatsächlichen Zielseite. |
+| Persönliche Seiten-Lesezeichen | Umgesetzt | Merkt und verwaltet Seiten-Lesezeichen dokumentbezogen und ausschließlich lokal, ohne PDF-Inhalte oder Dirty-State zu verändern. |
+| Gemerkte Leseposition | Umgesetzt | Öffnet eine bekannte PDF wieder auf der zuletzt gelesenen gültigen Seite, weiterhin immer im schreibgeschützten Lesemodus. |
 | Seitenminiaturen | Umgesetzt | Seitenleiste mit Miniaturansichten und direkter Seitenauswahl. |
 | Fortlaufende Ansicht | Umgesetzt | Standardansicht für längere Dokumente. |
 | Einzelseitenansicht | Umgesetzt | Alternative Darstellung pro Seite. |
@@ -89,7 +92,7 @@ Diese Datei dokumentiert den aktuellen Funktionsumfang aus Nutzersicht.
 | Bilder im PDF ändern | Nicht umgesetzt | Bildobjekt-Bearbeitung ist nicht implementiert. |
 | Links hinzufügen | Umgesetzt | Links können zu einer Webadresse oder zu einer Seite des geöffneten Dokuments führen. |
 | Kopf-/Fußzeilen | Nicht umgesetzt | Noch nicht geplant. |
-| Inhaltsverzeichnis/Lesezeichen | Nicht umgesetzt | Als spätere P2-Komfortfunktion in der technischen Roadmap vorgesehen. |
+| Inhaltsverzeichnis/Lesezeichen | Umgesetzt | Vorhandene PDF-Outlines werden schreibgeschützt angezeigt; persönliche Seiten-Lesezeichen verbleiben lokal und werden nicht in die PDF geschrieben. |
 
 ## Sicherheit, Export und Automatisierung
 

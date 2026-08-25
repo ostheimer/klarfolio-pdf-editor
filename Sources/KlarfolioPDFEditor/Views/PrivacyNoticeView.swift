@@ -16,6 +16,11 @@ struct PrivacyNoticeView: View {
                 )
 
                 privacySection(
+                    title: "Leseposition und Lesezeichen",
+                    text: "Die zuletzt gelesene Seite und deine persönlichen Seiten-Lesezeichen bleiben ausschließlich in lokalen App-Einstellungen auf deinem Mac. Dokumentkennungen verwenden gehashte Dateipfade; deine Lesezeichen verändern die PDF-Datei nicht."
+                )
+
+                privacySection(
                     title: "Konten und Analyse",
                     text: "Die App benötigt kein Benutzerkonto und enthält keine Cloud-Synchronisierung, Werbung, Analyse, Telemetrie oder eingebundene Drittanbieter-SDKs für diese Zwecke."
                 )

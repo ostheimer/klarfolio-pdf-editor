@@ -14,13 +14,13 @@ Quellen:
 
 PDF Expert ist ein reifes, kommerzielles PDF-Produkt für Apple-Plattformen. Die öffentliche Produktkommunikation stellt Lesen, Anmerken, direkte PDF-Bearbeitung, Seitenorganisation, Konvertierung, OCR, Formulare, Signaturen, Schutzfunktionen, Komprimierung und KI-gestützte Dokumentarbeit heraus.
 
-Klarfolio PDF Editor ist aktuell ein lokales macOS-MVP. Es deckt die Grundfläche `Lesen + Anmerken + Seitenorganisation + vorhandene Formulare ausfüllen` ab, hat aber noch keine tiefe Inhaltsbearbeitung, keine OCR, keine Konvertierung, keine erweiterten Formular-Spezialfunktionen, keine sichere Schwärzung und keine KI-Funktionen.
+Klarfolio PDF Editor ist aktuell ein lokales macOS-MVP. Es deckt die Grundfläche `Lesen + Inhaltsverzeichnis/Lesezeichen + Anmerken + Seitenorganisation + vorhandene Formulare ausfüllen` ab, hat aber noch keine tiefe Inhaltsbearbeitung, keine OCR, keine Konvertierung, keine erweiterten Formular-Spezialfunktionen, keine sichere Schwärzung und keine KI-Funktionen.
 
 ## Featurematrix
 
 | Bereich | PDF Expert laut öffentlicher Produktseiten | Klarfolio PDF Editor aktuell | Einordnung |
 | --- | --- | --- | --- |
-| PDF lesen | Mehrere Lese- und Ansichtsmodi, Tag/Nacht/Sepia, vertikales und horizontales Scrollen. | Native PDFKit-Anzeige mit schreibgeschütztem, ablenkungsarmem Lesemodus bei jedem App-Start und jeder erfolgreich geöffneten vorhandenen PDF, fortlaufender Ansicht, Einzelseite, Doppelseite und Zoom. | Guter lokaler Reader-Grundstock mit ausdrücklichem Wechsel zur Bearbeitung; Lesethemen und weitere Komfortmodi fehlen. |
+| PDF lesen | Mehrere Lese- und Ansichtsmodi, Tag/Nacht/Sepia, vertikales und horizontales Scrollen. | Native PDFKit-Anzeige mit schreibgeschütztem Lesemodus, kompaktem PDF-Inhaltsverzeichnis, persönlichen lokalen Seiten-Lesezeichen, wiederhergestellter Leseposition, fortlaufender Ansicht, Einzelseite, Doppelseite und Zoom. | Guter lokaler Reader mit bedarfsgerechter Kapitelnavigation und ausdrücklichem Wechsel zur Bearbeitung; Lesethemen und weitere Komfortmodi fehlen. |
 | Suche | Suche in PDFs, laut Featureseite auch über mehrere PDFs und Notizen. | Suche im geöffneten PDF mit Treffer-Hervorhebung. | Basis vorhanden, Multi-Dokument- und Notizsuche fehlen. |
 | Anmerkungen | Hervorheben, Kommentare, Stempel, Text, Sticker, teils Audio und Formen. | Textfeld, Notiz, Marker, Unterstreichen, Durchstreichen, Stempel, Signaturfeld-Platzhalter sowie Auswahl, Verschieben und Bearbeiten vorhandener Nicht-Widget-Anmerkungen. | Kern vorhanden; Zeichenwerkzeuge, Formen und Audio fehlen. |
 | Direkte Textbearbeitung | Vorhandenen PDF-Text ändern, Absätze ergänzen, Schriften bearbeiten. | Nicht umgesetzt. Textfelder sind Annotationen. | Große Lücke gegenüber PDF Expert. |
@@ -58,6 +58,7 @@ Klarfolio PDF Editor sollte kurzfristig nicht als vollständiger PDF-Expert-Ersa
 | Abgeschlossen (lokaler Betrieb) | Schreibgeschützter Lesemodus bei jedem Start/Öffnen und Schutz ungespeicherter Änderungen | Verhindert versehentliche Bearbeitung und Datenverlust beim täglichen Arbeiten auf dem Mac; vorhandene PDFs öffnen sich nie unmittelbar mit eingeblendeten Werkzeugen. |
 | Abgeschlossen (P2) | Sicherer PDF- und Bild-Drag-and-drop | Öffnet lokale PDFs direkt und importiert Bilder ausschließlich im Bearbeitungsmodus. |
 | Abgeschlossen (P2) | Vorhandene Textfelder und Checkboxen sicher ausfüllen | Hilft bei Verträgen, Bewerbungen und Behörden-PDFs; Änderungen bleiben nachvollziehbar, speicherbar und im Lesemodus gesperrt. |
+| Abgeschlossen (P2) | PDF-Inhaltsverzeichnis, lokale Lesezeichen und Leseposition | Erleichtert das Lesen längerer Dokumente, ohne PDF-Inhalte zu verändern oder die reduzierte Reader-Oberfläche dauerhaft zu überladen. |
 | P2 | Sichere Schwärzung | Hoher Nutzen, aber nur mit echter Inhaltsentfernung veröffentlichen. |
 | P2 | Crop/Zuschneiden | Häufige Scan- und Dokumentpflegefunktion. |
 | P3 | OCR | Strategisch wichtig, aber größere technische Entscheidung. |

@@ -20,7 +20,7 @@ Falls die Entwicklungs-App bereits läuft, schließe sie vor einer Aktualisierun
 
 ## Lese- und Bearbeitungsmodus
 
-Bei jedem Start und nach jedem erfolgreichen Öffnen einer vorhandenen PDF ist der **Lesemodus** aktiv. Das gilt auch dann, wenn die App zuvor im Bearbeitungsmodus beendet wurde. Der Lesemodus zeigt das PDF ohne Seitenleiste, rechten Werkzeugbereich, untere Statusleiste oder erweiterte Toolbar; sichtbar bleiben die wesentlichen Aktionen zum Öffnen und zum Wechsel in die Bearbeitung. Vorhandene PDF-Anmerkungen lassen sich im Lesemodus nicht versehentlich verschieben oder löschen; schreibende PDF-Menübefehle und ihre Tastenkürzel bleiben ebenfalls gesperrt.
+Bei jedem Start und nach jedem erfolgreichen Öffnen einer vorhandenen PDF ist der **Lesemodus** aktiv. Das gilt auch dann, wenn die App zuvor im Bearbeitungsmodus beendet wurde. Der Lesemodus zeigt das PDF ohne Seitenleiste, rechten Werkzeugbereich, untere Statusleiste oder erweiterte Toolbar; sichtbar bleiben die wesentlichen Aktionen zum Öffnen, zur kompakten Reader-Navigation und zum Wechsel in die Bearbeitung. Die Navigationsansicht erscheint ausschließlich nach ausdrücklicher Auswahl. Vorhandene PDF-Anmerkungen lassen sich im Lesemodus nicht versehentlich verschieben oder löschen; schreibende PDF-Menübefehle und ihre Tastenkürzel bleiben ebenfalls gesperrt.
 
 - `Bearbeiten` oben rechts blendet links die Seitenleiste, rechts die Werkzeuge und unten die Statusleiste ein. Zusätzlich erscheinen Seitensteuerung, Zoom und Suchfeld in der Toolbar.
 - `Lesen` blendet diese Bedienelemente wieder aus und beendet eine vorhandene Anmerkungsauswahl, ohne das Dokument zu verändern.
@@ -51,11 +51,23 @@ Bei einem neuen Dokument ohne Dateinamen öffnet `Speichern` zunächst `Sichern 
 ## Lesen und Navigieren
 
 - Im Lesemodus kannst du das PDF direkt scrollen und lesen.
+- `Inhalt & Lesezeichen` zeigt bei Bedarf die aktuelle Seite, vorhandene PDF-Kapitel und deine persönlichen Seiten-Lesezeichen.
 - Im Bearbeitungsmodus zeigt die linke Seitenleiste Miniaturen aller Seiten.
 - Ein Klick auf eine Miniatur springt zur jeweiligen Seite.
 - Die Werkzeugleiste zeigt die aktuelle Seite, die Gesamtzahl der Seiten und den Zoom.
 - `Vergrößern`, `Verkleinern` und `An Fenster anpassen` steuern die Ansicht.
 - Im Dokumentbereich der Seitenleiste kann zwischen fortlaufender Ansicht, Einzelseite und Doppelseite gewechselt werden.
+
+## Inhaltsverzeichnis, Lesezeichen und Leseposition
+
+Sobald eine PDF geöffnet ist, kannst du ihre Reader-Navigation direkt über `Inhalt & Lesezeichen` in der oberen Werkzeugleiste öffnen. Die vollständige Bearbeitungsoberfläche wird dadurch nicht eingeblendet.
+
+- `Inhaltsverzeichnis` zeigt vorhandene Kapitel und verschachtelte Unterkapitel des PDFs. Ein Klick springt zur jeweiligen Seite.
+- Enthält eine PDF kein eigenes Inhaltsverzeichnis, bleibt das Dokument vollständig nutzbar; die Navigation zeigt einen verständlichen Hinweis.
+- Über den Bereich `Meine Lesezeichen` merkst du die aktuelle Seite, springst zu bereits gemerkten Seiten und entfernst nicht mehr benötigte Einträge.
+- Seiten-Lesezeichen sind persönliche lokale Einstellungen: Sie werden nicht in die PDF geschrieben und erzeugen keine ungespeicherten Dokumentänderungen.
+- Beim erneuten Öffnen einer bereits bekannten PDF springt Klarfolio zur zuletzt gelesenen gültigen Seite und bleibt trotzdem im Lesemodus.
+- Leseposition und Lesezeichen gelten jeweils nur für das zugehörige Dokument und bleiben auf deinem Mac; eine andere PDF erhält ihre eigene Navigation.
 
 ## Suchen
 
@@ -120,6 +132,6 @@ Klarfolio PDF Editor bearbeitet derzeit keine vorhandenen PDF-Textobjekte direkt
 
 ## Datenschutz
 
-Die App verarbeitet die von dir ausgewählten Dokumente lokal auf deinem Mac. Der vollständige [Datenschutzhinweis](privacy.md) ist vor einer öffentlichen Veröffentlichung noch um die verantwortliche Stelle und eine öffentliche URL zu ergänzen.
+Die App verarbeitet die von dir ausgewählten Dokumente lokal auf deinem Mac. Persönliche Seiten-Lesezeichen und die zuletzt gelesene Seite werden ausschließlich in lokalen App-Einstellungen gespeichert; Dokumentkennungen verwenden gehashte statt lesbarer Dateipfade. Der vollständige [Datenschutzhinweis](privacy.md) ist vor einer öffentlichen Veröffentlichung noch um die verantwortliche Stelle und eine öffentliche URL zu ergänzen.
 
 Eine Zusammenfassung der aktuellen lokalen Datenverarbeitung ist jederzeit im App-Menü unter `Hilfe > Datenschutz …` erreichbar.

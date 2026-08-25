@@ -8,6 +8,7 @@ usage() {
     "Launches the app and verifies the real macOS accessibility tree:" \
     "  - the initial reduced reading mode" \
     "  - opening the versioned three-page PDF fixture" \
+    "  - navigating nested PDF outlines, reader bookmarks, and restored reading positions" \
     "  - showing and hiding sidebar, inspector, and status bar" \
     "  - dirty-state visibility and protection for New, Close, and Quit" \
     "  - safely filling and saving a private copy of the PDF form fixture" \
@@ -65,8 +66,9 @@ fi
 root_directory="$(cd "$(dirname "$0")/.." && pwd)"
 pdf_fixture="$root_directory/TestFixtures/fixture-text-3-pages.pdf"
 form_fixture="$root_directory/TestFixtures/fixture-form.pdf"
+outline_fixture="$root_directory/TestFixtures/fixture-outline-4-pages.pdf"
 
-for required_fixture in "$pdf_fixture" "$form_fixture"; do
+for required_fixture in "$pdf_fixture" "$form_fixture" "$outline_fixture"; do
   if [[ ! -f "$required_fixture" ]]; then
     printf 'error: missing versioned UI-smoke fixture at %s\n' "$required_fixture" >&2
     exit 1
@@ -86,6 +88,7 @@ struct SmokeFailure: Error, CustomStringConvertible {
 let appURL = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
 let fixtureURL = URL(fileURLWithPath: CommandLine.arguments[2])
 let formFixtureURL = URL(fileURLWithPath: CommandLine.arguments[3])
+let outlineFixtureURL = URL(fileURLWithPath: CommandLine.arguments[4])
 let unavailableExitCode: Int32 = 77
 
 func unavailable(_ message: String) -> Never {
@@ -291,6 +294,51 @@ func pressButton(titled title: String, in application: NSRunningApplication) thr
     try press(control, description: "the \(title) button")
 }
 
+func pressElement(named identifier: String, in application: NSRunningApplication) throws {
+    guard let control = element(named: identifier, in: application) else {
+        throw SmokeFailure(description: "the accessibility element \(identifier) is missing")
+    }
+
+    try press(control, description: "the accessibility element \(identifier)")
+}
+
+func openReaderNavigationPanel(in application: NSRunningApplication) throws {
+    if element(named: "readerNavigationPanel", in: application) == nil {
+        try pressElement(named: "readerNavigationToggle", in: application)
+    }
+
+    try awaitCondition("the reader navigation panel") {
+        element(named: "readerNavigationPanel", in: application) != nil
+            && element(named: "readerCurrentPageLabel", in: application) != nil
+            && element(named: "readerOutlineSection", in: application) != nil
+            && element(named: "readerBookmarksSection", in: application) != nil
+    }
+}
+
+func expectReaderPage(
+    _ pageNumber: Int,
+    of pageCount: Int,
+    in application: NSRunningApplication
+) throws {
+    let expectedLabel = "Seite \(pageNumber) von \(pageCount)"
+    do {
+        try awaitCondition("the reader current-page label \(expectedLabel)") {
+            guard let label = element(named: "readerCurrentPageLabel", in: application) else {
+                return false
+            }
+
+            return visibleText(of: label).contains(expectedLabel)
+        }
+    } catch {
+        if ProcessInfo.processInfo.environment["KLARFOLIO_UI_SMOKE_DEBUG"] == "1" {
+            let currentLabel = element(named: "readerCurrentPageLabel", in: application)
+                .map(visibleText(of:)) ?? "<missing>"
+            print("DEBUG reader current-page label: \(currentLabel)")
+        }
+        throw error
+    }
+}
+
 func pressCommandShortcut(
     keyCode: CGKeyCode,
     description: String,
@@ -469,6 +517,7 @@ do {
 
     let originalFixtureData = try Data(contentsOf: fixtureURL)
     let originalFormFixtureData = try Data(contentsOf: formFixtureURL)
+    let originalOutlineFixtureData = try Data(contentsOf: outlineFixtureURL)
     let temporaryDirectory = FileManager.default.temporaryDirectory
         .appendingPathComponent("KlarfolioFormUISmoke-\(UUID().uuidString)", isDirectory: true)
     try FileManager.default.createDirectory(
@@ -479,8 +528,11 @@ do {
     defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
 
     let writableFormURL = temporaryDirectory.appendingPathComponent("Klarfolio-Formular-UI-Smoke.pdf")
+    let writableOutlineURL = temporaryDirectory.appendingPathComponent("Klarfolio-Outline-UI-Smoke.pdf")
     let unreadablePDFURL = temporaryDirectory.appendingPathComponent("Nicht-lesbare-UI-Smoke.pdf")
     try FileManager.default.copyItem(at: formFixtureURL, to: writableFormURL)
+    try FileManager.default.copyItem(at: outlineFixtureURL, to: writableOutlineURL)
+    let originalWritableOutlineData = try Data(contentsOf: writableOutlineURL)
     try Data("This is intentionally not a PDF.".utf8).write(to: unreadablePDFURL)
     var activeApplication: NSRunningApplication?
     defer {
@@ -517,6 +569,54 @@ do {
     }
     try expectReadingMode(in: application)
     print("PASS versioned three-page PDF opens in reading mode")
+
+    try openFixture(writableOutlineURL)
+    try awaitCondition("the four-page outline fixture to appear in the window title") {
+        snapshot(for: application).contains {
+            visibleText(of: $0).contains(writableOutlineURL.lastPathComponent)
+        }
+    }
+    try expectReadingMode(in: application)
+    try openReaderNavigationPanel(in: application)
+    try expectReaderPage(1, of: 4, in: application)
+    try pressElement(named: "readerOutline.page.2", in: application)
+    try expectReaderPage(3, of: 4, in: application)
+    print("PASS the nested outline chapter jumps to its real third-page destination")
+
+    try pressElement(named: "readerAddBookmark", in: application)
+    try awaitCondition("a reader bookmark for the third page") {
+        element(named: "readerBookmark.page.2", in: application) != nil
+            && element(named: "readerRemoveBookmark.page.2", in: application) != nil
+    }
+    try pressElement(named: "readerOutline.page.0", in: application)
+    try expectReaderPage(1, of: 4, in: application)
+    try pressElement(named: "readerBookmark.page.2", in: application)
+    try expectReaderPage(3, of: 4, in: application)
+    print("PASS a reader bookmark navigates back to the saved third page")
+
+    try pressElement(named: "readerRemoveBookmark.page.2", in: application)
+    try awaitCondition("the third-page reader bookmark to be removed") {
+        element(named: "readerBookmark.page.2", in: application) == nil
+            && element(named: "readerRemoveBookmark.page.2", in: application) == nil
+    }
+    try check(
+        try Data(contentsOf: outlineFixtureURL) == originalOutlineFixtureData,
+        "the UI smoke unexpectedly modified the versioned outline fixture"
+    )
+    try check(
+        try Data(contentsOf: writableOutlineURL) == originalWritableOutlineData,
+        "reader navigation or bookmarks unexpectedly modified the private outline PDF"
+    )
+    print("PASS a reader bookmark can be removed without editing the PDF")
+
+    try openFixture()
+    try awaitCondition("the three-page PDF fixture to return after outline navigation") {
+        snapshot(for: application).contains {
+            visibleText(of: $0).contains(fixtureURL.lastPathComponent)
+        }
+    }
+    try expectReadingMode(in: application)
+    print("PASS switching away from the outline fixture preserves the reduced reader")
 
     try pressWorkspaceToggle(in: application)
     try expectEditingMode(in: application)
@@ -708,6 +808,17 @@ do {
     )
     print("PASS saving through the replacement warning preserves the form without touching either source fixture")
 
+    try openFixture(writableOutlineURL)
+    try awaitCondition("the outline fixture to return after a document switch") {
+        snapshot(for: application).contains {
+            visibleText(of: $0).contains(writableOutlineURL.lastPathComponent)
+        }
+    }
+    try expectReadingMode(in: application)
+    try openReaderNavigationPanel(in: application)
+    try expectReaderPage(3, of: 4, in: application)
+    print("PASS the outline fixture restores its last page after a document switch")
+
     try pressWorkspaceToggle(in: application)
     try expectEditingMode(in: application)
     print("PASS editing mode remains an explicit opt-in before restart")
@@ -720,6 +831,25 @@ do {
     try expectReadingMode(in: application)
     print("PASS a clean restart resets an earlier editing session to reading mode")
 
+    try openFixture(writableOutlineURL)
+    try awaitCondition("the outline fixture to reopen after an app restart") {
+        snapshot(for: application).contains {
+            visibleText(of: $0).contains(writableOutlineURL.lastPathComponent)
+        }
+    }
+    try expectReadingMode(in: application)
+    try openReaderNavigationPanel(in: application)
+    try expectReaderPage(3, of: 4, in: application)
+    try check(
+        try Data(contentsOf: outlineFixtureURL) == originalOutlineFixtureData,
+        "restoring the outline fixture unexpectedly modified its versioned source"
+    )
+    try check(
+        try Data(contentsOf: writableOutlineURL) == originalWritableOutlineData,
+        "restoring the outline fixture unexpectedly modified the private PDF"
+    )
+    print("PASS the outline fixture restores its last page after an app restart")
+
     try terminate(application)
     activeApplication = nil
     print("UI smoke passed.")
@@ -729,7 +859,7 @@ do {
 }
 SWIFT
 
-if swift -e "$smoke_program" "$app_bundle" "$pdf_fixture" "$form_fixture"; then
+if swift -e "$smoke_program" "$app_bundle" "$pdf_fixture" "$form_fixture" "$outline_fixture"; then
   exit 0
 else
   smoke_status=$?

@@ -21,6 +21,9 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 - `PDFDocumentStore` ist die zentrale Main-Actor-Quelle für Dokumentzustand, Auswahl, Statusmeldungen, Arbeitsmodus und PDF-Aktionen.
 - Jeder neu initialisierte Store startet ausdrücklich im Lesemodus, auch wenn `UserDefaults` aus einer früheren Sitzung noch `editing` enthält. Moduswechsel werden weiterhin ausschließlich lokal abgelegt; sie dürfen weder einen App-Neustart noch das erfolgreiche Öffnen einer vorhandenen PDF in die Bearbeitung zwingen. Für Tests können isolierte Preference-Suites injiziert werden.
 - Eine erfolgreich geladene vorhandene PDF setzt den Arbeitsmodus erst nach bestandenem Dokumentwechsel-Guard und erfolgreichem PDF-Laden auf `reading`; ein abgebrochener Guard oder eine ungültige Datei lässt Dokument, Dirty-State und bisherigen Arbeitsmodus unverändert.
+- PDF-Outlines werden rekursiv aus der vorhandenen PDFKit-Dokumenthierarchie gelesen und nach strukturellen Seitenänderungen neu aufgelöst; Kapitelansprünge und persönliche Seiten-Lesezeichen sind reine Reader-Aktionen und verändern weder PDF-Inhalte noch den Dirty-State.
+- Leseposition und persönliche Lesezeichen liegen ausschließlich in injizierbaren lokalen `UserDefaults`; die dokumentbezogenen Schlüssel verwenden `SHA256` des standardisierten, symlinkaufgelösten Dateipfads statt lesbarer Pfade. Namenlos neu erzeugte PDFs erhalten keine dauerhafte Dokumenthistorie.
+- Seitenrückmeldungen einer bereits ersetzten `PDFView` werden verworfen, damit verspätete SwiftUI-/PDFKit-Benachrichtigungen weder die aktuelle Ansicht noch eine gespeicherte Leseposition überschreiben.
 - Ein zentraler Dokumentwechsel-Guard bewertet `isDirty`, fragt `Speichern`/`Verwerfen`/`Abbrechen` ab und setzt Aktionen nur nach tatsächlichem Speichererfolg fort; Dialog- und Speicherentscheidungen sind für Regressionstests injizierbar.
 - Vorhandene PDF-Textfelder und Checkboxen werden im Store als überprüfbare Feldmodelle erfasst; Passwort-, Radio- und andere nicht unterstützte Felder bleiben ausgeschlossen. Jede zulässige Änderung läuft ausschließlich im Bearbeitungsmodus über zentrale Store-Aktionen mit Dirty-Tracking, Statusmeldung und regulärer PDF-Speicherung.
 - Der Lesemodus ist auch auf Menü-, Tastenkürzel- und Fensterzustandsebene schreibgeschützt; `NSWindow.isDocumentEdited` bleibt unabhängig von der ausgeblendeten Statusleiste aktuell.
@@ -33,13 +36,15 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 | --- | --- |
 | `KlarfolioPDFEditorApp.swift` | App-Einstieg, schreibgeschützte Menübefehle im Lesemodus, Moduswechsel per `⌘⇧E`, sichere Beendigungsentscheidung, modusabhängige Mindestfenstergröße und Aktivierung als reguläre macOS-App. |
 | `ContentView.swift` | Hauptlayout mit reduziertem Lesemodus bzw. vollständigem Bearbeitungsmodus, bedingter Toolbar, Suchfeld, Statusleiste, nativem Edited-Kennzeichen, Schließschutz und leerem Startzustand. |
+| `ReadingNavigationView.swift` | Kompakte, ausdrücklich geöffnete Reader-Navigation mit aktueller Seite, verschachteltem PDF-Inhaltsverzeichnis und persönlichen lokalen Seiten-Lesezeichen. |
 | `SidebarView.swift` | Seitenminiaturen, Seitenauswahl und Dokumentübersicht. |
 | `InspectorView.swift` | Werkzeug-, Anmerkungs-, Seiten- und Dokumentaktionen sowie die sichere Oberfläche für vorhandene PDF-Textfelder und Checkboxen. |
 | `PDFCanvasView.swift` | `NSViewRepresentable` für `PDFView`, PDFKit-Benachrichtigungen, native Dateidrops und Anmerkungsinteraktionen ausschließlich im Bearbeitungsmodus. |
 | `PrivacyNoticeView.swift` | Direkt in der App erreichbare Zusammenfassung der lokalen Datenverarbeitung. |
-| `PDFDocumentStore.swift` | Deterministischer Lesemodus bei App-Start und erfolgreichem Öffnen vorhandener PDFs, expliziter Bearbeitungswechsel, zentraler Schutz ungespeicherter Änderungen, nachvollziehbare Formularerkennung/-bearbeitung, erfolgsbasierte Speicheraktionen, Seitenaktionen einschließlich Extrahieren/Teilen, Suche, Zoom, Link- und andere Annotationen. |
+| `PDFDocumentStore.swift` | Deterministischer Lesemodus, vorhandene PDF-Outlines, lokal dokumentgetrennte Lesezeichen/Leseposition, expliziter Bearbeitungswechsel, zentraler Dokumentenschutz, nachvollziehbare Formularbearbeitung, erfolgsbasierte Speicherung, Seitenaktionen, Suche, Zoom und Annotationen. |
 | `PDFModels.swift` | UI-Enums für Arbeitsmodus, Seitenleistenbereiche, Werkzeuge, Farben und Layouts. |
 | `PDFFormModels.swift` | Stabile, überprüfbare Modelle vorhandener PDF-Textfelder und Checkboxen mit Feldidentität, Seite, Wert, Schreibschutz und Zeichenlimit. |
+| `PDFReadingNavigationModels.swift` | Verschachtelte PDF-Outline-Einträge und lokal serialisierbare persönliche Seiten-Lesezeichen. |
 | `PDFUtilities.swift` | Hilfsfunktionen für leere Seiten, Anzeigegrößen und Dateinamen. |
 | `PDFFileDrop.swift` | Reine, testbare Klassifikation lokaler PDF- und Bild-Drops einschließlich Lese-/Bearbeitungsmodus und Ablehnung mehrdeutiger Eingaben. |
 | `TestFixtures/` | Synthetische, versionierte und lizenzfreie Referenz-PDFs mit dokumentierter Herkunft und erwartetem Verhalten. |
@@ -59,6 +64,8 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 8. Finder-Drops auf `PDFView` werden über `UTType` klassifiziert: einzelne PDFs öffnen in beiden Modi über den Dokumentwechsel-Guard und erscheinen nach erfolgreichem Laden im Lesemodus; Bilddateien importiert ausschließlich der Bearbeitungsmodus. Das ausdrückliche Erstellen eines neuen PDFs darf dagegen unmittelbar in die Bearbeitung wechseln.
 9. Nach dem Dokumentwechsel erfasst der Store unterstützte Formular-Widgets; Text- und Checkboxänderungen aus dem SwiftUI-Inspektor prüfen Bearbeitungsmodus, Feldtyp, Schreibschutz und tatsächliche Wertänderung, bevor sie PDFKit und Dirty-State aktualisieren.
 10. Direkte PDFKit-Widget-Eingaben sowie formularzurücksetzende Link-Aktionen bleiben in beiden Arbeitsmodi blockiert, damit keine Änderung den zentralen Dokumentenschutz umgehen kann.
+11. Bei einem vorhandenen Datei-PDF liest der Store die Outline-Hierarchie und zugehörige lokale Lesezeichen, begrenzt ungültige gespeicherte Seiten und stellt die letzte gültige Leseposition wieder her. Die Reader-Navigation ruft nur sichere Seitenwechsel und lokale Bookmark-Aktionen auf.
+12. PDFView-Seitenänderungen aktualisieren die Leseposition unter `at.ostheimer.klarfoliopdf.readingPosition.<sha256>`; persönliche Lesezeichen liegen separat unter `at.ostheimer.klarfoliopdf.pageBookmarks.<sha256>`. Weder Schlüssel noch Werte enthalten Klartext-Dateipfade oder PDF-Inhalte.
 
 ## Aktuelle technische Grenzen
 
@@ -73,6 +80,6 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 
 1. Den vorhandenen Fixture- und UI-Smoke-Grundstock gezielt um große, verschlüsselte, signierte und formularreiche PDFs erweitern.
 2. Die vorhandene Drag-and-drop-Basis um nachvollziehbare Nutzerhinweise und bei Bedarf weitere lokale Importformate ergänzen.
-3. Lesezeichen/Outlines, komfortable Reader-Navigation, erweiterte Linkverwaltung und bei lokalem Bedarf weitere PDF-Formularfeldtypen produktisieren.
+3. Die vorhandene Reader-Navigation bei tatsächlichem Bedarf um erweiterte Linkverwaltung, weitere Leseeinstellungen und zusätzliche PDF-Formularfeldtypen ergänzen.
 4. Sichere Redaction erst mit Validierung implementieren, dass Inhalte wirklich entfernt sind.
 5. Export-, OCR-, Autosave- und Wiederherstellungsstrategie nur bei tatsächlichem lokalem Bedarf evaluieren.

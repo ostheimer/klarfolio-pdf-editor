@@ -93,7 +93,7 @@ Unter vollständigem Xcode 16 oder neuer:
 swift test --parallel
 ```
 
-Die Suite umfasst Store-, Dokumentenschutz-, Formular-, Drag-and-drop- und Fixture-Regressionen. Synthetische, lizenzfreie Referenzdateien liegen unter `TestFixtures/`; ihre Herkunft und erwarteten Inhalte sind in `TestFixtures/README.md` dokumentiert. `fixture-form.pdf` enthält ein vorausgefülltes Textfeld, eine aktivierte Checkbox und eine vorhandene Notizanmerkung; Tests prüfen unter anderem Feld-Erkennung, Bearbeitungsgrenzen, Dirty-State und tatsächliches Speichern/Wiederöffnen.
+Die Suite umfasst Store-, Dokumentenschutz-, Reader-Navigations-, Formular-, Drag-and-drop- und Fixture-Regressionen. Synthetische, lizenzfreie Referenzdateien liegen unter `TestFixtures/`; ihre Herkunft und erwarteten Inhalte sind in `TestFixtures/README.md` dokumentiert. `fixture-form.pdf` enthält ein vorausgefülltes Textfeld, eine aktivierte Checkbox und eine vorhandene Notizanmerkung. `fixture-outline-4-pages.pdf` enthält vier Seiten mit verschachteltem PDF-Inhaltsverzeichnis. Tests prüfen unter anderem Outline-Zielseiten nach strukturellen Seitenänderungen, isolierte lokale Lesezeichen/Leseposition, verspätete Rückmeldungen ersetzter PDF-Ansichten, Feld-Erkennung, Bearbeitungsgrenzen, Dirty-State und tatsächliches Speichern/Wiederöffnen.
 
 Für einen tatsächlichen macOS-Oberflächentest mit Bedienungshilfen-Zugriff die zu prüfende App zunächst regulär schließen und danach ausführen:
 
@@ -103,7 +103,7 @@ Für einen tatsächlichen macOS-Oberflächentest mit Bedienungshilfen-Zugriff di
   --require-ui
 ```
 
-Der Smoke verwendet ausschließlich synthetische Projekt-Fixtures beziehungsweise temporäre Fixture-Kopien und prüft die echte Accessibility-Oberfläche einschließlich tatsächlicher Formularänderungen. Ein App-Neustart und jedes erfolgreiche Öffnen einer vorhandenen PDF müssen dabei wieder im Lesemodus beginnen; Bearbeitung wird immer ausdrücklich aktiviert. Die versionierten Original-Fixtures und benutzereigene Dokumente bleiben unangetastet. CI darf mit `--allow-headless` nur dann ausdrücklich als übersprungen kennzeichnen, wenn keine grafische Sitzung oder keine Bedienungshilfen-Berechtigung vorhanden ist; ein solcher Skip ist kein bestandener UI-Test.
+Der Smoke verwendet ausschließlich synthetische Projekt-Fixtures beziehungsweise temporäre Fixture-Kopien und prüft die echte Accessibility-Oberfläche einschließlich Outline-Navigation, persönlicher Lesezeichen, wiederhergestellter Leseposition und tatsächlicher Formularänderungen. Ein App-Neustart und jedes erfolgreiche Öffnen einer vorhandenen PDF müssen dabei wieder im Lesemodus beginnen; Bearbeitung wird immer ausdrücklich aktiviert. Die versionierten Original-Fixtures und benutzereigene Dokumente bleiben unangetastet. CI darf mit `--allow-headless` nur dann ausdrücklich als übersprungen kennzeichnen, wenn keine grafische Sitzung oder keine Bedienungshilfen-Berechtigung vorhanden ist; ein solcher Skip ist kein bestandener UI-Test.
 
 Wenn nur die Command Line Tools aktiv sind und Swift das Modul `Testing` nicht findet, kann der bereits validierte lokale Fallback verwendet werden:
 
