@@ -16,11 +16,13 @@ Klarfolio PDF Editor öffnet PDF-Dateien und – wenn du dies auswählst – Bil
 
 Wenn du speicherst oder „Sichern unter“ verwendest, schreibt die App die PDF an den von dir gewählten Speicherort. Die App übermittelt den Inhalt deiner Dokumente nach dem aktuellen Produktumfang nicht an Server des Anbieters oder an Dritte.
 
+Für den Lesekomfort speichert die App zusätzlich die zuletzt angezeigte Seite und von dir angelegte persönliche Seiten-Lesezeichen in den lokalen macOS-App-Einstellungen. Diese Angaben werden pro Dokument unter einer gehashten Dokumentkennung geführt; lesbare Dateipfade und PDF-Inhalte werden nicht als Persistenzschlüssel gespeichert. Persönliche Lesezeichen verändern die PDF-Datei nicht. Leseposition und Lesezeichen verlassen nach dem aktuellen Funktionsumfang nicht deinen Mac und werden nicht mit einem Konto oder einer Cloud synchronisiert.
+
 Die aktuelle App-Version bietet keine Benutzerkonten, keine Cloud-Synchronisierung, keine Werbung, keine Analyse-/Telemetriedienste und kein eingebundenes Drittanbieter-SDK für Analyse oder Werbung. Sie fordert keine Kontakte, Standort-, Kamera-, Mikrofon- oder Fotomediathek-Berechtigung an. Diese Aussage gilt nur, solange der veröffentlichte Build dem hier dokumentierten Umfang entspricht.
 
 ## Lokale Dateien und Löschung
 
-PDFs, Bilder und von dir gespeicherte Ausgaben verbleiben in den von dir gewählten Ordnern. Du kontrollierst diese Dateien selbst und kannst sie im Finder löschen. Die App betreibt nach dem aktuellen Umfang keinen Dienst, auf dem sie Kopien deiner Dokumente, Konten oder Nutzungsprofile vorhält. Daher kann über die App keine serverseitige Löschung angefordert werden.
+PDFs, Bilder und von dir gespeicherte Ausgaben verbleiben in den von dir gewählten Ordnern. Du kontrollierst diese Dateien selbst und kannst sie im Finder löschen. Persönliche Seiten-Lesezeichen lassen sich unmittelbar in der Reader-Navigation entfernen; Leseposition und Lesezeichen werden getrennt von der PDF als lokale App-Einstellungen geführt. Die App betreibt nach dem aktuellen Umfang keinen Dienst, auf dem sie Kopien deiner Dokumente, Konten oder Nutzungsprofile vorhält. Daher kann über die App keine serverseitige Löschung angefordert werden.
 
 ## Empfänger und Übermittlungen
 

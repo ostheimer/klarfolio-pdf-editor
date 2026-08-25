@@ -4,6 +4,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var store: PDFDocumentStore
     @State private var isSidebarVisible = true
+    @State private var isReadingNavigationPresented = false
 
     var body: some View {
         HSplitView {
@@ -124,6 +125,24 @@ struct ContentView: View {
             ToolbarItemGroup(placement: .primaryAction) {
                 if store.workspaceMode == .editing {
                     SearchField(store: store)
+                }
+
+                if store.hasDocument {
+                    Button {
+                        isReadingNavigationPresented.toggle()
+                    } label: {
+                        Label("Inhalt & Lesezeichen", systemImage: "list.bullet.rectangle.portrait")
+                    }
+                    .labelStyle(.iconOnly)
+                    .accessibilityIdentifier("readerNavigationToggle")
+                    .accessibilityLabel("Inhalt & Lesezeichen")
+                    .help("Inhalt & Lesezeichen")
+                    .popover(
+                        isPresented: $isReadingNavigationPresented,
+                        arrowEdge: .bottom
+                    ) {
+                        ReadingNavigationView(store: store)
+                    }
                 }
 
                 if store.workspaceMode == .reading, store.isDirty {

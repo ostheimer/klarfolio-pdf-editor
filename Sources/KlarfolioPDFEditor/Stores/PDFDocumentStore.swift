@@ -1,10 +1,13 @@
 import AppKit
+import CryptoKit
 import PDFKit
 import UniformTypeIdentifiers
 
 @MainActor
 final class PDFDocumentStore: ObservableObject {
     static let workspaceModeDefaultsKey = "at.ostheimer.klarfoliopdf.workspaceMode"
+    static let readingPositionDefaultsPrefix = "at.ostheimer.klarfoliopdf.readingPosition."
+    static let pageBookmarksDefaultsPrefix = "at.ostheimer.klarfoliopdf.pageBookmarks."
 
     enum UnsavedChangesDecision {
         case save
@@ -16,6 +19,8 @@ final class PDFDocumentStore: ObservableObject {
     private let unsavedChangesDecisionProvider: ((PDFDocumentStore) -> UnsavedChangesDecision)?
     private let saveChangesHandler: ((PDFDocumentStore) -> Bool)?
     private var formAnnotations: [String: PDFAnnotation] = [:]
+    private var activeReadingDocumentIdentifier: String?
+    private var isRestoringReadingState = false
 
     @Published private(set) var workspaceMode: PDFWorkspaceMode {
         didSet {
@@ -24,7 +29,11 @@ final class PDFDocumentStore: ObservableObject {
     }
     @Published var document: PDFDocument?
     @Published var fileURL: URL?
-    @Published var currentPageIndex = 0
+    @Published var currentPageIndex = 0 {
+        didSet {
+            persistCurrentReadingPosition()
+        }
+    }
     @Published var selectedTool: PDFInteractionTool = .select
     @Published var sidebarPanel: SidebarPanel = .pages
     @Published var annotationColor: AnnotationSwatch = .yellow
@@ -36,6 +45,8 @@ final class PDFDocumentStore: ObservableObject {
     @Published var isDirty = false
     @Published var statusMessage = "Bereit"
     @Published var revision = 0
+    @Published private(set) var documentOutline: [PDFOutlineItem] = []
+    @Published private(set) var pageBookmarks: [PDFPageBookmark] = []
     @Published private(set) var formFields: [PDFFormField] = []
     @Published private(set) var selectedAnnotation: PDFAnnotation?
     @Published private(set) var selectedAnnotationPageIndex: Int?
@@ -82,6 +93,10 @@ final class PDFDocumentStore: ObservableObject {
 
     var pageCount: Int {
         document?.pageCount ?? 0
+    }
+
+    var isCurrentPageBookmarked: Bool {
+        pageBookmarks.contains { $0.pageIndex == currentPageIndex }
     }
 
     var documentTitle: String {
@@ -138,6 +153,7 @@ final class PDFDocumentStore: ObservableObject {
         self.pdfView = pdfView
         configure(pdfView)
         pdfView.document = document
+        goToPage(currentPageIndex)
         syncFromPDFView(pdfView)
     }
 
@@ -232,6 +248,8 @@ final class PDFDocumentStore: ObservableObject {
 
         if document.write(to: url) {
             fileURL = url
+            activateReadingState(for: url, document: document)
+            persistCurrentReadingPosition()
             isDirty = false
             statusMessage = "\(url.lastPathComponent) gespeichert"
             return true
@@ -292,7 +310,7 @@ final class PDFDocumentStore: ObservableObject {
 
         let insertionIndex = min(currentPageIndex + 1, document.pageCount)
         document.insert(page, at: insertionIndex)
-        markChanged("Leere Seite eingefügt")
+        markChanged("Leere Seite eingefügt", refreshDocumentOutline: true)
         goToPage(insertionIndex)
     }
 
@@ -334,7 +352,7 @@ final class PDFDocumentStore: ObservableObject {
         }
 
         if inserted > 0 {
-            markChanged("\(inserted) Bildseiten eingefügt")
+            markChanged("\(inserted) Bildseiten eingefügt", refreshDocumentOutline: true)
             goToPage(firstInsertedIndex)
         } else {
             statusMessage = "Keine lesbaren Bilder gefunden."
@@ -378,7 +396,7 @@ final class PDFDocumentStore: ObservableObject {
         }
 
         if inserted > 0 {
-            markChanged("\(inserted) Seiten zusammengeführt")
+            markChanged("\(inserted) Seiten zusammengeführt", refreshDocumentOutline: true)
             goToPage(firstInsertedIndex)
         } else {
             statusMessage = "Keine PDF-Seiten gefunden."
@@ -537,7 +555,7 @@ final class PDFDocumentStore: ObservableObject {
         }
         document.removePage(at: deleteIndex)
         let nextIndex = min(deleteIndex, document.pageCount - 1)
-        markChanged("Seite \(deleteIndex + 1) gelöscht")
+        markChanged("Seite \(deleteIndex + 1) gelöscht", refreshDocumentOutline: true)
         goToPage(nextIndex)
     }
 
@@ -570,7 +588,7 @@ final class PDFDocumentStore: ObservableObject {
         if selectedAnnotation?.page === page {
             selectedAnnotationPageIndex = newIndex
         }
-        markChanged("Seite verschoben")
+        markChanged("Seite verschoben", refreshDocumentOutline: true)
         goToPage(newIndex)
     }
 
@@ -583,6 +601,54 @@ final class PDFDocumentStore: ObservableObject {
         if let page = document.page(at: index) {
             pdfView?.go(to: page)
         }
+    }
+
+    func toggleBookmarkForCurrentPage() {
+        guard activeReadingDocumentIdentifier != nil,
+              let document,
+              (0..<document.pageCount).contains(currentPageIndex) else {
+            return
+        }
+
+        if let existingBookmark = pageBookmarks.first(where: { $0.pageIndex == currentPageIndex }) {
+            removeBookmark(existingBookmark.id)
+            return
+        }
+
+        pageBookmarks.append(
+            PDFPageBookmark(
+                id: "page-\(currentPageIndex)",
+                pageIndex: currentPageIndex,
+                title: "Seite \(currentPageIndex + 1)"
+            )
+        )
+        pageBookmarks.sort { $0.pageIndex < $1.pageIndex }
+        persistPageBookmarks()
+    }
+
+    func removeBookmark(_ bookmarkID: String) {
+        guard let bookmarkIndex = pageBookmarks.firstIndex(where: { $0.id == bookmarkID }) else {
+            return
+        }
+
+        pageBookmarks.remove(at: bookmarkIndex)
+        persistPageBookmarks()
+    }
+
+    func goToBookmark(_ bookmarkID: String) {
+        guard let bookmark = pageBookmarks.first(where: { $0.id == bookmarkID }) else {
+            return
+        }
+
+        goToPage(bookmark.pageIndex)
+    }
+
+    func goToOutline(_ item: PDFOutlineItem) {
+        guard let pageIndex = item.pageIndex else {
+            return
+        }
+
+        goToPage(pageIndex)
     }
 
     @discardableResult
@@ -1004,7 +1070,7 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func syncFromPDFView(_ view: PDFView?) {
-        guard let view else {
+        guard let view, view === pdfView else {
             return
         }
 
@@ -1024,6 +1090,8 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     private func setDocument(_ document: PDFDocument, url: URL?, dirty: Bool) {
+        isRestoringReadingState = true
+        activeReadingDocumentIdentifier = nil
         selectedAnnotation = nil
         selectedAnnotationPageIndex = nil
         selectedAnnotationText = ""
@@ -1036,13 +1104,18 @@ final class PDFDocumentStore: ObservableObject {
         self.linkDestinationPage = 1
         self.extractionStartPage = 1
         self.extractionEndPage = 1
+        self.documentOutline = readDocumentOutline(from: document)
+        activateReadingState(for: url, document: document)
+        let restoredPageIndex = restoredReadingPosition(in: document)
         refreshFormFields()
         self.revision += 1
         pdfView?.document = document
         pdfView?.highlightedSelections = nil
         pdfView?.autoScales = true
-        goToPage(0)
+        goToPage(restoredPageIndex)
         syncFromPDFView(pdfView)
+        isRestoringReadingState = false
+        persistCurrentReadingPosition()
     }
 
     private func ensureDocument() {
@@ -1051,14 +1124,174 @@ final class PDFDocumentStore: ObservableObject {
         }
     }
 
-    private func markChanged(_ message: String) {
+    private func markChanged(_ message: String, refreshDocumentOutline: Bool = false) {
         refreshSelectedAnnotationLocation()
         refreshFormFields()
+        discardInvalidPageBookmarks()
+        if refreshDocumentOutline, let document {
+            documentOutline = readDocumentOutline(from: document)
+        }
         isDirty = true
         revision += 1
         statusMessage = message
         pdfView?.needsDisplay = true
         syncFromPDFView(pdfView)
+    }
+
+    private func activateReadingState(for url: URL?, document: PDFDocument) {
+        guard let url,
+              url.isFileURL,
+              document.pageCount > 0 else {
+            activeReadingDocumentIdentifier = nil
+            pageBookmarks = []
+            return
+        }
+
+        let normalizedPath = url.standardizedFileURL.resolvingSymlinksInPath().path
+        let pathDigest = SHA256.hash(data: Data(normalizedPath.utf8))
+        let identifier = pathDigest.map { String(format: "%02x", $0) }.joined()
+        activeReadingDocumentIdentifier = identifier
+        pageBookmarks = restoredPageBookmarks(for: identifier, pageCount: document.pageCount)
+    }
+
+    private func restoredReadingPosition(in document: PDFDocument) -> Int {
+        guard document.pageCount > 0,
+              let identifier = activeReadingDocumentIdentifier,
+              let storedPageIndex = preferences.object(
+                  forKey: Self.readingPositionDefaultsPrefix + identifier
+              ) as? Int else {
+            return 0
+        }
+
+        return min(max(storedPageIndex, 0), document.pageCount - 1)
+    }
+
+    private func persistCurrentReadingPosition() {
+        guard !isRestoringReadingState,
+              let identifier = activeReadingDocumentIdentifier,
+              let document,
+              (0..<document.pageCount).contains(currentPageIndex) else {
+            return
+        }
+
+        preferences.set(currentPageIndex, forKey: Self.readingPositionDefaultsPrefix + identifier)
+    }
+
+    private func restoredPageBookmarks(for identifier: String, pageCount: Int) -> [PDFPageBookmark] {
+        let defaultsKey = Self.pageBookmarksDefaultsPrefix + identifier
+        guard let storedBookmarks = preferences.data(forKey: defaultsKey) else {
+            return []
+        }
+
+        guard let decodedBookmarks = try? JSONDecoder().decode(
+            [PDFPageBookmark].self,
+            from: storedBookmarks
+        ) else {
+            preferences.removeObject(forKey: defaultsKey)
+            return []
+        }
+
+        var bookmarkedPageIndices: Set<Int> = []
+        let validBookmarks = decodedBookmarks.filter { bookmark in
+            guard (0..<pageCount).contains(bookmark.pageIndex),
+                  !bookmark.id.isEmpty,
+                  !bookmarkedPageIndices.contains(bookmark.pageIndex) else {
+                return false
+            }
+
+            bookmarkedPageIndices.insert(bookmark.pageIndex)
+            return true
+        }.sorted { $0.pageIndex < $1.pageIndex }
+
+        if validBookmarks != decodedBookmarks {
+            if validBookmarks.isEmpty {
+                preferences.removeObject(forKey: defaultsKey)
+            } else if let normalizedBookmarks = try? JSONEncoder().encode(validBookmarks) {
+                preferences.set(normalizedBookmarks, forKey: defaultsKey)
+            }
+        }
+
+        return validBookmarks
+    }
+
+    private func persistPageBookmarks() {
+        guard let identifier = activeReadingDocumentIdentifier else {
+            return
+        }
+
+        let defaultsKey = Self.pageBookmarksDefaultsPrefix + identifier
+        guard !pageBookmarks.isEmpty else {
+            preferences.removeObject(forKey: defaultsKey)
+            return
+        }
+
+        guard let encodedBookmarks = try? JSONEncoder().encode(pageBookmarks) else {
+            return
+        }
+
+        preferences.set(encodedBookmarks, forKey: defaultsKey)
+    }
+
+    private func discardInvalidPageBookmarks() {
+        guard let document else {
+            return
+        }
+
+        let validBookmarks = pageBookmarks.filter { (0..<document.pageCount).contains($0.pageIndex) }
+        guard validBookmarks != pageBookmarks else {
+            return
+        }
+
+        pageBookmarks = validBookmarks
+        persistPageBookmarks()
+    }
+
+    private func readDocumentOutline(from document: PDFDocument) -> [PDFOutlineItem] {
+        guard let outlineRoot = document.outlineRoot else {
+            return []
+        }
+
+        var visitedOutlines: Set<ObjectIdentifier> = [ObjectIdentifier(outlineRoot)]
+        var remainingItemBudget = 2_000
+
+        func readChildren(of outline: PDFOutline, path: String, depth: Int) -> [PDFOutlineItem] {
+            guard depth < 32, remainingItemBudget > 0 else {
+                return []
+            }
+
+            var items: [PDFOutlineItem] = []
+
+            for childIndex in 0..<outline.numberOfChildren {
+                guard remainingItemBudget > 0 else {
+                    break
+                }
+
+                guard let child = outline.child(at: childIndex),
+                      visitedOutlines.insert(ObjectIdentifier(child)).inserted else {
+                    continue
+                }
+
+                remainingItemBudget -= 1
+                let childPath = "\(path).\(childIndex)"
+                let destination = child.destination ?? (child.action as? PDFActionGoTo)?.destination
+                let destinationPage = destination?.page
+                let targetPageIndex = destinationPage.flatMap { pageIndex(of: $0, in: document) }
+                let trimmedLabel = child.label?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+                items.append(
+                    PDFOutlineItem(
+                        id: childPath,
+                        title: trimmedLabel.isEmpty ? "Ohne Titel" : trimmedLabel,
+                        pageIndex: targetPageIndex,
+                        children: readChildren(of: child, path: childPath, depth: depth + 1)
+                    )
+                )
+            }
+
+            return items
+        }
+
+        return readChildren(of: outlineRoot, path: "outline", depth: 0)
     }
 
     private func refreshFormFields() {

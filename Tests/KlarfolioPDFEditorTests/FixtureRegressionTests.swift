@@ -6,9 +6,16 @@ import Testing
 
 @Suite("Versionierte PDF-Testdateien")
 struct FixtureRegressionTests {
+    private func isolatedPreferences() throws -> (preferences: UserDefaults, suiteName: String) {
+        let suiteName = "KlarfolioFixtureRegressionTests.\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        preferences.removePersistentDomain(forName: suiteName)
+        return (preferences, suiteName)
+    }
+
     @Test("Alle dokumentierten Testdateien werden im Ressourcen-Bundle bereitgestellt")
     func everyDocumentedFixtureIsBundled() throws {
-        #expect(PDFTestFixture.allCases.count == 4)
+        #expect(PDFTestFixture.allCases.count == 5)
 
         for fixture in PDFTestFixture.allCases {
             let resourceValues = try fixture.url.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])
@@ -22,7 +29,9 @@ struct FixtureRegressionTests {
     @Test("Die dreiseitige Fixture enthält genau zwei seitenübergreifende Suchtreffer")
     @MainActor
     func searchableFixtureCoversOpeningNavigationAndSearch() throws {
-        let store = PDFDocumentStore()
+        let (preferences, suiteName) = try isolatedPreferences()
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+        let store = PDFDocumentStore(preferences: preferences)
 
         #expect(store.loadDocument(from: PDFTestFixture.searchableThreePages.url))
         #expect(store.pageCount == 3)
@@ -40,6 +49,26 @@ struct FixtureRegressionTests {
 
         store.goToPage(2)
         #expect(store.currentPageIndex == 2)
+    }
+
+    @Test("Die Outline-Fixture enthält vier Seiten und verschachtelte echte Kapitelziele")
+    func outlinedFixtureContainsNestedRealPageDestinations() throws {
+        let document = try #require(PDFDocument(url: PDFTestFixture.outlinedFourPages.url))
+        let outlineRoot = try #require(document.outlineRoot)
+        let introduction = try #require(outlineRoot.child(at: 0))
+        let chapterOne = try #require(outlineRoot.child(at: 1))
+        let section = try #require(chapterOne.child(at: 0))
+        let chapterTwo = try #require(outlineRoot.child(at: 2))
+
+        #expect(document.pageCount == 4)
+        #expect(introduction.label == "Einleitung")
+        #expect(chapterOne.label == "Kapitel 1")
+        #expect(section.label == "Abschnitt 1.1")
+        #expect(chapterTwo.label == "Kapitel 2")
+        #expect(document.index(for: try #require(introduction.destination?.page)) == 0)
+        #expect(document.index(for: try #require(chapterOne.destination?.page)) == 1)
+        #expect(document.index(for: try #require(section.destination?.page)) == 2)
+        #expect(document.index(for: try #require(chapterTwo.destination?.page)) == 3)
     }
 
     @Test("Die Zusammenführen-Fixture hat zwei unterscheidbare Seiten in stabiler Reihenfolge")
@@ -148,7 +177,9 @@ struct FixtureRegressionTests {
     @Test("Die ungültige PDF-Fixture wird ohne Verlust des offenen Dokuments abgewiesen")
     @MainActor
     func invalidFixtureCannotReplaceTheOpenDocument() throws {
-        let store = PDFDocumentStore()
+        let (preferences, suiteName) = try isolatedPreferences()
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+        let store = PDFDocumentStore(preferences: preferences)
         #expect(store.loadDocument(from: PDFTestFixture.searchableThreePages.url))
         let previousDocument = try #require(store.document)
         let previousURL = store.fileURL
@@ -164,7 +195,9 @@ struct FixtureRegressionTests {
     @Test("Extraktion aus der Textfixture erhält den Inhalt und verändert die Quelle nicht")
     @MainActor
     func fixtureExtractionPreservesSourceAndPageContent() throws {
-        let store = PDFDocumentStore()
+        let (preferences, suiteName) = try isolatedPreferences()
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+        let store = PDFDocumentStore(preferences: preferences)
         #expect(store.loadDocument(from: PDFTestFixture.searchableThreePages.url))
 
         let extracted = try #require(store.documentByCopyingPages(in: 1...2))

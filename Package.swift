@@ -17,6 +17,7 @@ let package = Package(
             exclude: ["README.md"],
             resources: [
                 .copy("fixture-text-3-pages.pdf"),
+                .copy("fixture-outline-4-pages.pdf"),
                 .copy("fixture-merge-2-pages.pdf"),
                 .copy("fixture-form.pdf"),
                 .copy("fixture-invalid.pdf")
