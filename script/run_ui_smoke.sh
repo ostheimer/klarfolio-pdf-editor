@@ -10,6 +10,8 @@ usage() {
     "  - opening the versioned three-page PDF fixture" \
     "  - showing and hiding sidebar, inspector, and status bar" \
     "  - dirty-state visibility and protection for New, Close, and Quit" \
+    "  - safely filling and saving a private copy of the PDF form fixture" \
+    "  - read-only form protection and PDFKit persistence readback" \
     "  - restoring editing mode after an application restart" \
     "" \
     "--require-ui fails when no graphical session or accessibility access exists." \
@@ -62,16 +64,20 @@ fi
 
 root_directory="$(cd "$(dirname "$0")/.." && pwd)"
 pdf_fixture="$root_directory/TestFixtures/fixture-text-3-pages.pdf"
+form_fixture="$root_directory/TestFixtures/fixture-form.pdf"
 
-if [[ ! -f "$pdf_fixture" ]]; then
-  printf 'error: missing versioned UI-smoke fixture at %s\n' "$pdf_fixture" >&2
-  exit 1
-fi
+for required_fixture in "$pdf_fixture" "$form_fixture"; do
+  if [[ ! -f "$required_fixture" ]]; then
+    printf 'error: missing versioned UI-smoke fixture at %s\n' "$required_fixture" >&2
+    exit 1
+  fi
+done
 
 read -r -d '' smoke_program <<'SWIFT' || true
 import AppKit
 import ApplicationServices
 import Foundation
+import PDFKit
 
 struct SmokeFailure: Error, CustomStringConvertible {
     let description: String
@@ -79,6 +85,7 @@ struct SmokeFailure: Error, CustomStringConvertible {
 
 let appURL = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
 let fixtureURL = URL(fileURLWithPath: CommandLine.arguments[2])
+let formFixtureURL = URL(fileURLWithPath: CommandLine.arguments[3])
 let unavailableExitCode: Int32 = 77
 
 func unavailable(_ message: String) -> Never {
@@ -202,13 +209,13 @@ func launch() throws -> NSRunningApplication {
     }
 }
 
-func openFixture() throws {
+func openFixture(_ documentURL: URL? = nil) throws {
     let configuration = NSWorkspace.OpenConfiguration()
     configuration.activates = false
 
     _ = try awaitOpen { completion in
         NSWorkspace.shared.open(
-            [fixtureURL],
+            [documentURL ?? fixtureURL],
             withApplicationAt: appURL,
             configuration: configuration,
             completionHandler: completion
@@ -230,6 +237,9 @@ func expectReadingMode(in application: NSRunningApplication) throws {
     try check(!identifiers.contains("documentSidebar"), "reading mode unexpectedly exposes the sidebar")
     try check(!identifiers.contains("documentInspector"), "reading mode unexpectedly exposes the inspector")
     try check(!identifiers.contains("documentStatusBar"), "reading mode unexpectedly exposes the status bar")
+    try check(!identifiers.contains("formFieldsSection"), "reading mode unexpectedly exposes PDF form controls")
+    try check(!identifiers.contains("formText.KlarfolioName"), "reading mode exposes an editable PDF text field")
+    try check(!identifiers.contains("formCheckbox.KlarfolioConsent"), "reading mode exposes an editable PDF checkbox")
     print("PASS reading mode hides editing surfaces")
 }
 
@@ -286,8 +296,24 @@ func pressCommandShortcut(
         application.activate(options: [.activateAllWindows]),
         "the \(description) target application could not be activated"
     )
-    try awaitCondition("the \(description) target application to become active", timeout: 5) {
-        application.isActive
+    try awaitCondition("the \(description) target application to become active", timeout: 12) {
+        if application.isActive {
+            return true
+        }
+
+        let applicationElement = AXUIElementCreateApplication(application.processIdentifier)
+        _ = AXUIElementSetAttributeValue(
+            applicationElement,
+            kAXFrontmostAttribute as CFString,
+            kCFBooleanTrue
+        )
+
+        if let window = childElements(applicationElement, attribute: kAXWindowsAttribute).first {
+            _ = AXUIElementPerformAction(window, kAXRaiseAction as CFString)
+        }
+
+        _ = application.activate(options: [.activateAllWindows])
+        return application.isActive
     }
 
     guard let keyDown = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: true),
@@ -317,18 +343,98 @@ func pressSafetyAction(_ identifier: String, in application: NSRunningApplicatio
     try press(action, description: "the document-safety action \(identifier)")
 }
 
-func cancelAndExpectOriginalDocument(in application: NSRunningApplication) throws {
+func cancelAndExpectOriginalDocument(
+    at expectedDocumentURL: URL? = nil,
+    in application: NSRunningApplication
+) throws {
+    let expectedFilename = (expectedDocumentURL ?? fixtureURL).lastPathComponent
     try pressSafetyAction("documentSafety.cancel", in: application)
     try awaitCondition("Cancel to preserve the dirty original PDF") {
         !application.isTerminated
             && element(named: "documentSafety.discard", in: application) == nil
             && snapshot(for: application).contains {
-                visibleText(of: $0).contains(fixtureURL.lastPathComponent)
+                visibleText(of: $0).contains(expectedFilename)
             }
             && snapshot(for: application).contains {
                 visibleText(of: $0) == "Ungespeichert"
             }
     }
+}
+
+func formTextField(in application: NSRunningApplication) throws -> AXUIElement {
+    guard let field = element(named: "formText.KlarfolioName", in: application) else {
+        throw SmokeFailure(description: "the PDF form text field is missing from the editing inspector")
+    }
+
+    return field
+}
+
+func formCheckbox(in application: NSRunningApplication) throws -> AXUIElement {
+    guard let checkbox = element(named: "formCheckbox.KlarfolioConsent", in: application) else {
+        throw SmokeFailure(description: "the PDF form checkbox is missing from the editing inspector")
+    }
+
+    return checkbox
+}
+
+func formTextValue(in application: NSRunningApplication) throws -> String {
+    guard let value = attribute(try formTextField(in: application), kAXValueAttribute) as? String else {
+        throw SmokeFailure(description: "the PDF form text field has no readable accessibility value")
+    }
+
+    return value
+}
+
+func formCheckboxValue(in application: NSRunningApplication) throws -> Bool {
+    guard let value = attribute(try formCheckbox(in: application), kAXValueAttribute) as? NSNumber else {
+        throw SmokeFailure(description: "the PDF form checkbox has no readable accessibility value")
+    }
+
+    return value.boolValue
+}
+
+func setFormText(_ value: String, in application: NSRunningApplication) throws {
+    let field = try formTextField(in: application)
+    let focusResult = AXUIElementSetAttributeValue(
+        field,
+        kAXFocusedAttribute as CFString,
+        kCFBooleanTrue
+    )
+    try check(focusResult == .success, "the PDF form text field rejected accessibility focus")
+
+    let result = AXUIElementSetAttributeValue(field, kAXValueAttribute as CFString, value as CFTypeRef)
+    try check(result == .success, "the PDF form text field rejected the new accessibility value")
+    try awaitCondition("the PDF form text field to contain the new value") {
+        (try? formTextValue(in: application)) == value
+    }
+}
+
+func expectPersistedForm(
+    at documentURL: URL,
+    text expectedText: String,
+    checkbox expectedCheckbox: Bool
+) throws {
+    guard let document = PDFDocument(url: documentURL),
+          let page = document.page(at: 0),
+          let textField = page.annotations.first(where: { $0.fieldName == "KlarfolioName" }),
+          let checkbox = page.annotations.first(where: { $0.fieldName == "KlarfolioConsent" }) else {
+        throw SmokeFailure(description: "the saved PDF cannot be reopened with both original form fields")
+    }
+
+    try check(
+        textField.widgetStringValue == expectedText,
+        "the saved PDF text field did not retain the user-entered value"
+    )
+    try check(
+        checkbox.buttonWidgetState == (expectedCheckbox ? .onState : .offState),
+        "the saved PDF checkbox did not retain the selected state"
+    )
+    try check(
+        page.annotations.contains(where: {
+            $0.type == "Text" && $0.contents == "Klarfolio fixture annotation"
+        }),
+        "saving the PDF form removed an existing document annotation"
+    )
 }
 
 func terminate(_ application: NSRunningApplication) throws {
@@ -358,6 +464,18 @@ do {
     }
 
     let originalFixtureData = try Data(contentsOf: fixtureURL)
+    let originalFormFixtureData = try Data(contentsOf: formFixtureURL)
+    let temporaryDirectory = FileManager.default.temporaryDirectory
+        .appendingPathComponent("KlarfolioFormUISmoke-\(UUID().uuidString)", isDirectory: true)
+    try FileManager.default.createDirectory(
+        at: temporaryDirectory,
+        withIntermediateDirectories: false,
+        attributes: [.posixPermissions: 0o700]
+    )
+    defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+
+    let writableFormURL = temporaryDirectory.appendingPathComponent("Klarfolio-Formular-UI-Smoke.pdf")
+    try FileManager.default.copyItem(at: formFixtureURL, to: writableFormURL)
     var activeApplication: NSRunningApplication?
     defer {
         if let activeApplication, !activeApplication.isTerminated {
@@ -450,6 +568,122 @@ do {
     )
     print("PASS explicitly discarding changes reopens the original PDF without modifying it")
 
+    try pressWorkspaceToggle(in: application)
+    try expectReadingMode(in: application)
+    try openFixture(writableFormURL)
+    try awaitCondition("the private PDF form copy to appear in reading mode") {
+        snapshot(for: application).contains {
+            visibleText(of: $0).contains(writableFormURL.lastPathComponent)
+        }
+    }
+    try expectReadingMode(in: application)
+    try expectPersistedForm(at: writableFormURL, text: "Andreas Test", checkbox: true)
+    print("PASS the PDF form opens read-only without exposing editable controls")
+
+    try pressWorkspaceToggle(in: application)
+    try expectEditingMode(in: application)
+    try awaitCondition("both existing PDF form fields in the editing inspector") {
+        element(named: "formFieldsSection", in: application) != nil
+            && element(named: "formText.KlarfolioName", in: application) != nil
+            && element(named: "formCheckbox.KlarfolioConsent", in: application) != nil
+    }
+    try check(
+        try formTextValue(in: application) == "Andreas Test",
+        "the editing inspector did not load the PDF form's existing text value"
+    )
+    try check(
+        try formCheckboxValue(in: application),
+        "the editing inspector did not load the PDF form's existing checked state"
+    )
+    print("PASS the editing inspector exposes existing PDF text and checkbox values")
+
+    let savedFormText = "Geprüfter Klarfolio-Formularwert"
+    try setFormText(savedFormText, in: application)
+    try press(try formCheckbox(in: application), description: "the PDF form checkbox")
+    try awaitCondition("PDF form edits to mark the private document as unsaved") {
+        (try? formTextValue(in: application)) == savedFormText
+            && (try? formCheckboxValue(in: application)) == false
+            && snapshot(for: application).contains { visibleText(of: $0) == "Ungespeichert" }
+    }
+    try expectPersistedForm(at: writableFormURL, text: "Andreas Test", checkbox: true)
+    print("PASS real text and checkbox edits mark the PDF dirty without prematurely writing the file")
+
+    try pressWorkspaceToggle(in: application)
+    try expectReadingMode(in: application)
+    try awaitCondition("the dirty PDF form indicator in reading mode") {
+        element(named: "documentEditedIndicator", in: application) != nil
+    }
+    try expectPersistedForm(at: writableFormURL, text: "Andreas Test", checkbox: true)
+    print("PASS reading mode hides form controls while retaining the unsaved-change warning")
+
+    try pressWorkspaceToggle(in: application)
+    try expectEditingMode(in: application)
+    try pressCommandShortcut(keyCode: 13, description: "Command-W on an edited PDF form", in: application)
+    try expectUnsavedChangesAlert(in: application)
+    try cancelAndExpectOriginalDocument(at: writableFormURL, in: application)
+    try check(
+        try formTextValue(in: application) == savedFormText && !formCheckboxValue(in: application),
+        "Cancel discarded the pending PDF form values"
+    )
+    print("PASS closing an edited PDF form warns before data loss and Cancel preserves its values")
+
+    guard let saveButton = element(named: "toolbarSaveDocument", in: application) else {
+        throw SmokeFailure(description: "the PDF form save button is missing")
+    }
+    try press(saveButton, description: "the PDF form toolbar save button")
+    try awaitCondition("saving the PDF form to clear the dirty state") {
+        snapshot(for: application).contains { visibleText(of: $0) == "Gespeichert" }
+    }
+    try expectPersistedForm(at: writableFormURL, text: savedFormText, checkbox: false)
+    print("PASS the real Save command persists both form values and preserves existing annotations")
+
+    try openFixture()
+    try awaitCondition("the clean text PDF to replace the saved form") {
+        snapshot(for: application).contains {
+            visibleText(of: $0).contains(fixtureURL.lastPathComponent)
+        }
+    }
+    try openFixture(writableFormURL)
+    try awaitCondition("the saved PDF form to reopen with both persisted field values") {
+        snapshot(for: application).contains {
+            visibleText(of: $0).contains(writableFormURL.lastPathComponent)
+        }
+            && (try? formTextValue(in: application)) == savedFormText
+            && (try? formCheckboxValue(in: application)) == false
+            && snapshot(for: application).contains { visibleText(of: $0) == "Gespeichert" }
+    }
+    print("PASS reopening the saved PDF in the real app restores text and checkbox values")
+
+    let savedOnReplacementText = "Über Dokumentwechsel gespeichert"
+    try setFormText(savedOnReplacementText, in: application)
+    try press(try formCheckbox(in: application), description: "the PDF form checkbox")
+    try awaitCondition("the second PDF form edit to mark the document unsaved") {
+        (try? formTextValue(in: application)) == savedOnReplacementText
+            && (try? formCheckboxValue(in: application)) == true
+            && snapshot(for: application).contains { visibleText(of: $0) == "Ungespeichert" }
+    }
+
+    try openFixture()
+    try expectUnsavedChangesAlert(in: application)
+    try pressSafetyAction("documentSafety.save", in: application)
+    try awaitCondition("Save to persist the form and open the replacement PDF") {
+        element(named: "documentSafety.discard", in: application) == nil
+            && snapshot(for: application).contains {
+                visibleText(of: $0).contains(fixtureURL.lastPathComponent)
+            }
+            && snapshot(for: application).contains { visibleText(of: $0) == "Gespeichert" }
+    }
+    try expectPersistedForm(at: writableFormURL, text: savedOnReplacementText, checkbox: true)
+    try check(
+        try Data(contentsOf: formFixtureURL) == originalFormFixtureData,
+        "the UI smoke unexpectedly modified the versioned PDF form fixture"
+    )
+    try check(
+        try Data(contentsOf: fixtureURL) == originalFixtureData,
+        "the UI smoke unexpectedly modified the versioned text fixture"
+    )
+    print("PASS saving through the replacement warning preserves the form without touching either source fixture")
+
     try terminate(application)
     activeApplication = nil
 
@@ -477,7 +711,7 @@ do {
 }
 SWIFT
 
-if swift -e "$smoke_program" "$app_bundle" "$pdf_fixture"; then
+if swift -e "$smoke_program" "$app_bundle" "$pdf_fixture" "$form_fixture"; then
   exit 0
 else
   smoke_status=$?

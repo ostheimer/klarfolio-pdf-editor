@@ -14,7 +14,7 @@ Quellen:
 
 PDF Expert ist ein reifes, kommerzielles PDF-Produkt für Apple-Plattformen. Die öffentliche Produktkommunikation stellt Lesen, Anmerken, direkte PDF-Bearbeitung, Seitenorganisation, Konvertierung, OCR, Formulare, Signaturen, Schutzfunktionen, Komprimierung und KI-gestützte Dokumentarbeit heraus.
 
-Klarfolio PDF Editor ist aktuell ein lokales macOS-MVP. Es deckt die Grundfläche `Lesen + Anmerken + Seitenorganisation` ab, hat aber noch keine tiefe Inhaltsbearbeitung, keine OCR, keine Konvertierung, keine Formular-Spezialfunktionen, keine sichere Schwärzung und keine KI-Funktionen.
+Klarfolio PDF Editor ist aktuell ein lokales macOS-MVP. Es deckt die Grundfläche `Lesen + Anmerken + Seitenorganisation + vorhandene Formulare ausfüllen` ab, hat aber noch keine tiefe Inhaltsbearbeitung, keine OCR, keine Konvertierung, keine erweiterten Formular-Spezialfunktionen, keine sichere Schwärzung und keine KI-Funktionen.
 
 ## Featurematrix
 
@@ -30,7 +30,7 @@ Klarfolio PDF Editor ist aktuell ein lokales macOS-MVP. Es deckt die Grundfläch
 | Konvertierung | PDF zu Word, Excel, PowerPoint, Bildern, TXT und umgekehrt. | Bilder zu PDF-Seiten, ansonsten keine Konvertierung. | Große Lücke. |
 | OCR | Texterkennung für Scans, Text kopieren, markieren und durchsuchen. | Nicht umgesetzt. | Große Lücke, besonders für gescannte Dokumente. |
 | Scan-Verbesserung | Scans verbessern, Schatten entfernen, Kontrast verbessern, Doppelseiten aufteilen. | Nicht umgesetzt. | Nicht im MVP. |
-| Formulare | PDF-Formulare ausfüllen, inklusive gängiger Formularformate laut App Store. | Keine eigene Formular-UI. | Potenzial über PDFKit, aber noch nicht produktisiert. |
+| Formulare | PDF-Formulare ausfüllen, inklusive gängiger Formularformate laut App Store. | Vorhandene PDF-Textfelder und Checkboxen über eine sichere Bearbeitungsoberfläche ausfüllen, speichern und vor unbeabsichtigtem Verwerfen schützen. | Wichtigste lokale Formularbasis vorhanden; zusätzliche Feldtypen, Formularerstellung und komplexe Workflows fehlen. |
 | Signaturen | Elektronische Signaturen und mehrere Signaturen. | Signaturfeld als Annotation-Platzhalter. | Nur visueller Platzhalter, keine echte Signaturfunktion. |
 | Schutz | Passwortschutz, Schwärzen/Zensieren, vertrauliche Daten entfernen. | Nicht umgesetzt. | Wichtig, aber sicherheitskritisch und später sorgfältig umzusetzen. |
 | Komprimierung | PDFs komprimieren. | Nicht umgesetzt. | Fehlt. |
@@ -44,6 +44,7 @@ Klarfolio PDF Editor sollte kurzfristig nicht als vollständiger PDF-Expert-Ersa
 - native, lokale macOS-App für einfache PDF-Arbeiten
 - schnelle Seitenorganisation ohne Cloud-Konto
 - grundlegende Annotationen und Suche
+- vorhandene PDF-Formulare lokal und nachvollziehbar ausfüllen
 - gut verständliche, deutsch lokalisierte Oberfläche
 - ausbaufähige Open-Source- oder interne Grundlage für spezialisierte PDF-Workflows
 
@@ -56,7 +57,7 @@ Klarfolio PDF Editor sollte kurzfristig nicht als vollständiger PDF-Expert-Ersa
 | Abgeschlossen (P1) | Link-Annotationen | Schließt eine sichtbare Lücke mit überschaubarem PDFKit-Aufwand. |
 | Abgeschlossen (lokaler Betrieb) | Schreibgeschützter Lesemodus und Schutz ungespeicherter Änderungen | Verhindert versehentliche Bearbeitung und Datenverlust beim täglichen Arbeiten auf dem Mac. |
 | Abgeschlossen (P2) | Sicherer PDF- und Bild-Drag-and-drop | Öffnet lokale PDFs direkt und importiert Bilder ausschließlich im Bearbeitungsmodus. |
-| P2 | Formularfelder ausfüllen | Wichtig für Verträge, Bewerbungen und Behörden-PDFs. |
+| Abgeschlossen (P2) | Vorhandene Textfelder und Checkboxen sicher ausfüllen | Hilft bei Verträgen, Bewerbungen und Behörden-PDFs; Änderungen bleiben nachvollziehbar, speicherbar und im Lesemodus gesperrt. |
 | P2 | Sichere Schwärzung | Hoher Nutzen, aber nur mit echter Inhaltsentfernung veröffentlichen. |
 | P2 | Crop/Zuschneiden | Häufige Scan- und Dokumentpflegefunktion. |
 | P3 | OCR | Strategisch wichtig, aber größere technische Entscheidung. |
@@ -73,6 +74,7 @@ In Nutzertexten sollte Klarfolio PDF Editor nicht behaupten, bestehende PDF-Text
 - `Seiten organisieren`
 - `PDFs zusammenführen`
 - `Bilder als Seiten importieren`
+- `vorhandene PDF-Formularfelder ausfüllen`
 
 Zu vermeiden sind aktuell:
 

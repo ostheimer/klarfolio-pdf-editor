@@ -6,6 +6,11 @@ struct InspectorView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
+                if store.workspaceMode == .editing, !store.formFields.isEmpty {
+                    formSection
+                    Divider()
+                }
+
                 toolSection
                 annotationSection
                 selectedAnnotationSection
@@ -15,6 +20,113 @@ struct InspectorView: View {
             .padding(16)
         }
         .background(.regularMaterial)
+    }
+
+    private var formSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Formularfelder")
+                .font(.headline)
+
+            Text("Fülle vorhandene Formularfelder sicher über diesen Bereich aus.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            ForEach(store.formFields) { field in
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text(field.title)
+                            .font(.subheadline.weight(.semibold))
+
+                        Spacer(minLength: 4)
+
+                        Button("Seite \(field.pageIndex + 1)") {
+                            store.goToFormField(field.id)
+                        }
+                        .buttonStyle(.plain)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier(
+                            accessibilityFormFieldIdentifier(for: field, prefix: "formFieldPage")
+                        )
+                    }
+
+                    formControl(for: field)
+
+                    if field.kind == .text, field.maximumLength > 0 {
+                        Text("Maximal \(field.maximumLength) Zeichen")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    if field.isReadOnly {
+                        Label("Schreibgeschützt", systemImage: "lock.fill")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("formFieldsSection")
+    }
+
+    @ViewBuilder
+    private func formControl(for field: PDFFormField) -> some View {
+        switch field.kind {
+        case .text:
+            TextField(
+                "Text eingeben",
+                text: Binding(
+                    get: {
+                        store.formFields.first { $0.id == field.id }?.textValue ?? ""
+                    },
+                    set: { value in
+                        store.updateFormTextField(field.id, value: value)
+                    }
+                )
+            )
+            .textFieldStyle(.roundedBorder)
+            .disabled(field.isReadOnly || store.workspaceMode != .editing)
+            .accessibilityLabel(field.title)
+            .accessibilityIdentifier(
+                accessibilityFormFieldIdentifier(for: field, prefix: "formText")
+            )
+
+        case .checkbox:
+            Toggle(
+                "Ausgewählt",
+                isOn: Binding(
+                    get: {
+                        store.formFields.first { $0.id == field.id }?.isChecked ?? false
+                    },
+                    set: { isOn in
+                        store.updateFormCheckbox(field.id, isOn: isOn)
+                    }
+                )
+            )
+            .toggleStyle(.checkbox)
+            .disabled(field.isReadOnly || store.workspaceMode != .editing)
+            .accessibilityLabel(field.title)
+            .accessibilityIdentifier(
+                accessibilityFormFieldIdentifier(for: field, prefix: "formCheckbox")
+            )
+        }
+    }
+
+    private func accessibilityFormFieldIdentifier(
+        for field: PDFFormField,
+        prefix: String
+    ) -> String {
+        let baseIdentifier = "\(prefix).\(field.name)"
+        guard store.formFields.filter({ $0.name == field.name }).count > 1 else {
+            return baseIdentifier
+        }
+
+        let stableFieldIdentifier = field.id.unicodeScalars.map { scalar in
+            CharacterSet.alphanumerics.contains(scalar) ? String(scalar) : "_"
+        }.joined()
+
+        return "\(baseIdentifier).\(field.pageIndex + 1).\(stableFieldIdentifier)"
     }
 
     private var toolSection: some View {

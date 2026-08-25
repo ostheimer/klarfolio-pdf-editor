@@ -21,6 +21,7 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 - `PDFDocumentStore` ist die zentrale Main-Actor-Quelle für Dokumentzustand, Auswahl, Statusmeldungen, Arbeitsmodus und PDF-Aktionen.
 - Der Arbeitsmodus startet ohne gespeicherte Einstellung im Lesemodus und wird ausschließlich lokal in `UserDefaults` persistiert; für Tests können isolierte Preference-Suites injiziert werden.
 - Ein zentraler Dokumentwechsel-Guard bewertet `isDirty`, fragt `Speichern`/`Verwerfen`/`Abbrechen` ab und setzt Aktionen nur nach tatsächlichem Speichererfolg fort; Dialog- und Speicherentscheidungen sind für Regressionstests injizierbar.
+- Vorhandene PDF-Textfelder und Checkboxen werden im Store als überprüfbare Feldmodelle erfasst; Passwort-, Radio- und andere nicht unterstützte Felder bleiben ausgeschlossen. Jede zulässige Änderung läuft ausschließlich im Bearbeitungsmodus über zentrale Store-Aktionen mit Dirty-Tracking, Statusmeldung und regulärer PDF-Speicherung.
 - Der Lesemodus ist auch auf Menü-, Tastenkürzel- und Fensterzustandsebene schreibgeschützt; `NSWindow.isDocumentEdited` bleibt unabhängig von der ausgeblendeten Statusleiste aktuell.
 - `NSSupportsAutomaticTermination` und `NSSupportsSuddenTermination` sind ausdrücklich deaktiviert, damit macOS offene PDF-Änderungen nicht durch ein unangekündigtes Prozessende am Schließschutz vorbei verwirft.
 - Sichtbare deutsche Texte verwenden echte Umlaute.
@@ -32,15 +33,16 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 | `KlarfolioPDFEditorApp.swift` | App-Einstieg, schreibgeschützte Menübefehle im Lesemodus, Moduswechsel per `⌘⇧E`, sichere Beendigungsentscheidung, modusabhängige Mindestfenstergröße und Aktivierung als reguläre macOS-App. |
 | `ContentView.swift` | Hauptlayout mit reduziertem Lesemodus bzw. vollständigem Bearbeitungsmodus, bedingter Toolbar, Suchfeld, Statusleiste, nativem Edited-Kennzeichen, Schließschutz und leerem Startzustand. |
 | `SidebarView.swift` | Seitenminiaturen, Seitenauswahl und Dokumentübersicht. |
-| `InspectorView.swift` | Werkzeug-, Anmerkungs-, Seiten- und Dokumentaktionen. |
+| `InspectorView.swift` | Werkzeug-, Anmerkungs-, Seiten- und Dokumentaktionen sowie die sichere Oberfläche für vorhandene PDF-Textfelder und Checkboxen. |
 | `PDFCanvasView.swift` | `NSViewRepresentable` für `PDFView`, PDFKit-Benachrichtigungen, native Dateidrops und Anmerkungsinteraktionen ausschließlich im Bearbeitungsmodus. |
 | `PrivacyNoticeView.swift` | Direkt in der App erreichbare Zusammenfassung der lokalen Datenverarbeitung. |
-| `PDFDocumentStore.swift` | Persistierter Lese-/Bearbeitungsmodus, zentraler Schutz ungespeicherter Änderungen, erfolgsbasierte Speicheraktionen, Öffnen, Seitenaktionen einschließlich Extrahieren/Teilen, Suche, Zoom, Link- und andere Annotationen. |
+| `PDFDocumentStore.swift` | Persistierter Lese-/Bearbeitungsmodus, zentraler Schutz ungespeicherter Änderungen, nachvollziehbare Formularerkennung/-bearbeitung, erfolgsbasierte Speicheraktionen, Öffnen, Seitenaktionen einschließlich Extrahieren/Teilen, Suche, Zoom, Link- und andere Annotationen. |
 | `PDFModels.swift` | UI-Enums für Arbeitsmodus, Seitenleistenbereiche, Werkzeuge, Farben und Layouts. |
+| `PDFFormModels.swift` | Stabile, überprüfbare Modelle vorhandener PDF-Textfelder und Checkboxen mit Feldidentität, Seite, Wert, Schreibschutz und Zeichenlimit. |
 | `PDFUtilities.swift` | Hilfsfunktionen für leere Seiten, Anzeigegrößen und Dateinamen. |
 | `PDFFileDrop.swift` | Reine, testbare Klassifikation lokaler PDF- und Bild-Drops einschließlich Lese-/Bearbeitungsmodus und Ablehnung mehrdeutiger Eingaben. |
 | `TestFixtures/` | Synthetische, versionierte und lizenzfreie Referenz-PDFs mit dokumentierter Herkunft und erwartetem Verhalten. |
-| `script/run_ui_smoke.sh` | Reproduzierbarer macOS-Smoke für zentrale App- und Oberflächenabläufe. |
+| `script/run_ui_smoke.sh` | Reproduzierbarer macOS-Smoke für zentrale App-, Dokumentenschutz-, Formular- und Oberflächenabläufe. |
 
 ## Datenfluss
 
@@ -52,6 +54,8 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 6. Der Arbeitsmodus steuert Seitenleistensichtbarkeit, Inspektor, Toolbar und Statusleiste; beim Wechsel in den Lesemodus werden Anmerkungsauswahl und Bearbeitungswerkzeug zurückgesetzt, ohne das Dokument zu verändern.
 7. Bevor ein dirty Dokument ersetzt, ein Fenster geschlossen oder die App beendet wird, entscheidet derselbe Store-Guard zwischen Speichern, Verwerfen und Abbrechen; fehlgeschlagene oder abgebrochene Speicherung blockiert den Folgeschritt.
 8. Finder-Drops auf `PDFView` werden über `UTType` klassifiziert: einzelne PDFs öffnen in beiden Modi über den Dokumentwechsel-Guard; Bilddateien importiert ausschließlich der Bearbeitungsmodus.
+9. Nach dem Dokumentwechsel erfasst der Store unterstützte Formular-Widgets; Text- und Checkboxänderungen aus dem SwiftUI-Inspektor prüfen Bearbeitungsmodus, Feldtyp, Schreibschutz und tatsächliche Wertänderung, bevor sie PDFKit und Dirty-State aktualisieren.
+10. Direkte PDFKit-Widget-Eingaben sowie formularzurücksetzende Link-Aktionen bleiben in beiden Arbeitsmodi blockiert, damit keine Änderung den zentralen Dokumentenschutz umgehen kann.
 
 ## Aktuelle technische Grenzen
 
@@ -60,12 +64,12 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 - Beim Löschen von Seiten werden interne Links zu dieser Zielseite entfernt. Extraktion und Teilen remappen interne Ziele innerhalb des Ausgabeteils und entfernen bereichsüberschreitende Links; beide Split-Ausgaben werden vor dem Ersetzen vorhandener Zieldateien vorbereitet.
 - Schwärzung muss später als echte Entfernung oder sichere Redaction implementiert werden. Eine überdeckende schwarze Fläche wäre fachlich unsicher.
 - OCR, Office-Konvertierung und KI-Funktionen benötigen zusätzliche Frameworks oder Dienste.
-- Formularfelder und formularzurücksetzende PDF-Aktionen werden bis zu einer zuverlässig Dirty-State-verfolgten Umsetzung in beiden Arbeitsmodi blockiert; andernfalls könnte PDFKit Dokumentinhalte ohne Speicherwarnung verändern.
+- Direkte Eingaben in PDFKit-Formular-Widgets bleiben blockiert; unterstützte vorhandene Textfelder und Checkboxen werden ausschließlich über den kontrollierten Store-/Inspektorpfad geändert. Formular-Reset-Aktionen bleiben gesperrt, solange ihr Effekt nicht vollständig nachvollziehbar ist. Neue Formularfelder und kryptografische Signaturen werden nicht erzeugt.
 
 ## Nächste sinnvolle technische Schritte
 
 1. Den vorhandenen Fixture- und UI-Smoke-Grundstock gezielt um große, verschlüsselte, signierte und formularreiche PDFs erweitern.
 2. Die vorhandene Drag-and-drop-Basis um nachvollziehbare Nutzerhinweise und bei Bedarf weitere lokale Importformate ergänzen.
-3. Vorhandene PDF-Formularfelder, Lesezeichen/Outlines, komfortable Reader-Navigation und erweiterte Linkverwaltung produktisieren.
+3. Lesezeichen/Outlines, komfortable Reader-Navigation, erweiterte Linkverwaltung und bei lokalem Bedarf weitere PDF-Formularfeldtypen produktisieren.
 4. Sichere Redaction erst mit Validierung implementieren, dass Inhalte wirklich entfernt sind.
 5. Export-, OCR-, Autosave- und Wiederherstellungsstrategie nur bei tatsächlichem lokalem Bedarf evaluieren.

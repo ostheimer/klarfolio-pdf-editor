@@ -49,7 +49,7 @@ Unter vollständigem Xcode 16 oder neuer:
 swift test --parallel
 ```
 
-Die Suite umfasst Store-, Dokumentenschutz-, Drag-and-drop- und Fixture-Regressionen. Synthetische, lizenzfreie Referenzdateien liegen unter `TestFixtures/`; ihre Herkunft und erwarteten Inhalte sind in `TestFixtures/README.md` dokumentiert.
+Die Suite umfasst Store-, Dokumentenschutz-, Formular-, Drag-and-drop- und Fixture-Regressionen. Synthetische, lizenzfreie Referenzdateien liegen unter `TestFixtures/`; ihre Herkunft und erwarteten Inhalte sind in `TestFixtures/README.md` dokumentiert. `fixture-form.pdf` enthält ein vorausgefülltes Textfeld, eine aktivierte Checkbox und eine vorhandene Notizanmerkung; Tests prüfen unter anderem Feld-Erkennung, Bearbeitungsgrenzen, Dirty-State und tatsächliches Speichern/Wiederöffnen.
 
 Für einen tatsächlichen macOS-Oberflächentest mit Bedienungshilfen-Zugriff die zu prüfende App zunächst regulär schließen und danach ausführen:
 
@@ -59,7 +59,7 @@ Für einen tatsächlichen macOS-Oberflächentest mit Bedienungshilfen-Zugriff di
   --require-ui
 ```
 
-Der Smoke verwendet ausschließlich die synthetischen Projekt-Fixtures, prüft die echte Accessibility-Oberfläche und stellt die vorherige Modus-Einstellung anschließend wieder her. CI darf mit `--allow-headless` nur dann ausdrücklich als übersprungen kennzeichnen, wenn keine grafische Sitzung oder keine Bedienungshilfen-Berechtigung vorhanden ist; ein solcher Skip ist kein bestandener UI-Test.
+Der Smoke verwendet ausschließlich synthetische Projekt-Fixtures beziehungsweise temporäre Fixture-Kopien, prüft die echte Accessibility-Oberfläche einschließlich tatsächlicher Formularänderungen und stellt die vorherige Modus-Einstellung anschließend wieder her. Die versionierten Original-Fixtures und benutzereigene Dokumente bleiben unangetastet. CI darf mit `--allow-headless` nur dann ausdrücklich als übersprungen kennzeichnen, wenn keine grafische Sitzung oder keine Bedienungshilfen-Berechtigung vorhanden ist; ein solcher Skip ist kein bestandener UI-Test.
 
 Wenn nur die Command Line Tools aktiv sind und Swift das Modul `Testing` nicht findet, kann der bereits validierte lokale Fallback verwendet werden:
 

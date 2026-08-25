@@ -11,6 +11,7 @@ Klarfolio PDF Editor soll ein schneller, kostenloser PDF-Reader und PDF-Editor f
 - Ablenkungsarmer Lesemodus mit bei Bedarf einblendbarer vollständiger Bearbeitungsoberfläche
 - Schreibgeschützter Lesemodus und Sicherheitsabfrage vor dem Verwerfen ungespeicherter Änderungen
 - PDF-Dateien und Bildseiten per sicherem Drag-and-drop öffnen beziehungsweise importieren
+- Vorhandene PDF-Textfelder und Checkboxen im Bearbeitungsmodus sicher ausfüllen und speichern
 - PDF öffnen, neu erstellen, speichern und unter neuem Namen sichern
 - Seitenvorschau mit direkter Seitennavigation
 - Leere Seiten einfügen, Seiten drehen, verschieben und löschen
@@ -74,6 +75,6 @@ Weitere Release-Notizen liegen in
 
 ## Status
 
-Die dokumentierte P1-Phase ist funktional abgeschlossen; mit sicherem Drag-and-drop ist die erste lokale P2-Komfortfunktion umgesetzt. Aktuell liegt der Schwerpunkt auf der sicheren praktischen Nutzung auf dem Mac: Die App startet standardmäßig als schreibgeschützter PDF-Reader, blendet Bearbeitungswerkzeuge erst bei Bedarf ein und schützt ungespeicherte Änderungen vor unbeabsichtigtem Verwerfen. Versionierte synthetische PDF-Fixtures, Regressionstests und ein lokaler UI-Smoke begleiten diesen Entwicklungsstand. Eine öffentliche Veröffentlichung ist derzeit nicht vorgesehen; Apple-Signierung/App-Store-Einrichtung, vollständiger Release-QA-Nachweis sowie finale Betreiber-, Support-, Datenschutz- und HTTPS-Downloadangaben bleiben Voraussetzungen für einen späteren öffentlichen Start.
+Die dokumentierte P1-Phase ist funktional abgeschlossen; sicherer Drag-and-drop und das Ausfüllen vorhandener PDF-Formulare erweitern den lokalen P2-Funktionsumfang. Aktuell liegt der Schwerpunkt auf der sicheren praktischen Nutzung auf dem Mac: Die App startet standardmäßig als schreibgeschützter PDF-Reader, blendet Bearbeitungswerkzeuge erst bei Bedarf ein und schützt auch ungespeicherte Formularänderungen vor unbeabsichtigtem Verwerfen. Versionierte synthetische PDF-Fixtures, Regressionstests und ein lokaler UI-Smoke begleiten diesen Entwicklungsstand. Eine öffentliche Veröffentlichung ist derzeit nicht vorgesehen; Apple-Signierung/App-Store-Einrichtung, vollständiger Release-QA-Nachweis sowie finale Betreiber-, Support-, Datenschutz- und HTTPS-Downloadangaben bleiben Voraussetzungen für einen späteren öffentlichen Start.
 
-Die App bleibt bewusst lokal, nativ und einfach gehalten. Nicht enthalten sind derzeit OCR, echte Bearbeitung vorhandener PDF-Texte, eine eigene Formular-UI, digitale Zertifikatssignaturen, sichere Schwärzung, Komprimierung, Export nach Office-Formaten und KI-Funktionen.
+Die App bleibt bewusst lokal, nativ und einfach gehalten. Nicht enthalten sind derzeit OCR, echte Bearbeitung vorhandener PDF-Texte, das Erstellen neuer Formularfelder, digitale Zertifikatssignaturen, sichere Schwärzung, Komprimierung, Export nach Office-Formaten und KI-Funktionen.

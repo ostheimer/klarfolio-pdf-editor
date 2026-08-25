@@ -1,4 +1,5 @@
 import AppKit
+import KlarfolioPDFTestFixtures
 import PDFKit
 import Testing
 @testable import KlarfolioPDFEditor
@@ -141,6 +142,131 @@ struct DocumentSafetyTests {
         #expect(store.pageCount == 1)
         #expect(!store.isDirty)
         #expect(confirmationCount == 1)
+    }
+
+    @Test("Formularänderungen werden vor einem Dokumentwechsel vollständig gespeichert")
+    @MainActor
+    func savingBeforeReplacementPersistsTextAndCheckboxValues() throws {
+        let temporaryDirectory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+
+        let sourceURL = temporaryDirectory.appendingPathComponent("Ausgefülltes Formular.pdf")
+        let replacementURL = try makePDF(in: temporaryDirectory, named: "Nächstes Dokument.pdf")
+        try FileManager.default.copyItem(at: PDFTestFixture.interactiveForm.url, to: sourceURL)
+
+        let suiteName = "at.ostheimer.klarfoliopdf.DocumentSafety.\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+        var confirmationCount = 0
+        let store = PDFDocumentStore(preferences: preferences, unsavedChangesDecisionProvider: { _ in
+            confirmationCount += 1
+            return .save
+        })
+        store.setWorkspaceMode(.editing)
+        #expect(store.loadDocument(from: sourceURL))
+
+        let textField = try #require(store.formFields.first { $0.name == "KlarfolioName" })
+        let checkbox = try #require(store.formFields.first { $0.name == "KlarfolioConsent" })
+        #expect(store.updateFormTextField(textField.id, value: "Vor dem Wechsel gesichert"))
+        #expect(store.updateFormCheckbox(checkbox.id, isOn: false))
+
+        let unsavedDocument = try #require(PDFDocument(url: sourceURL))
+        #expect(unsavedDocument.page(at: 0)?.annotations.first {
+            $0.fieldName == "KlarfolioName"
+        }?.widgetStringValue == "Andreas Test")
+
+        #expect(store.loadDocument(from: replacementURL))
+
+        let savedDocument = try #require(PDFDocument(url: sourceURL))
+        let savedPage = try #require(savedDocument.page(at: 0))
+        #expect(savedPage.annotations.first {
+            $0.fieldName == "KlarfolioName"
+        }?.widgetStringValue == "Vor dem Wechsel gesichert")
+        #expect(savedPage.annotations.first {
+            $0.fieldName == "KlarfolioConsent"
+        }?.buttonWidgetState == .offState)
+        #expect(store.fileURL == replacementURL)
+        #expect(store.formFields.isEmpty)
+        #expect(!store.isDirty)
+        #expect(confirmationCount == 1)
+    }
+
+    @Test("Abbrechen schützt ungespeicherte Formularwerte auch im Lesemodus")
+    @MainActor
+    func cancellingClosePreservesUnsavedFormsAfterSwitchingToReadingMode() throws {
+        let temporaryDirectory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+
+        let sourceURL = temporaryDirectory.appendingPathComponent("Geschütztes Formular.pdf")
+        try FileManager.default.copyItem(at: PDFTestFixture.interactiveForm.url, to: sourceURL)
+
+        let suiteName = "at.ostheimer.klarfoliopdf.DocumentSafety.\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+        var confirmationCount = 0
+        let store = PDFDocumentStore(preferences: preferences, unsavedChangesDecisionProvider: { _ in
+            confirmationCount += 1
+            return .cancel
+        })
+        store.setWorkspaceMode(.editing)
+        #expect(store.loadDocument(from: sourceURL))
+
+        let textField = try #require(store.formFields.first { $0.name == "KlarfolioName" })
+        #expect(store.updateFormTextField(textField.id, value: "Noch nicht gespeichert"))
+        store.setWorkspaceMode(.reading)
+
+        let delegate = AppDelegate()
+        delegate.register(documentStore: store)
+
+        #expect(!delegate.shouldCloseDocumentWindow())
+        #expect(store.workspaceMode == .reading)
+        #expect(store.isDirty)
+        #expect(store.formFields.first { $0.id == textField.id }?.textValue == "Noch nicht gespeichert")
+        #expect(PDFDocument(url: sourceURL)?.page(at: 0)?.annotations.first {
+            $0.fieldName == "KlarfolioName"
+        }?.widgetStringValue == "Andreas Test")
+        #expect(confirmationCount == 1)
+    }
+
+    @Test("Fehlgeschlagenes Speichern schützt Formularwerte vor Finder-Dokumentwechsel")
+    @MainActor
+    func failedFormSaveBlocksExternalDocumentReplacement() throws {
+        let temporaryDirectory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+
+        let sourceURL = temporaryDirectory.appendingPathComponent("Ungesichertes Formular.pdf")
+        let replacementURL = try makePDF(in: temporaryDirectory, named: "Finder-Ersatz.pdf")
+        try FileManager.default.copyItem(at: PDFTestFixture.interactiveForm.url, to: sourceURL)
+
+        let suiteName = "at.ostheimer.klarfoliopdf.DocumentSafety.\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+        var saveAttemptCount = 0
+        let store = PDFDocumentStore(
+            preferences: preferences,
+            unsavedChangesDecisionProvider: { _ in .save },
+            saveChangesHandler: { _ in
+                saveAttemptCount += 1
+                return false
+            }
+        )
+        store.setWorkspaceMode(.editing)
+        #expect(store.loadDocument(from: sourceURL))
+
+        let checkbox = try #require(store.formFields.first { $0.name == "KlarfolioConsent" })
+        #expect(store.updateFormCheckbox(checkbox.id, isOn: false))
+
+        let delegate = AppDelegate()
+        delegate.register(documentStore: store)
+
+        #expect(!delegate.openExternalDocumentURLs([replacementURL]))
+        #expect(store.fileURL == sourceURL)
+        #expect(store.isDirty)
+        #expect(store.formFields.first { $0.id == checkbox.id }?.isChecked == false)
+        #expect(PDFDocument(url: sourceURL)?.page(at: 0)?.annotations.first {
+            $0.fieldName == "KlarfolioConsent"
+        }?.buttonWidgetState == .onState)
+        #expect(saveAttemptCount == 1)
     }
 
     @Test("Abgebrochenes oder fehlgeschlagenes Speichern verhindert den Dokumentwechsel")

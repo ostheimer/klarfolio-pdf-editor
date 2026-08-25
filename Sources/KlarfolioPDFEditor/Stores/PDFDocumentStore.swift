@@ -15,6 +15,7 @@ final class PDFDocumentStore: ObservableObject {
     private let preferences: UserDefaults
     private let unsavedChangesDecisionProvider: ((PDFDocumentStore) -> UnsavedChangesDecision)?
     private let saveChangesHandler: ((PDFDocumentStore) -> Bool)?
+    private var formAnnotations: [String: PDFAnnotation] = [:]
 
     @Published private(set) var workspaceMode: PDFWorkspaceMode {
         didSet {
@@ -35,6 +36,7 @@ final class PDFDocumentStore: ObservableObject {
     @Published var isDirty = false
     @Published var statusMessage = "Bereit"
     @Published var revision = 0
+    @Published private(set) var formFields: [PDFFormField] = []
     @Published private(set) var selectedAnnotation: PDFAnnotation?
     @Published private(set) var selectedAnnotationPageIndex: Int?
     @Published var selectedAnnotationText = ""
@@ -584,6 +586,75 @@ final class PDFDocumentStore: ObservableObject {
         }
     }
 
+    @discardableResult
+    func updateFormTextField(_ fieldID: String, value: String) -> Bool {
+        guard workspaceMode == .editing,
+              let field = formFields.first(where: { $0.id == fieldID }),
+              field.kind == .text,
+              !field.isReadOnly,
+              let annotation = formAnnotations[fieldID],
+              annotation.hasSubtype(.widget),
+              annotation.widgetFieldType == .text,
+              !annotation.isPasswordField,
+              !annotation.isReadOnly else {
+            return false
+        }
+
+        let maximumLength = max(annotation.maximumLength, 0)
+        let boundedValue = maximumLength > 0 ? String(value.prefix(maximumLength)) : value
+        guard annotation.widgetStringValue ?? "" != boundedValue else {
+            return false
+        }
+
+        annotation.widgetStringValue = boundedValue
+        annotation.modificationDate = Date()
+        if let page = annotation.page {
+            pdfView?.annotationsChanged(on: page)
+        }
+        markChanged("Formularfeld „\(field.title)“ aktualisiert")
+        return true
+    }
+
+    @discardableResult
+    func updateFormCheckbox(_ fieldID: String, isOn: Bool) -> Bool {
+        guard workspaceMode == .editing,
+              let field = formFields.first(where: { $0.id == fieldID }),
+              field.kind == .checkbox,
+              !field.isReadOnly,
+              let annotation = formAnnotations[fieldID],
+              annotation.hasSubtype(.widget),
+              annotation.widgetFieldType == .button,
+              annotation.widgetControlType == .checkBoxControl,
+              !annotation.isReadOnly else {
+            return false
+        }
+
+        let requestedState: PDFWidgetCellState = isOn ? .onState : .offState
+        guard annotation.buttonWidgetState != requestedState else {
+            return false
+        }
+
+        annotation.buttonWidgetState = requestedState
+        annotation.modificationDate = Date()
+        if let page = annotation.page {
+            pdfView?.annotationsChanged(on: page)
+        }
+        markChanged("Checkbox „\(field.title)“ aktualisiert")
+        return true
+    }
+
+    func goToFormField(_ fieldID: String) {
+        guard let annotation = formAnnotations[fieldID],
+              let page = annotation.page,
+              let document,
+              let pageIndex = pageIndex(of: page, in: document) else {
+            return
+        }
+
+        goToPage(pageIndex)
+        pdfView?.go(to: annotation.bounds, on: page)
+    }
+
     func goToPreviousPage() {
         goToPage(currentPageIndex - 1)
     }
@@ -966,6 +1037,7 @@ final class PDFDocumentStore: ObservableObject {
         self.linkDestinationPage = 1
         self.extractionStartPage = 1
         self.extractionEndPage = 1
+        refreshFormFields()
         self.revision += 1
         pdfView?.document = document
         pdfView?.highlightedSelections = nil
@@ -982,11 +1054,73 @@ final class PDFDocumentStore: ObservableObject {
 
     private func markChanged(_ message: String) {
         refreshSelectedAnnotationLocation()
+        refreshFormFields()
         isDirty = true
         revision += 1
         statusMessage = message
         pdfView?.needsDisplay = true
         syncFromPDFView(pdfView)
+    }
+
+    private func refreshFormFields() {
+        guard let document else {
+            formAnnotations = [:]
+            formFields = []
+            return
+        }
+
+        var updatedAnnotations: [String: PDFAnnotation] = [:]
+        var updatedFields: [PDFFormField] = []
+
+        for pageIndex in 0..<document.pageCount {
+            guard let page = document.page(at: pageIndex) else {
+                continue
+            }
+
+            for (annotationIndex, annotation) in page.annotations.enumerated() {
+                guard annotation.hasSubtype(.widget) else {
+                    continue
+                }
+
+                let kind: PDFFormField.Kind
+                switch annotation.widgetFieldType {
+                case .text:
+                    guard !annotation.isPasswordField else {
+                        continue
+                    }
+                    kind = .text
+                case .button:
+                    guard annotation.widgetControlType == .checkBoxControl else {
+                        continue
+                    }
+                    kind = .checkbox
+                default:
+                    continue
+                }
+
+                let declaredName = annotation.fieldName?.trimmingCharacters(in: .whitespacesAndNewlines)
+                let name = declaredName?.isEmpty == false
+                    ? declaredName!
+                    : "Feld \(updatedFields.count + 1)"
+                let identifier = "\(pageIndex):\(annotationIndex):\(name)"
+                let field = PDFFormField(
+                    id: identifier,
+                    name: name,
+                    title: name,
+                    pageIndex: pageIndex,
+                    kind: kind,
+                    textValue: kind == .text ? annotation.widgetStringValue ?? "" : "",
+                    isChecked: kind == .checkbox && annotation.buttonWidgetState == .onState,
+                    isReadOnly: annotation.isReadOnly,
+                    maximumLength: kind == .text ? max(annotation.maximumLength, 0) : 0
+                )
+                updatedAnnotations[identifier] = annotation
+                updatedFields.append(field)
+            }
+        }
+
+        formAnnotations = updatedAnnotations
+        formFields = updatedFields
     }
 
     private var linkTargetDescription: String {

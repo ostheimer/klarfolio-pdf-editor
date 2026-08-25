@@ -77,15 +77,19 @@ struct FixtureRegressionTests {
 
     @Test("Formularwerte bleiben nach dem Schreiben und erneuten Öffnen erhalten")
     func formFixtureValuesRoundTripThroughPDFKit() throws {
-        let document = try #require(PDFDocument(url: PDFTestFixture.interactiveForm.url))
+        let sourceURL = PDFTestFixture.interactiveForm.url
+        let originalFixtureData = try Data(contentsOf: sourceURL)
+        let document = try #require(PDFDocument(url: sourceURL))
         let page = try #require(document.page(at: 0))
         let textField = try #require(page.annotations.first { $0.fieldName == "KlarfolioName" })
+        let checkbox = try #require(page.annotations.first { $0.fieldName == "KlarfolioConsent" })
         let temporaryDirectory = FileManager.default.temporaryDirectory
             .appendingPathComponent("KlarfolioFixtureTests-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: temporaryDirectory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
 
-        textField.widgetStringValue = "Gespeicherter Testwert"
+        textField.widgetStringValue = "Geprüfter Formularwert – Größe 42"
+        checkbox.buttonWidgetState = .offState
         let outputURL = temporaryDirectory.appendingPathComponent("Ausgefüllt.pdf")
 
         #expect(document.write(to: outputURL))
@@ -95,9 +99,50 @@ struct FixtureRegressionTests {
         let reloadedTextField = try #require(
             reloadedPage.annotations.first { $0.fieldName == "KlarfolioName" }
         )
+        let reloadedCheckbox = try #require(
+            reloadedPage.annotations.first { $0.fieldName == "KlarfolioConsent" }
+        )
 
-        #expect(reloadedTextField.widgetStringValue == "Gespeicherter Testwert")
+        #expect(reloadedTextField.widgetStringValue == "Geprüfter Formularwert – Größe 42")
+        #expect(reloadedCheckbox.buttonWidgetState == .offState)
         #expect(reloadedPage.annotations.contains { $0.hasSubtype(.text) })
+        #expect(try Data(contentsOf: sourceURL) == originalFixtureData)
+    }
+
+    @Test("Die Checkbox der Formularfixture kann aus- und wieder eingeschaltet gespeichert werden")
+    func formFixtureCheckboxRoundTripsBothStates() throws {
+        let document = try #require(PDFDocument(url: PDFTestFixture.interactiveForm.url))
+        let page = try #require(document.page(at: 0))
+        let checkbox = try #require(page.annotations.first { $0.fieldName == "KlarfolioConsent" })
+        let temporaryDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("KlarfolioCheckboxTests-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: temporaryDirectory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: temporaryDirectory) }
+
+        checkbox.buttonWidgetState = .offState
+        let uncheckedURL = temporaryDirectory.appendingPathComponent("Nicht angekreuzt.pdf")
+        #expect(document.write(to: uncheckedURL))
+
+        let uncheckedDocument = try #require(PDFDocument(url: uncheckedURL))
+        let uncheckedPage = try #require(uncheckedDocument.page(at: 0))
+        let uncheckedCheckbox = try #require(
+            uncheckedPage.annotations.first { $0.fieldName == "KlarfolioConsent" }
+        )
+        #expect(uncheckedCheckbox.buttonWidgetState == .offState)
+
+        uncheckedCheckbox.buttonWidgetState = .onState
+        let recheckedURL = temporaryDirectory.appendingPathComponent("Wieder angekreuzt.pdf")
+        #expect(uncheckedDocument.write(to: recheckedURL))
+
+        let recheckedDocument = try #require(PDFDocument(url: recheckedURL))
+        let recheckedPage = try #require(recheckedDocument.page(at: 0))
+        let recheckedCheckbox = try #require(
+            recheckedPage.annotations.first { $0.fieldName == "KlarfolioConsent" }
+        )
+
+        #expect(recheckedCheckbox.buttonWidgetState == .onState)
+        #expect(recheckedPage.annotations.first { $0.fieldName == "KlarfolioName" }?.widgetStringValue == "Andreas Test")
+        #expect(recheckedPage.annotations.contains { $0.hasSubtype(.text) })
     }
 
     @Test("Die ungültige PDF-Fixture wird ohne Verlust des offenen Dokuments abgewiesen")
