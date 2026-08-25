@@ -8,7 +8,7 @@ Klarfolio PDF Editor soll ein schneller, kostenloser PDF-Reader und PDF-Editor f
 
 ## Funktionen
 
-- Ablenkungsarmer Lesemodus mit bei Bedarf einblendbarer vollständiger Bearbeitungsoberfläche
+- Ablenkungsarmer Lesemodus bei jedem App-Start und beim Öffnen jeder vorhandenen PDF
 - Schreibgeschützter Lesemodus und Sicherheitsabfrage vor dem Verwerfen ungespeicherter Änderungen
 - PDF-Dateien und Bildseiten per sicherem Drag-and-drop öffnen beziehungsweise importieren
 - Vorhandene PDF-Textfelder und Checkboxen im Bearbeitungsmodus sicher ausfüllen und speichern
@@ -75,6 +75,6 @@ Weitere Release-Notizen liegen in
 
 ## Status
 
-Die dokumentierte P1-Phase ist funktional abgeschlossen; sicherer Drag-and-drop und das Ausfüllen vorhandener PDF-Formulare erweitern den lokalen P2-Funktionsumfang. Aktuell liegt der Schwerpunkt auf der sicheren praktischen Nutzung auf dem Mac: Die App startet standardmäßig als schreibgeschützter PDF-Reader, blendet Bearbeitungswerkzeuge erst bei Bedarf ein und schützt auch ungespeicherte Formularänderungen vor unbeabsichtigtem Verwerfen. Versionierte synthetische PDF-Fixtures, Regressionstests und ein lokaler UI-Smoke begleiten diesen Entwicklungsstand. Eine öffentliche Veröffentlichung ist derzeit nicht vorgesehen; Apple-Signierung/App-Store-Einrichtung, vollständiger Release-QA-Nachweis sowie finale Betreiber-, Support-, Datenschutz- und HTTPS-Downloadangaben bleiben Voraussetzungen für einen späteren öffentlichen Start.
+Die dokumentierte P1-Phase ist funktional abgeschlossen; sicherer Drag-and-drop und das Ausfüllen vorhandener PDF-Formulare erweitern den lokalen P2-Funktionsumfang. Aktuell liegt der Schwerpunkt auf der sicheren praktischen Nutzung auf dem Mac: Jeder App-Start und jede erfolgreich geöffnete vorhandene PDF beginnen im schreibgeschützten Lesemodus, auch wenn zuvor bearbeitet wurde. Die Bearbeitungsoberfläche erscheint erst nach einer ausdrücklichen Auswahl; ein bewusst neu erstelltes PDF darf direkt zur Bearbeitung wechseln. Abgebrochene oder fehlgeschlagene Öffnungen verändern weder das bisherige Dokument noch seinen Modus. Auch ungespeicherte Formularänderungen bleiben vor unbeabsichtigtem Verwerfen geschützt. Versionierte synthetische PDF-Fixtures, Regressionstests und ein lokaler UI-Smoke begleiten diesen Entwicklungsstand. Eine öffentliche Veröffentlichung ist derzeit nicht vorgesehen; Apple-Signierung/App-Store-Einrichtung, vollständiger Release-QA-Nachweis sowie finale Betreiber-, Support-, Datenschutz- und HTTPS-Downloadangaben bleiben Voraussetzungen für einen späteren öffentlichen Start.
 
 Die App bleibt bewusst lokal, nativ und einfach gehalten. Nicht enthalten sind derzeit OCR, echte Bearbeitung vorhandener PDF-Texte, das Erstellen neuer Formularfelder, digitale Zertifikatssignaturen, sichere Schwärzung, Komprimierung, Export nach Office-Formaten und KI-Funktionen.

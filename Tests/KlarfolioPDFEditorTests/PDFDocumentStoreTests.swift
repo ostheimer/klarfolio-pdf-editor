@@ -31,9 +31,9 @@ struct PDFDocumentStoreTests {
         #expect(preferences.string(forKey: PDFDocumentStore.workspaceModeDefaultsKey) == nil)
     }
 
-    @Test("Der Arbeitsmodus wird umgeschaltet und nach einem Neustart wiederhergestellt")
+    @Test("Ein Neustart beginnt auch nach aktivierter Bearbeitung wieder im Lesemodus")
     @MainActor
-    func workspaceModePersistsAcrossStoreInstances() throws {
+    func workspaceModeAlwaysReturnsToReadingAfterRestart() throws {
         let suiteName = "KlarfolioWorkspaceModeTests-\(UUID().uuidString)"
         let preferences = try #require(UserDefaults(suiteName: suiteName))
         defer { preferences.removePersistentDomain(forName: suiteName) }
@@ -48,12 +48,30 @@ struct PDFDocumentStoreTests {
         )
 
         let restoredStore = PDFDocumentStore(preferences: preferences)
-        #expect(restoredStore.workspaceMode == .editing)
+        #expect(restoredStore.workspaceMode == .reading)
 
         restoredStore.toggleWorkspaceMode()
 
-        #expect(restoredStore.workspaceMode == .reading)
+        #expect(restoredStore.workspaceMode == .editing)
         #expect(PDFDocumentStore(preferences: preferences).workspaceMode == .reading)
+    }
+
+    @Test("Ein früher gespeicherter Bearbeitungsmodus aktiviert beim Start keine Werkzeuge")
+    @MainActor
+    func legacyEditingPreferenceDoesNotOverrideReadingMode() throws {
+        let suiteName = "KlarfolioWorkspaceModeTests-\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+        preferences.set(
+            PDFWorkspaceMode.editing.rawValue,
+            forKey: PDFDocumentStore.workspaceModeDefaultsKey
+        )
+
+        let store = PDFDocumentStore(preferences: preferences)
+
+        #expect(store.workspaceMode == .reading)
+        #expect(store.selectedTool == .select)
+        #expect(!store.hasDocument)
     }
 
     @Test("Ungültige gespeicherte Arbeitsmodi fallen auf den Lesemodus zurück")
@@ -117,6 +135,24 @@ struct PDFDocumentStoreTests {
         #expect(store.searchResultCount == 0)
         #expect(store.statusMessage == "Neues PDF erstellt")
         #expect(store.revision > originalRevision)
+    }
+
+    @Test("Ein neu erstelltes PDF bleibt nach ausdrücklichem Umschalten bearbeitbar")
+    @MainActor
+    func creatingBlankDocumentCanExplicitlyEnterEditingMode() throws {
+        let suiteName = "KlarfolioWorkspaceModeTests-\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+        let store = PDFDocumentStore(preferences: preferences)
+
+        #expect(store.createBlankDocument())
+        #expect(store.workspaceMode == .reading)
+
+        store.setWorkspaceMode(.editing)
+
+        #expect(store.workspaceMode == .editing)
+        #expect(store.pageCount == 1)
+        #expect(store.isDirty)
     }
 
     @Test("Seitenoperationen erhalten ein benutzbares Dokument")
@@ -200,21 +236,40 @@ struct PDFDocumentStoreTests {
         let validURL = temporaryDirectory.appendingPathComponent("Beispiel.pdf")
         #expect(PDFUtilities.blankDocument().write(to: validURL))
 
-        let store = PDFDocumentStore()
-        store.loadDocument(from: validURL)
+        let suiteName = "KlarfolioWorkspaceModeTests-\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+        let store = PDFDocumentStore(preferences: preferences)
+        store.setWorkspaceMode(.editing)
+        store.selectedTool = .text
+
+        #expect(store.loadDocument(from: validURL))
 
         #expect(store.pageCount == 1)
         #expect(store.fileURL == validURL)
         #expect(!store.isDirty)
         #expect(store.documentTitle == "Beispiel.pdf")
         #expect(store.statusMessage == "Beispiel.pdf geöffnet")
+        #expect(store.workspaceMode == .reading)
+        #expect(store.selectedTool == .select)
+        #expect(
+            preferences.string(forKey: PDFDocumentStore.workspaceModeDefaultsKey)
+                == PDFWorkspaceMode.reading.rawValue
+        )
 
         let invalidURL = temporaryDirectory.appendingPathComponent("Defekt.pdf")
         try Data("kein PDF".utf8).write(to: invalidURL)
+        store.setWorkspaceMode(.editing)
+        store.selectedTool = .text
         let originalDocument = store.document
-        store.loadDocument(from: invalidURL)
+        let originalRevision = store.revision
+
+        #expect(!store.loadDocument(from: invalidURL))
 
         #expect(store.document === originalDocument)
+        #expect(store.workspaceMode == .editing)
+        #expect(store.selectedTool == .text)
+        #expect(store.revision == originalRevision)
         #expect(store.statusMessage == "Die Datei konnte nicht geöffnet werden.")
     }
 

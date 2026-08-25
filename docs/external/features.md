@@ -6,12 +6,12 @@ Diese Datei dokumentiert den aktuellen Funktionsumfang aus Nutzersicht.
 
 | Feature | Status | Beschreibung |
 | --- | --- | --- |
-| PDF öffnen | Umgesetzt | Öffnet lokale PDF-Dateien über den macOS-Dateidialog. |
-| PDF per Drag-and-drop öffnen | Umgesetzt | Öffnet eine einzelne lokale PDF durch Ziehen auf die Dokumentansicht; ungespeicherte Änderungen bleiben durch dieselbe Sicherheitsabfrage geschützt. |
-| Neues PDF | Umgesetzt | Erstellt ein neues PDF mit einer leeren Seite. |
+| PDF öffnen | Umgesetzt | Öffnet lokale PDF-Dateien über den macOS-Dateidialog oder Finder immer zunächst im schreibgeschützten Lesemodus. |
+| PDF per Drag-and-drop öffnen | Umgesetzt | Öffnet eine einzelne lokale PDF durch Ziehen auf die Dokumentansicht ebenfalls im Lesemodus; ungespeicherte Änderungen bleiben durch dieselbe Sicherheitsabfrage geschützt. |
+| Neues PDF | Umgesetzt | Erstellt ein neues PDF mit einer leeren Seite und darf als ausdrückliche Erstellaktion unmittelbar in den Bearbeitungsmodus wechseln. |
 | Speichern | Umgesetzt | Speichert Änderungen in die aktuelle Datei. |
 | Sichern unter | Umgesetzt | Speichert das PDF an einem neuen Speicherort. |
-| Sicherer Dokumentwechsel | Umgesetzt | Fragt vor Neu, Öffnen, Finder-Öffnen, Fensterschließen und App-Beenden nach `Speichern`, `Verwerfen` oder `Abbrechen`, falls ungespeicherte Änderungen vorliegen. |
+| Sicherer Dokumentwechsel | Umgesetzt | Fragt vor Neu, Öffnen, Finder-Öffnen, Fensterschließen und App-Beenden nach `Speichern`, `Verwerfen` oder `Abbrechen`, falls ungespeicherte Änderungen vorliegen; abgebrochene und ungültige Öffnungen erhalten Dokument und Arbeitsmodus. |
 | Ungespeichert-Status | Umgesetzt | Kennzeichnet das macOS-Fenster bei offenen Änderungen; im Bearbeitungsmodus erscheint zusätzlich die Statusleiste. |
 
 ## Lesen und Ansicht
@@ -19,8 +19,8 @@ Diese Datei dokumentiert den aktuellen Funktionsumfang aus Nutzersicht.
 | Feature | Status | Beschreibung |
 | --- | --- | --- |
 | Native PDF-Anzeige | Umgesetzt | Darstellung über PDFKit. |
-| Ablenkungsarmer Lesemodus | Umgesetzt | Schreibgeschützte Standardansicht ohne Seitenleiste, Werkzeugbereich, Statusleiste und erweiterte Toolbar; schreibende Werkzeuge, Menüaktionen und Tastenkürzel sind deaktiviert. |
-| Umschaltbarer Bearbeitungsmodus | Umgesetzt | `Bearbeiten`, das Menü `Darstellung` oder `⌘⇧E` blenden Seitenleiste, Werkzeuge, Suche, Navigation und Zoom ein; der letzte Modus bleibt nach einem Neustart erhalten. |
+| Ablenkungsarmer Lesemodus | Umgesetzt | Jeder App-Start und jedes erfolgreiche Öffnen einer vorhandenen PDF beginnen in der schreibgeschützten Ansicht ohne Seitenleiste, Werkzeugbereich, Statusleiste und erweiterte Toolbar; schreibende Werkzeuge, Menüaktionen und Tastenkürzel sind deaktiviert. |
+| Umschaltbarer Bearbeitungsmodus | Umgesetzt | `Bearbeiten`, das Menü `Darstellung` oder `⌘⇧E` blenden Seitenleiste, Werkzeuge, Suche, Navigation und Zoom ausdrücklich ein; ein Neustart oder eine neu geöffnete vorhandene PDF kehrt zuverlässig in den Lesemodus zurück. |
 | Seitenminiaturen | Umgesetzt | Seitenleiste mit Miniaturansichten und direkter Seitenauswahl. |
 | Fortlaufende Ansicht | Umgesetzt | Standardansicht für längere Dokumente. |
 | Einzelseitenansicht | Umgesetzt | Alternative Darstellung pro Seite. |

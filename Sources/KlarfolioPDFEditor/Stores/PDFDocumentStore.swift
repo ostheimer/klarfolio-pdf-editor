@@ -56,9 +56,7 @@ final class PDFDocumentStore: ObservableObject {
         self.preferences = preferences
         self.unsavedChangesDecisionProvider = unsavedChangesDecisionProvider
         self.saveChangesHandler = saveChangesHandler
-        workspaceMode = PDFWorkspaceMode(
-            rawValue: preferences.string(forKey: Self.workspaceModeDefaultsKey) ?? ""
-        ) ?? .reading
+        workspaceMode = .reading
     }
 
     func setWorkspaceMode(_ mode: PDFWorkspaceMode) {
@@ -180,6 +178,7 @@ final class PDFDocumentStore: ObservableObject {
         }
 
         setDocument(pdfDocument, url: url, dirty: false)
+        setWorkspaceMode(.reading)
         statusMessage = "\(url.lastPathComponent) geöffnet"
         return true
     }

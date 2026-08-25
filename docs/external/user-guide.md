@@ -1,6 +1,6 @@
 # Klarfolio PDF Editor Nutzerhandbuch
 
-Klarfolio PDF Editor ist eine kostenlose, native macOS-App zum Lesen, Erstellen und Bearbeiten von PDF-Dateien. Beim ersten Start zeigt sie einen ablenkungsarmen Lesemodus; die vollständige Bearbeitungsoberfläche lässt sich jederzeit einblenden.
+Klarfolio PDF Editor ist eine kostenlose, native macOS-App zum Lesen, Erstellen und Bearbeiten von PDF-Dateien. Bei jedem Start und beim Öffnen jeder vorhandenen PDF zeigt sie zuerst einen ablenkungsarmen Lesemodus; die vollständige Bearbeitungsoberfläche lässt sich bei Bedarf ausdrücklich einblenden.
 
 ## Starten
 
@@ -16,24 +16,27 @@ Für eine dauerhaft lokal installierte Entwicklungs-App im persönlichen Program
 ./script/install_local_dev.sh
 ```
 
+Falls die Entwicklungs-App bereits läuft, schließe sie vor einer Aktualisierung regulär. Das Installationsskript beendet weder die Entwicklungs-App noch andere installierte Klarfolio-Varianten zwangsweise.
+
 ## Lese- und Bearbeitungsmodus
 
-Beim ersten Start ist der **Lesemodus** aktiv. Er zeigt das PDF ohne Seitenleiste, rechten Werkzeugbereich, untere Statusleiste oder erweiterte Toolbar; sichtbar bleiben die wesentlichen Aktionen zum Öffnen und zum Wechsel in die Bearbeitung. Vorhandene PDF-Anmerkungen lassen sich im Lesemodus nicht versehentlich verschieben oder löschen; schreibende PDF-Menübefehle und ihre Tastenkürzel bleiben ebenfalls gesperrt.
+Bei jedem Start und nach jedem erfolgreichen Öffnen einer vorhandenen PDF ist der **Lesemodus** aktiv. Das gilt auch dann, wenn die App zuvor im Bearbeitungsmodus beendet wurde. Der Lesemodus zeigt das PDF ohne Seitenleiste, rechten Werkzeugbereich, untere Statusleiste oder erweiterte Toolbar; sichtbar bleiben die wesentlichen Aktionen zum Öffnen und zum Wechsel in die Bearbeitung. Vorhandene PDF-Anmerkungen lassen sich im Lesemodus nicht versehentlich verschieben oder löschen; schreibende PDF-Menübefehle und ihre Tastenkürzel bleiben ebenfalls gesperrt.
 
 - `Bearbeiten` oben rechts blendet links die Seitenleiste, rechts die Werkzeuge und unten die Statusleiste ein. Zusätzlich erscheinen Seitensteuerung, Zoom und Suchfeld in der Toolbar.
 - `Lesen` blendet diese Bedienelemente wieder aus und beendet eine vorhandene Anmerkungsauswahl, ohne das Dokument zu verändern.
 - Das Menü `Darstellung` enthält dieselbe Umschaltung; das Tastenkürzel lautet `⌘⇧E`.
-- Die App merkt sich den zuletzt gewählten Modus und stellt ihn nach einem Neustart wieder her.
+- Ein App-Neustart und das erfolgreiche Öffnen einer anderen vorhandenen PDF beginnen bewusst wieder im Lesemodus; Bearbeitung erfordert jedes Mal eine ausdrückliche Auswahl.
 
 ## PDF öffnen oder erstellen
 
-- `Öffnen` lädt eine vorhandene PDF-Datei.
-- Eine einzelne PDF kann in beiden Modi direkt aus dem Finder auf die Dokumentansicht gezogen werden.
-- `Neues PDF` erstellt ein leeres Dokument mit einer Standardseite.
+- `Öffnen` lädt eine vorhandene PDF-Datei und zeigt sie zunächst im Lesemodus.
+- Das Öffnen über den Finder oder `Öffnen mit` zeigt die ausgewählte PDF ebenfalls zuerst im Lesemodus.
+- Eine einzelne PDF kann in beiden Modi direkt aus dem Finder auf die Dokumentansicht gezogen werden; nach erfolgreichem Öffnen erscheint auch sie im Lesemodus.
+- `Neues PDF` erstellt bewusst ein leeres Dokument mit einer Standardseite und darf direkt die Bearbeitungsoberfläche öffnen.
 - `Speichern` schreibt Änderungen in die aktuelle Datei.
 - `Sichern unter` speichert das Dokument an einem neuen Ort.
 
-Ungespeicherte Änderungen werden im Bearbeitungsmodus unten in der Statusleiste und in beiden Modi über die native macOS-Fensterkennzeichnung angezeigt. `Öffnen` bleibt auch im Lesemodus direkt erreichbar; weitere Dateiaktionen sind zusätzlich über das macOS-Menü verfügbar.
+Ungespeicherte Änderungen werden im Bearbeitungsmodus unten in der Statusleiste und in beiden Modi über die native macOS-Fensterkennzeichnung angezeigt. `Öffnen` bleibt auch im Lesemodus direkt erreichbar; weitere Dateiaktionen sind zusätzlich über das macOS-Menü verfügbar. Wird ein Dateidialog oder eine Sicherheitsabfrage abgebrochen beziehungsweise eine ungültige PDF abgewiesen, bleiben das bisherige Dokument und der bisherige Lese- oder Bearbeitungsmodus unverändert.
 
 ## Ungespeicherte Änderungen schützen
 
@@ -41,7 +44,7 @@ Wenn das aktuelle Dokument noch nicht gesicherte Änderungen enthält, fragt Kla
 
 - `Speichern` sichert das aktuelle Dokument und führt die gewünschte Aktion erst nach erfolgreichem Schreiben aus.
 - `Verwerfen` verwirft die offenen Änderungen und führt die gewünschte Aktion aus.
-- `Abbrechen` erhält das aktuelle Dokument unverändert und bricht die gewünschte Aktion ab.
+- `Abbrechen` erhält das aktuelle Dokument einschließlich Arbeitsmodus unverändert und bricht die gewünschte Aktion ab.
 
 Bei einem neuen Dokument ohne Dateinamen öffnet `Speichern` zunächst `Sichern unter`. Wird dieser Dialog abgebrochen oder schlägt das Schreiben fehl, bleiben Dokument und Fenster geöffnet.
 

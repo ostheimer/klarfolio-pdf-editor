@@ -13,7 +13,10 @@ APP_CONTENTS="$APP_BUNDLE/Contents"
 APP_MACOS="$APP_CONTENTS/MacOS"
 APP_BINARY="$APP_MACOS/$EXECUTABLE_NAME"
 
-pkill -x "$EXECUTABLE_NAME" >/dev/null 2>&1 || true
+if pgrep -f "$APP_BINARY" >/dev/null 2>&1; then
+  echo "error: close the repository app normally before rebuilding it: $APP_BUNDLE" >&2
+  exit 1
+fi
 
 BUNDLE_ID="$BUNDLE_ID" "$ROOT_DIR/script/build_app_bundle.sh" \
   --configuration debug \
@@ -42,7 +45,7 @@ case "$MODE" in
   --verify|verify)
     open_app
     sleep 1
-    pgrep -x "$EXECUTABLE_NAME" >/dev/null
+    pgrep -f "$APP_BINARY" >/dev/null
     ;;
   *)
     echo "usage: $0 [run|--debug|--logs|--telemetry|--verify]" >&2
