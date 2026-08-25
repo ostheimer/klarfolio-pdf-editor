@@ -88,7 +88,9 @@ private final class AnnotationEditingPDFView: PDFView {
     }
 
     override func mouseDown(with event: NSEvent) {
-        guard let editingStore, editingStore.selectedTool == .select else {
+        guard let editingStore,
+              editingStore.workspaceMode == .editing,
+              editingStore.selectedTool == .select else {
             super.mouseDown(with: event)
             return
         }
@@ -119,6 +121,7 @@ private final class AnnotationEditingPDFView: PDFView {
 
     override func mouseDragged(with event: NSEvent) {
         guard let editingStore,
+              editingStore.workspaceMode == .editing,
               let annotation = draggedAnnotation,
               let page = draggedPage else {
             super.mouseDragged(with: event)
@@ -144,6 +147,7 @@ private final class AnnotationEditingPDFView: PDFView {
 
     override func mouseUp(with event: NSEvent) {
         if let editingStore,
+           editingStore.workspaceMode == .editing,
            let annotation = draggedAnnotation,
            let page = draggedPage {
             editingStore.annotationMoveDidFinish(
@@ -160,7 +164,9 @@ private final class AnnotationEditingPDFView: PDFView {
     }
 
     override func keyDown(with event: NSEvent) {
-        guard let editingStore, editingStore.hasSelectedAnnotation else {
+        guard let editingStore,
+              editingStore.workspaceMode == .editing,
+              editingStore.hasSelectedAnnotation else {
             super.keyDown(with: event)
             return
         }
@@ -187,7 +193,8 @@ private final class AnnotationEditingPDFView: PDFView {
     override func drawPagePost(_ page: PDFPage, to context: CGContext) {
         super.drawPagePost(page, to: context)
 
-        guard let annotation = editingStore?.selectedAnnotation,
+        guard editingStore?.workspaceMode == .editing,
+              let annotation = editingStore?.selectedAnnotation,
               annotation.page === page else {
             return
         }

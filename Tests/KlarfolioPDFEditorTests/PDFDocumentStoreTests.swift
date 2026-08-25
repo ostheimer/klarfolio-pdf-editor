@@ -18,6 +18,87 @@ struct PDFDocumentStoreTests {
         #expect(PDFUtilities.pageSizeLabel(for: nil) == "Keine Seite")
     }
 
+    @Test("Die App startet ohne gespeicherte Einstellung im Lesemodus")
+    @MainActor
+    func freshWorkspaceDefaultsToReadingMode() throws {
+        let suiteName = "KlarfolioWorkspaceModeTests-\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+
+        let store = PDFDocumentStore(preferences: preferences)
+
+        #expect(store.workspaceMode == .reading)
+        #expect(preferences.string(forKey: PDFDocumentStore.workspaceModeDefaultsKey) == nil)
+    }
+
+    @Test("Der Arbeitsmodus wird umgeschaltet und nach einem Neustart wiederhergestellt")
+    @MainActor
+    func workspaceModePersistsAcrossStoreInstances() throws {
+        let suiteName = "KlarfolioWorkspaceModeTests-\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+
+        let firstStore = PDFDocumentStore(preferences: preferences)
+        firstStore.toggleWorkspaceMode()
+
+        #expect(firstStore.workspaceMode == .editing)
+        #expect(
+            preferences.string(forKey: PDFDocumentStore.workspaceModeDefaultsKey)
+                == PDFWorkspaceMode.editing.rawValue
+        )
+
+        let restoredStore = PDFDocumentStore(preferences: preferences)
+        #expect(restoredStore.workspaceMode == .editing)
+
+        restoredStore.toggleWorkspaceMode()
+
+        #expect(restoredStore.workspaceMode == .reading)
+        #expect(PDFDocumentStore(preferences: preferences).workspaceMode == .reading)
+    }
+
+    @Test("Ungültige gespeicherte Arbeitsmodi fallen auf den Lesemodus zurück")
+    @MainActor
+    func invalidPersistedWorkspaceModeFallsBackToReading() throws {
+        let suiteName = "KlarfolioWorkspaceModeTests-\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+        preferences.set("unsupported-mode", forKey: PDFDocumentStore.workspaceModeDefaultsKey)
+
+        let store = PDFDocumentStore(preferences: preferences)
+
+        #expect(store.workspaceMode == .reading)
+    }
+
+    @Test("Der Lesemodus beendet die Anmerkungsauswahl ohne das Dokument zu verändern")
+    @MainActor
+    func enteringReadingModeClearsSelectionWithoutChangingDocument() throws {
+        let suiteName = "KlarfolioWorkspaceModeTests-\(UUID().uuidString)"
+        let preferences = try #require(UserDefaults(suiteName: suiteName))
+        defer { preferences.removePersistentDomain(forName: suiteName) }
+        let store = PDFDocumentStore(preferences: preferences)
+        store.setWorkspaceMode(.editing)
+        store.createBlankDocument()
+        store.addFreeTextAnnotation(text: "Bleibt unverändert")
+
+        let document = try #require(store.document)
+        let annotation = try #require(store.selectedAnnotation)
+        let revision = store.revision
+        let statusMessage = store.statusMessage
+        let wasDirty = store.isDirty
+        store.selectedTool = .text
+
+        store.setWorkspaceMode(.reading)
+
+        #expect(store.workspaceMode == .reading)
+        #expect(store.document === document)
+        #expect(store.currentPage?.annotations.contains { $0 === annotation } == true)
+        #expect(!store.hasSelectedAnnotation)
+        #expect(store.selectedTool == .select)
+        #expect(store.revision == revision)
+        #expect(store.statusMessage == statusMessage)
+        #expect(store.isDirty == wasDirty)
+    }
+
     @Test("Ein neues Dokument setzt den Dokumentzustand zurück")
     @MainActor
     func creatingBlankDocumentResetsDocumentState() {

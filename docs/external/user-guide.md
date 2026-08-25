@@ -1,6 +1,6 @@
 # Klarfolio PDF Editor Nutzerhandbuch
 
-Klarfolio PDF Editor ist eine kostenlose, native macOS-App zum Lesen, Erstellen und Bearbeiten von PDF-Dateien. Die Oberfläche besteht aus einer Seitenleiste links, der PDF-Ansicht in der Mitte und einem Werkzeugbereich rechts.
+Klarfolio PDF Editor ist eine kostenlose, native macOS-App zum Lesen, Erstellen und Bearbeiten von PDF-Dateien. Beim ersten Start zeigt sie einen ablenkungsarmen Lesemodus; die vollständige Bearbeitungsoberfläche lässt sich jederzeit einblenden.
 
 ## Starten
 
@@ -10,6 +10,21 @@ Klarfolio PDF Editor ist eine kostenlose, native macOS-App zum Lesen, Erstellen 
 
 In der Codex-App ist zusätzlich eine lokale `Run`-Aktion eingerichtet.
 
+Für eine dauerhaft lokal installierte Entwicklungs-App im persönlichen Programme-Ordner:
+
+```bash
+./script/install_local_dev.sh
+```
+
+## Lese- und Bearbeitungsmodus
+
+Beim ersten Start ist der **Lesemodus** aktiv. Er zeigt das PDF ohne Seitenleiste, rechten Werkzeugbereich, untere Statusleiste oder erweiterte Toolbar; sichtbar bleiben die wesentlichen Aktionen zum Öffnen und zum Wechsel in die Bearbeitung. Vorhandene PDF-Anmerkungen lassen sich im Lesemodus nicht versehentlich verschieben oder löschen.
+
+- `Bearbeiten` oben rechts blendet links die Seitenleiste, rechts die Werkzeuge und unten die Statusleiste ein. Zusätzlich erscheinen Seitensteuerung, Zoom und Suchfeld in der Toolbar.
+- `Lesen` blendet diese Bedienelemente wieder aus und beendet eine vorhandene Anmerkungsauswahl, ohne das Dokument zu verändern.
+- Das Menü `Darstellung` enthält dieselbe Umschaltung; das Tastenkürzel lautet `⌘⇧E`.
+- Die App merkt sich den zuletzt gewählten Modus und stellt ihn nach einem Neustart wieder her.
+
 ## PDF öffnen oder erstellen
 
 - `Öffnen` lädt eine vorhandene PDF-Datei.
@@ -17,11 +32,12 @@ In der Codex-App ist zusätzlich eine lokale `Run`-Aktion eingerichtet.
 - `Speichern` schreibt Änderungen in die aktuelle Datei.
 - `Sichern unter` speichert das Dokument an einem neuen Ort.
 
-Ungespeicherte Änderungen werden unten in der Statusleiste angezeigt.
+Ungespeicherte Änderungen werden im Bearbeitungsmodus unten in der Statusleiste angezeigt. `Öffnen` bleibt auch im Lesemodus direkt erreichbar; weitere Dateiaktionen sind zusätzlich über das macOS-Menü verfügbar.
 
 ## Lesen und Navigieren
 
-- Die linke Seitenleiste zeigt Miniaturen aller Seiten.
+- Im Lesemodus kannst du das PDF direkt scrollen und lesen.
+- Im Bearbeitungsmodus zeigt die linke Seitenleiste Miniaturen aller Seiten.
 - Ein Klick auf eine Miniatur springt zur jeweiligen Seite.
 - Die Werkzeugleiste zeigt die aktuelle Seite, die Gesamtzahl der Seiten und den Zoom.
 - `Vergrößern`, `Verkleinern` und `An Fenster anpassen` steuern die Ansicht.
@@ -29,7 +45,7 @@ Ungespeicherte Änderungen werden unten in der Statusleiste angezeigt.
 
 ## Suchen
 
-Das Suchfeld in der Werkzeugleiste sucht im geöffneten PDF.
+Das Suchfeld in der Werkzeugleiste ist im Bearbeitungsmodus sichtbar und sucht im geöffneten PDF.
 
 - Treffer werden im Dokument hervorgehoben.
 - Die Trefferzahl wird neben dem Suchfeld angezeigt.

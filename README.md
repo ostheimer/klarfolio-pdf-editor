@@ -8,6 +8,7 @@ Klarfolio PDF Editor soll ein schneller, kostenloser PDF-Reader und PDF-Editor f
 
 ## Funktionen
 
+- Ablenkungsarmer Lesemodus mit bei Bedarf einblendbarer vollständiger Bearbeitungsoberfläche
 - PDF öffnen, neu erstellen, speichern und unter neuem Namen sichern
 - Seitenvorschau mit direkter Seitennavigation
 - Leere Seiten einfügen, Seiten drehen, verschieben und löschen
@@ -68,6 +69,6 @@ Weitere Release-Notizen liegen in
 
 ## Status
 
-Die dokumentierte P1-Phase ist funktional abgeschlossen. Das Projekt befindet sich jetzt in der Release-Härtung und manuellen QA vor einer ersten öffentlichen, signierten Version; die nächsten Produktfunktionen beginnen mit P2. Offen für den öffentlichen Start sind insbesondere Apple-Signierung/App-Store-Einrichtung, der vollständige QA-Nachweis sowie finale Betreiber-, Support-, Datenschutz- und HTTPS-Downloadangaben.
+Die dokumentierte P1-Phase ist funktional abgeschlossen. Aktuell liegt der Schwerpunkt auf der praktischen lokalen Nutzung auf dem Mac: Die App startet standardmäßig als reduzierter PDF-Reader und blendet bei Bedarf die vollständigen Bearbeitungswerkzeuge ein. Eine öffentliche Veröffentlichung ist derzeit nicht vorgesehen; Apple-Signierung/App-Store-Einrichtung, vollständiger Release-QA-Nachweis sowie finale Betreiber-, Support-, Datenschutz- und HTTPS-Downloadangaben bleiben Voraussetzungen für einen späteren öffentlichen Start.
 
 Die App bleibt bewusst lokal, nativ und einfach gehalten. Nicht enthalten sind derzeit OCR, echte Bearbeitung vorhandener PDF-Texte, eine eigene Formular-UI, digitale Zertifikatssignaturen, sichere Schwärzung, Komprimierung, Export nach Office-Formaten und KI-Funktionen.

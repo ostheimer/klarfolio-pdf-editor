@@ -6,6 +6,8 @@ Dieser Katalog ist die Freigabegrundlage für eine sandboxed Release-App. Er erg
 
 Teste einen **release-signierten** Build auf einem Mac mit macOS 14 oder neuer. Die Testperson hält pro Fall fest: Test-ID, Build/Bundle-ID, macOS-Version, Datum, Ergebnis (`PASS`, `FAIL` oder `BLOCKED`), tatsächliches Ergebnis und einen Evidenzverweis. Ein `PASS` ohne passende Evidenz gilt nicht als abgeschlossen.
 
+Für Fälle, die Seitenleiste, Inspektor, Suche oder Statuszeile voraussetzen, zunächst über `Bearbeiten` in den Bearbeitungsmodus wechseln. Den reduzierten Standardzustand und die Umschaltung prüfen QA-44 bis QA-46 gesondert.
+
 Zulässige Evidenz sind ein Screenshot oder eine kurze Bildschirmaufnahme mit sichtbarem erwarteten Zustand (`QA-<ID>-<kurzname>.png` bzw. `.mov`), eine gespeicherte Ausgabedatei mit SHA-256 plus Wiederöffnungsnachweis oder ein präziser Fehlerdialog bzw. Statuszeilentext bei einem Negativfall. Kritisch sind Datenverlust, unbeabsichtigtes Überschreiben, Absturz, Startfehler und fehlerhafte Signatur-/Sandbox-Prüfung; dafür ist eine Bildschirmaufnahme erforderlich.
 
 Lege vor dem Test folgende nicht vertrauliche Dateien an:
@@ -96,3 +98,11 @@ Lege vor dem Test folgende nicht vertrauliche Dateien an:
 | QA-43 | Kritisch | Öffentlichen Support- und Datenschutzlink auf finalem Store-Listing sowie `Hilfe > Datenschutz …` in der App prüfen. | Beide öffentlichen Links sind erreichbar, nennen die finale verantwortliche Stelle; der App-Hinweis ist erreichbar und entspricht `privacy.md`. | URL-Test + Screenshots |
 
 QA-43 bleibt bis zur Store-Einreichung ein offenes Release-Gate: Der App-Hinweis ist implementiert, aber Betreiberkontakt und öffentliche Support-/Datenschutz-URLs müssen noch ergänzt und gemeinsam mit dem finalen Build geprüft werden.
+
+## Lese- und Bearbeitungsmodus
+
+| ID | Prio | Aktion | Pass-Kriterium | Evidenz |
+| --- | --- | --- | --- | --- |
+| QA-44 | Hoch | App ohne zuvor gespeicherten Arbeitsmodus starten und eine PDF öffnen. | Standardmäßig erscheint der Lesemodus: PDF und `Öffnen`/`Bearbeiten` sind sichtbar; Seitenleiste, Inspektor, Suchfeld, Seiten-/Zoom-Toolbar und Statusleiste fehlen. | Screenshot |
+| QA-45 | Hoch | Mit `Bearbeiten`, `Lesen`, dem Menü `Darstellung` und `⌘⇧E` zwischen beiden Modi wechseln. | Jede Umschaltmöglichkeit funktioniert; im Bearbeitungsmodus stehen Seitenleiste, Anmerkungswerkzeuge, Suche, Navigation, Zoom und Status vollständig bereit. | Aufnahme |
+| QA-46 | Hoch | Modus wechseln, App neu starten; im Lesemodus eine vorhandene Anmerkung anklicken, ziehen und Löschen/Pfeiltasten drücken. | Der zuletzt gewählte Modus bleibt erhalten; vorhandene Anmerkungen werden im Lesemodus nicht ausgewählt, verschoben oder gelöscht und das Dokument bleibt unverändert. | Aufnahme + Vorher/Nachher |
