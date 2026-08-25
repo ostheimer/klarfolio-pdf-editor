@@ -1,0 +1,88 @@
+%PDF-1.4
+% Klarfolio synthetic QA fixture
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 3 /Kids [3 0 R 4 0 R 5 0 R] >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 9 0 R >> >> /Contents 6 0 R >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 9 0 R >> >> /Contents 7 0 R >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 9 0 R >> >> /Contents 8 0 R >>
+endobj
+6 0 obj
+<< /Length 227 >>
+stream
+BT
+/F1 20 Tf
+72 760 Td
+(Klarfolio Testseite 1) Tj
+/F1 13 Tf
+0 -26 Td
+(Klarfolio-Testwort erscheint auf der ersten Seite.) Tj
+0 -26 Td
+(Dieser Satz besteht aus mehreren) Tj
+0 -26 Td
+(sichtbaren und durchsuchbaren Zeilen.) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Length 174 >>
+stream
+BT
+/F1 20 Tf
+72 760 Td
+(Klarfolio Testseite 2) Tj
+/F1 13 Tf
+0 -26 Td
+(Die zweite Seite testet Navigation.) Tj
+0 -26 Td
+(Ein weiterer Abschnitt bleibt separat suchbar.) Tj
+ET
+endstream
+endobj
+8 0 obj
+<< /Length 186 >>
+stream
+BT
+/F1 20 Tf
+72 760 Td
+(Klarfolio Testseite 3) Tj
+/F1 13 Tf
+0 -26 Td
+(Klarfolio-Testwort erscheint auf der dritten Seite.) Tj
+0 -26 Td
+(Die letzte Seite testet die Trefferanzahl.) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+10 0 obj
+<< /Title (Klarfolio searchable three-page fixture) /Producer (Klarfolio deterministic synthetic fixtures) >>
+endobj
+xref
+0 11
+0000000000 65535 f 
+0000000042 00000 n 
+0000000091 00000 n 
+0000000160 00000 n 
+0000000286 00000 n 
+0000000412 00000 n 
+0000000538 00000 n 
+0000000815 00000 n 
+0000001039 00000 n 
+0000001275 00000 n 
+0000001345 00000 n 
+trailer
+<< /Size 11 /Root 1 0 R /Info 10 0 R >>
+startxref
+1471
+%%EOF

@@ -6,7 +6,15 @@ import UniformTypeIdentifiers
 final class PDFDocumentStore: ObservableObject {
     static let workspaceModeDefaultsKey = "at.ostheimer.klarfoliopdf.workspaceMode"
 
+    enum UnsavedChangesDecision {
+        case save
+        case discard
+        case cancel
+    }
+
     private let preferences: UserDefaults
+    private let unsavedChangesDecisionProvider: ((PDFDocumentStore) -> UnsavedChangesDecision)?
+    private let saveChangesHandler: ((PDFDocumentStore) -> Bool)?
 
     @Published private(set) var workspaceMode: PDFWorkspaceMode {
         didSet {
@@ -38,8 +46,14 @@ final class PDFDocumentStore: ObservableObject {
 
     weak var pdfView: PDFView?
 
-    init(preferences: UserDefaults = .standard) {
+    init(
+        preferences: UserDefaults = .standard,
+        unsavedChangesDecisionProvider: ((PDFDocumentStore) -> UnsavedChangesDecision)? = nil,
+        saveChangesHandler: ((PDFDocumentStore) -> Bool)? = nil
+    ) {
         self.preferences = preferences
+        self.unsavedChangesDecisionProvider = unsavedChangesDecisionProvider
+        self.saveChangesHandler = saveChangesHandler
         workspaceMode = PDFWorkspaceMode(
             rawValue: preferences.string(forKey: Self.workspaceModeDefaultsKey) ?? ""
         ) ?? .reading
@@ -152,42 +166,57 @@ final class PDFDocumentStore: ObservableObject {
         loadDocument(from: url)
     }
 
-    func loadDocument(from url: URL) {
+    @discardableResult
+    func loadDocument(from url: URL) -> Bool {
         guard let pdfDocument = PDFDocument(url: url) else {
             statusMessage = "Die Datei konnte nicht geöffnet werden."
-            return
+            return false
+        }
+
+        guard confirmDiscardingUnsavedChanges() else {
+            return false
         }
 
         setDocument(pdfDocument, url: url, dirty: false)
         statusMessage = "\(url.lastPathComponent) geöffnet"
+        return true
     }
 
-    func createBlankDocument() {
+    @discardableResult
+    func createBlankDocument() -> Bool {
+        guard confirmDiscardingUnsavedChanges() else {
+            return false
+        }
+
         setDocument(PDFUtilities.blankDocument(), url: nil, dirty: true)
         statusMessage = "Neues PDF erstellt"
+        return true
     }
 
-    func saveDocument() {
+    @discardableResult
+    func saveDocument() -> Bool {
         guard let document else {
-            return
+            return false
         }
 
         if let fileURL {
             if document.write(to: fileURL) {
                 isDirty = false
                 statusMessage = "\(fileURL.lastPathComponent) gespeichert"
+                return true
             } else {
                 statusMessage = "Das PDF konnte nicht gespeichert werden."
+                return false
             }
-            return
         }
 
-        saveDocumentAs()
+        return saveDocumentAs()
     }
 
-    func saveDocumentAs() {
+    @discardableResult
+    func saveDocumentAs() -> Bool {
         guard let document else {
-            return
+            return false
         }
 
         let panel = NSSavePanel()
@@ -197,15 +226,60 @@ final class PDFDocumentStore: ObservableObject {
         panel.message = "PDF sichern"
 
         guard panel.runModal() == .OK, let url = panel.url else {
-            return
+            return false
         }
 
         if document.write(to: url) {
             fileURL = url
             isDirty = false
             statusMessage = "\(url.lastPathComponent) gespeichert"
+            return true
         } else {
             statusMessage = "Das PDF konnte nicht gespeichert werden."
+            return false
+        }
+    }
+
+    @discardableResult
+    func confirmDiscardingUnsavedChanges() -> Bool {
+        guard document != nil, isDirty else {
+            return true
+        }
+
+        let decision = unsavedChangesDecisionProvider?(self) ?? presentUnsavedChangesAlert()
+
+        switch decision {
+        case .save:
+            let didSave = saveChangesHandler?(self) ?? saveDocument()
+            return didSave && !isDirty
+        case .discard:
+            return true
+        case .cancel:
+            return false
+        }
+    }
+
+    private func presentUnsavedChangesAlert() -> UnsavedChangesDecision {
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = "Möchtest du die Änderungen an „\(documentTitle)“ speichern?"
+        alert.informativeText = "Wenn du die Änderungen nicht speicherst, gehen sie verloren."
+        alert.addButton(withTitle: "Speichern")
+        alert.addButton(withTitle: "Verwerfen")
+        alert.addButton(withTitle: "Abbrechen")
+        alert.buttons[0].setAccessibilityIdentifier("documentSafety.save")
+        alert.buttons[1].setAccessibilityIdentifier("documentSafety.discard")
+        alert.buttons[2].setAccessibilityIdentifier("documentSafety.cancel")
+        alert.buttons[0].keyEquivalent = "\r"
+        alert.buttons[2].keyEquivalent = "\u{1b}"
+
+        switch alert.runModal() {
+        case .alertFirstButtonReturn:
+            return .save
+        case .alertSecondButtonReturn:
+            return .discard
+        default:
+            return .cancel
         }
     }
 
@@ -232,15 +306,24 @@ final class PDFDocumentStore: ObservableObject {
             return
         }
 
+        importImages(from: panel.urls)
+    }
+
+    @discardableResult
+    func importImages(from urls: [URL]) -> Int {
+        guard !urls.isEmpty else {
+            return 0
+        }
+
         ensureDocument()
         guard let document else {
-            return
+            return 0
         }
 
         let firstInsertedIndex = document.pageCount
         var inserted = 0
 
-        for url in panel.urls {
+        for url in urls {
             guard let image = NSImage(contentsOf: url), let page = PDFPage(image: image) else {
                 continue
             }
@@ -255,6 +338,8 @@ final class PDFDocumentStore: ObservableObject {
         } else {
             statusMessage = "Keine lesbaren Bilder gefunden."
         }
+
+        return inserted
     }
 
     func mergePDFs() {

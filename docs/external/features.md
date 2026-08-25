@@ -7,17 +7,19 @@ Diese Datei dokumentiert den aktuellen Funktionsumfang aus Nutzersicht.
 | Feature | Status | Beschreibung |
 | --- | --- | --- |
 | PDF öffnen | Umgesetzt | Öffnet lokale PDF-Dateien über den macOS-Dateidialog. |
+| PDF per Drag-and-drop öffnen | Umgesetzt | Öffnet eine einzelne lokale PDF durch Ziehen auf die Dokumentansicht; ungespeicherte Änderungen bleiben durch dieselbe Sicherheitsabfrage geschützt. |
 | Neues PDF | Umgesetzt | Erstellt ein neues PDF mit einer leeren Seite. |
 | Speichern | Umgesetzt | Speichert Änderungen in die aktuelle Datei. |
 | Sichern unter | Umgesetzt | Speichert das PDF an einem neuen Speicherort. |
-| Ungespeichert-Status | Umgesetzt | Zeigt in der Statusleiste, ob Änderungen vorhanden sind. |
+| Sicherer Dokumentwechsel | Umgesetzt | Fragt vor Neu, Öffnen, Finder-Öffnen, Fensterschließen und App-Beenden nach `Speichern`, `Verwerfen` oder `Abbrechen`, falls ungespeicherte Änderungen vorliegen. |
+| Ungespeichert-Status | Umgesetzt | Kennzeichnet das macOS-Fenster bei offenen Änderungen; im Bearbeitungsmodus erscheint zusätzlich die Statusleiste. |
 
 ## Lesen und Ansicht
 
 | Feature | Status | Beschreibung |
 | --- | --- | --- |
 | Native PDF-Anzeige | Umgesetzt | Darstellung über PDFKit. |
-| Ablenkungsarmer Lesemodus | Umgesetzt | Standardansicht ohne Seitenleiste, Werkzeugbereich, Statusleiste und erweiterte Toolbar; PDF-Anmerkungen können dabei nicht versehentlich verschoben oder gelöscht werden. |
+| Ablenkungsarmer Lesemodus | Umgesetzt | Schreibgeschützte Standardansicht ohne Seitenleiste, Werkzeugbereich, Statusleiste und erweiterte Toolbar; schreibende Werkzeuge, Menüaktionen und Tastenkürzel sind deaktiviert. |
 | Umschaltbarer Bearbeitungsmodus | Umgesetzt | `Bearbeiten`, das Menü `Darstellung` oder `⌘⇧E` blenden Seitenleiste, Werkzeuge, Suche, Navigation und Zoom ein; der letzte Modus bleibt nach einem Neustart erhalten. |
 | Seitenminiaturen | Umgesetzt | Seitenleiste mit Miniaturansichten und direkter Seitenauswahl. |
 | Fortlaufende Ansicht | Umgesetzt | Standardansicht für längere Dokumente. |
@@ -57,7 +59,7 @@ Diese Datei dokumentiert den aktuellen Funktionsumfang aus Nutzersicht.
 | Feature | Status | Beschreibung |
 | --- | --- | --- |
 | Leere Seite einfügen | Umgesetzt | Fügt eine neue Seite nach der aktuellen Seite ein. |
-| Bilder als Seiten | Umgesetzt | Importiert Bilddateien als PDF-Seiten. |
+| Bilder als Seiten | Umgesetzt | Importiert Bilddateien per Dateidialog oder Drag-and-drop als PDF-Seiten; Bild-Drops sind nur im Bearbeitungsmodus erlaubt. |
 | PDF zusammenführen | Umgesetzt | Hängt Seiten aus anderen PDFs an. |
 | Seite drehen | Umgesetzt | Dreht die aktuelle Seite nach links oder rechts. |
 | Seite verschieben | Umgesetzt | Verschiebt die aktuelle Seite nach oben oder unten. |
@@ -74,7 +76,7 @@ Diese Datei dokumentiert den aktuellen Funktionsumfang aus Nutzersicht.
 | Bilder im PDF ändern | Nicht umgesetzt | Bildobjekt-Bearbeitung ist nicht implementiert. |
 | Links hinzufügen | Umgesetzt | Links können zu einer Webadresse oder zu einer Seite des geöffneten Dokuments führen. |
 | Kopf-/Fußzeilen | Nicht umgesetzt | Noch nicht geplant. |
-| Inhaltsverzeichnis/Lesezeichen | Nicht umgesetzt | Noch nicht geplant. |
+| Inhaltsverzeichnis/Lesezeichen | Nicht umgesetzt | Als spätere P2-Komfortfunktion in der technischen Roadmap vorgesehen. |
 
 ## Sicherheit, Export und Automatisierung
 

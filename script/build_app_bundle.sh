@@ -163,9 +163,9 @@ cat >"$INFO_PLIST" <<PLIST
   <key>NSPrincipalClass</key>
   <string>NSApplication</string>
   <key>NSSupportsAutomaticTermination</key>
-  <true/>
+  <false/>
   <key>NSSupportsSuddenTermination</key>
-  <true/>
+  <false/>
 </dict>
 </plist>
 PLIST
