@@ -2,6 +2,20 @@ import AppKit
 import PDFKit
 import SwiftUI
 
+enum PDFWorkspaceMode: String, CaseIterable, Identifiable {
+    case reading
+    case editing
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .reading: "Lesemodus"
+        case .editing: "Bearbeitungsmodus"
+        }
+    }
+}
+
 enum SidebarPanel: String, CaseIterable, Identifiable {
     case pages
     case document

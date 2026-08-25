@@ -18,21 +18,22 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 - SwiftUI besitzt die Fensterstruktur, Werkzeugleisten, Seitenleiste und Inspektoren.
 - PDFKit besitzt die PDF-Anzeige, PDF-Dokumente, Seiten und Annotationen.
 - Die AppKit-Brücke bleibt auf `PDFCanvasView` begrenzt.
-- `PDFDocumentStore` ist die zentrale Main-Actor-Quelle für Dokumentzustand, Auswahl, Statusmeldungen und PDF-Aktionen.
+- `PDFDocumentStore` ist die zentrale Main-Actor-Quelle für Dokumentzustand, Auswahl, Statusmeldungen, Arbeitsmodus und PDF-Aktionen.
+- Der Arbeitsmodus startet ohne gespeicherte Einstellung im Lesemodus und wird ausschließlich lokal in `UserDefaults` persistiert; für Tests können isolierte Preference-Suites injiziert werden.
 - Sichtbare deutsche Texte verwenden echte Umlaute.
 
 ## Wichtige Komponenten
 
 | Datei | Verantwortung |
 | --- | --- |
-| `KlarfolioPDFEditorApp.swift` | App-Einstieg, Menübefehle, Aktivierung als reguläre macOS-App. |
-| `ContentView.swift` | Hauptlayout, Toolbar, Suchfeld, Statusleiste und leerer Startzustand. |
+| `KlarfolioPDFEditorApp.swift` | App-Einstieg, Menübefehle einschließlich Moduswechsel per `⌘⇧E`, modusabhängige Mindestfenstergröße und Aktivierung als reguläre macOS-App. |
+| `ContentView.swift` | Hauptlayout mit reduziertem Lesemodus bzw. vollständigem Bearbeitungsmodus, bedingter Toolbar, Suchfeld, Statusleiste und leerem Startzustand. |
 | `SidebarView.swift` | Seitenminiaturen, Seitenauswahl und Dokumentübersicht. |
 | `InspectorView.swift` | Werkzeug-, Anmerkungs-, Seiten- und Dokumentaktionen. |
-| `PDFCanvasView.swift` | `NSViewRepresentable` für `PDFView` plus PDFKit-Benachrichtigungen. |
+| `PDFCanvasView.swift` | `NSViewRepresentable` für `PDFView`, PDFKit-Benachrichtigungen und Anmerkungsinteraktionen ausschließlich im Bearbeitungsmodus. |
 | `PrivacyNoticeView.swift` | Direkt in der App erreichbare Zusammenfassung der lokalen Datenverarbeitung. |
-| `PDFDocumentStore.swift` | Öffnen, Speichern, Seitenaktionen einschließlich Extrahieren/Teilen, Suche, Zoom, Link- und andere Annotationen; interne Linkziele werden beim Teil-Export auf kopierte Seiten umgebogen oder entfernt. |
-| `PDFModels.swift` | UI-Enums für Seitenleistenbereiche, Werkzeuge, Farben und Layouts. |
+| `PDFDocumentStore.swift` | Persistierter Lese-/Bearbeitungsmodus, Öffnen, Speichern, Seitenaktionen einschließlich Extrahieren/Teilen, Suche, Zoom, Link- und andere Annotationen; interne Linkziele werden beim Teil-Export auf kopierte Seiten umgebogen oder entfernt. |
+| `PDFModels.swift` | UI-Enums für Arbeitsmodus, Seitenleistenbereiche, Werkzeuge, Farben und Layouts. |
 | `PDFUtilities.swift` | Hilfsfunktionen für leere Seiten, Anzeigegrößen und Dateinamen. |
 
 ## Datenfluss
@@ -42,6 +43,7 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 3. `PDFCanvasView` synchronisiert das SwiftUI-Modell mit `PDFView`.
 4. `PDFView` sendet Seiten- und Zoomänderungen über PDFKit-Benachrichtigungen zurück an den Store.
 5. Der Store veröffentlicht Status, Seitenindex, Zoom und Dirty-State an die Oberfläche.
+6. Der Arbeitsmodus steuert Seitenleistensichtbarkeit, Inspektor, Toolbar und Statusleiste; beim Wechsel in den Lesemodus werden Anmerkungsauswahl und Bearbeitungswerkzeug zurückgesetzt, ohne das Dokument zu verändern.
 
 ## Aktuelle technische Grenzen
 

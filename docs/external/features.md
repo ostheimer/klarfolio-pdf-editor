@@ -17,6 +17,8 @@ Diese Datei dokumentiert den aktuellen Funktionsumfang aus Nutzersicht.
 | Feature | Status | Beschreibung |
 | --- | --- | --- |
 | Native PDF-Anzeige | Umgesetzt | Darstellung über PDFKit. |
+| Ablenkungsarmer Lesemodus | Umgesetzt | Standardansicht ohne Seitenleiste, Werkzeugbereich, Statusleiste und erweiterte Toolbar; PDF-Anmerkungen können dabei nicht versehentlich verschoben oder gelöscht werden. |
+| Umschaltbarer Bearbeitungsmodus | Umgesetzt | `Bearbeiten`, das Menü `Darstellung` oder `⌘⇧E` blenden Seitenleiste, Werkzeuge, Suche, Navigation und Zoom ein; der letzte Modus bleibt nach einem Neustart erhalten. |
 | Seitenminiaturen | Umgesetzt | Seitenleiste mit Miniaturansichten und direkter Seitenauswahl. |
 | Fortlaufende Ansicht | Umgesetzt | Standardansicht für längere Dokumente. |
 | Einzelseitenansicht | Umgesetzt | Alternative Darstellung pro Seite. |

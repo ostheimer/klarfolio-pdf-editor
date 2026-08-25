@@ -10,7 +10,10 @@ struct KlarfolioPDFEditorApp: App {
         WindowGroup("Klarfolio PDF Editor", id: "main") {
             ContentView()
                 .environmentObject(store)
-                .frame(minWidth: 1120, minHeight: 720)
+                .frame(
+                    minWidth: store.workspaceMode == .reading ? 680 : 1120,
+                    minHeight: store.workspaceMode == .reading ? 520 : 720
+                )
                 .onAppear {
                     openExternalDocumentURLs(AppDelegate.consumePendingOpenURLs())
                 }
@@ -123,6 +126,17 @@ struct KlarfolioPDFEditorCommands: Commands {
             }
             .keyboardShortcut("s", modifiers: [.command, .shift])
             .disabled(!store.hasDocument)
+        }
+
+        CommandGroup(after: .toolbar) {
+            Button(
+                store.workspaceMode == .reading
+                    ? "Bearbeitungsmodus einblenden"
+                    : "Lesemodus aktivieren"
+            ) {
+                store.toggleWorkspaceMode()
+            }
+            .keyboardShortcut("e", modifiers: [.command, .shift])
         }
 
         CommandMenu("PDF") {

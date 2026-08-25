@@ -2,24 +2,43 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject private var store: PDFDocumentStore
-    @State private var columnVisibility = NavigationSplitViewVisibility.all
+    @State private var isSidebarVisible = true
 
     var body: some View {
-        NavigationSplitView(columnVisibility: $columnVisibility) {
-            SidebarView(store: store)
-                .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 320)
-        } detail: {
+        HSplitView {
+            if store.workspaceMode == .editing, isSidebarVisible {
+                SidebarView(store: store)
+                    .frame(minWidth: 220, idealWidth: 260, maxWidth: 320)
+            }
+
             EditorShellView(store: store)
         }
         .navigationTitle(store.documentTitle)
+        .onChange(of: store.workspaceMode) { _, mode in
+            if mode == .editing {
+                isSidebarVisible = true
+            }
+        }
         .toolbar {
             ToolbarItemGroup(placement: .navigation) {
-                Button {
-                    store.createBlankDocument()
-                } label: {
-                    Label("Neues PDF", systemImage: "doc.badge.plus")
+                if store.workspaceMode == .editing {
+                    Button {
+                        isSidebarVisible.toggle()
+                    } label: {
+                        Label(
+                            isSidebarVisible ? "Seitenleiste ausblenden" : "Seitenleiste einblenden",
+                            systemImage: "sidebar.leading"
+                        )
+                    }
+                    .help(isSidebarVisible ? "Seitenleiste ausblenden" : "Seitenleiste einblenden")
+
+                    Button {
+                        store.createBlankDocument()
+                    } label: {
+                        Label("Neues PDF", systemImage: "doc.badge.plus")
+                    }
+                    .help("Neues PDF")
                 }
-                .help("Neues PDF")
 
                 Button {
                     store.openDocument()
@@ -28,71 +47,92 @@ struct ContentView: View {
                 }
                 .help("PDF öffnen")
 
-                Button {
-                    store.saveDocument()
-                } label: {
-                    Label("Speichern", systemImage: "square.and.arrow.down")
+                if store.workspaceMode == .editing {
+                    Button {
+                        store.saveDocument()
+                    } label: {
+                        Label("Speichern", systemImage: "square.and.arrow.down")
+                    }
+                    .disabled(!store.hasDocument)
+                    .help("Speichern")
                 }
-                .disabled(!store.hasDocument)
-                .help("Speichern")
             }
 
-            ToolbarItemGroup {
-                Button {
-                    store.goToPreviousPage()
-                } label: {
-                    Label("Vorherige Seite", systemImage: "chevron.up")
+            if store.workspaceMode == .editing {
+                ToolbarItemGroup {
+                    Button {
+                        store.goToPreviousPage()
+                    } label: {
+                        Label("Vorherige Seite", systemImage: "chevron.up")
+                    }
+                    .disabled(store.currentPageIndex <= 0)
+                    .help("Vorherige Seite")
+
+                    Text("\(min(store.currentPageIndex + 1, max(store.pageCount, 1))) / \(max(store.pageCount, 1))")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .frame(minWidth: 64)
+
+                    Button {
+                        store.goToNextPage()
+                    } label: {
+                        Label("Nächste Seite", systemImage: "chevron.down")
+                    }
+                    .disabled(store.currentPageIndex >= store.pageCount - 1)
+                    .help("Nächste Seite")
                 }
-                .disabled(store.currentPageIndex <= 0)
-                .help("Vorherige Seite")
 
-                Text("\(min(store.currentPageIndex + 1, max(store.pageCount, 1))) / \(max(store.pageCount, 1))")
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-                    .frame(minWidth: 64)
+                ToolbarItemGroup {
+                    Button {
+                        store.zoomOut()
+                    } label: {
+                        Label("Verkleinern", systemImage: "minus.magnifyingglass")
+                    }
+                    .disabled(!store.hasDocument)
+                    .help("Verkleinern")
 
-                Button {
-                    store.goToNextPage()
-                } label: {
-                    Label("Nächste Seite", systemImage: "chevron.down")
+                    Text("\(store.zoomPercent)%")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .frame(width: 52)
+
+                    Button {
+                        store.zoomIn()
+                    } label: {
+                        Label("Vergrößern", systemImage: "plus.magnifyingglass")
+                    }
+                    .disabled(!store.hasDocument)
+                    .help("Vergrößern")
+
+                    Button {
+                        store.fitToWindow()
+                    } label: {
+                        Label("Anpassen", systemImage: "arrow.up.left.and.down.right.magnifyingglass")
+                    }
+                    .disabled(!store.hasDocument)
+                    .help("An Fenster anpassen")
                 }
-                .disabled(store.currentPageIndex >= store.pageCount - 1)
-                .help("Nächste Seite")
-            }
-
-            ToolbarItemGroup {
-                Button {
-                    store.zoomOut()
-                } label: {
-                    Label("Verkleinern", systemImage: "minus.magnifyingglass")
-                }
-                .disabled(!store.hasDocument)
-                .help("Verkleinern")
-
-                Text("\(store.zoomPercent)%")
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-                    .frame(width: 52)
-
-                Button {
-                    store.zoomIn()
-                } label: {
-                    Label("Vergrößern", systemImage: "plus.magnifyingglass")
-                }
-                .disabled(!store.hasDocument)
-                .help("Vergrößern")
-
-                Button {
-                    store.fitToWindow()
-                } label: {
-                    Label("Anpassen", systemImage: "arrow.up.left.and.down.right.magnifyingglass")
-                }
-                .disabled(!store.hasDocument)
-                .help("An Fenster anpassen")
             }
 
             ToolbarItemGroup(placement: .primaryAction) {
-                SearchField(store: store)
+                if store.workspaceMode == .editing {
+                    SearchField(store: store)
+                }
+
+                Button {
+                    store.toggleWorkspaceMode()
+                } label: {
+                    Label(
+                        store.workspaceMode == .reading ? "Bearbeiten" : "Lesen",
+                        systemImage: store.workspaceMode == .reading ? "pencil" : "book"
+                    )
+                }
+                .accessibilityIdentifier("workspaceModeToggle")
+                .help(
+                    store.workspaceMode == .reading
+                        ? "Bearbeitungsmodus einblenden"
+                        : "Lesemodus aktivieren"
+                )
             }
         }
     }
@@ -112,13 +152,17 @@ private struct EditorShellView: View {
                 }
             }
 
-            Divider()
+            if store.workspaceMode == .editing {
+                Divider()
 
-            InspectorView(store: store)
-                .frame(minWidth: 276, idealWidth: 304, maxWidth: 340)
+                InspectorView(store: store)
+                    .frame(minWidth: 276, idealWidth: 304, maxWidth: 340)
+            }
         }
         .safeAreaInset(edge: .bottom) {
-            StatusBarView(store: store)
+            if store.workspaceMode == .editing {
+                StatusBarView(store: store)
+            }
         }
     }
 }

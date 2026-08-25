@@ -4,6 +4,15 @@ import UniformTypeIdentifiers
 
 @MainActor
 final class PDFDocumentStore: ObservableObject {
+    static let workspaceModeDefaultsKey = "at.ostheimer.klarfoliopdf.workspaceMode"
+
+    private let preferences: UserDefaults
+
+    @Published private(set) var workspaceMode: PDFWorkspaceMode {
+        didSet {
+            preferences.set(workspaceMode.rawValue, forKey: Self.workspaceModeDefaultsKey)
+        }
+    }
     @Published var document: PDFDocument?
     @Published var fileURL: URL?
     @Published var currentPageIndex = 0
@@ -28,6 +37,30 @@ final class PDFDocumentStore: ObservableObject {
     @Published var extractionEndPage = 1
 
     weak var pdfView: PDFView?
+
+    init(preferences: UserDefaults = .standard) {
+        self.preferences = preferences
+        workspaceMode = PDFWorkspaceMode(
+            rawValue: preferences.string(forKey: Self.workspaceModeDefaultsKey) ?? ""
+        ) ?? .reading
+    }
+
+    func setWorkspaceMode(_ mode: PDFWorkspaceMode) {
+        guard workspaceMode != mode else {
+            return
+        }
+
+        workspaceMode = mode
+
+        if mode == .reading {
+            clearAnnotationSelection()
+            selectedTool = .select
+        }
+    }
+
+    func toggleWorkspaceMode() {
+        setWorkspaceMode(workspaceMode == .reading ? .editing : .reading)
+    }
 
     var hasDocument: Bool {
         document != nil
