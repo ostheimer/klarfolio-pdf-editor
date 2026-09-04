@@ -683,7 +683,8 @@ do {
         let resetPage = try reset.page(at: pageIndex).unwrap("the reset page")
         try check(resetPage.bounds(for: .cropBox) == resetPage.bounds(for: .mediaBox), "reset did not restore the MediaBox")
         let source = try (PDFDocument(url: cropFixtureURL)?.page(at: pageIndex)).unwrap("the source page")
-        try check(resetPage.string == source.string, "reset did not retain all original text")
+        try check(resetPage.string == source.string,
+                  "reset did not retain all original text; expected=\(String(reflecting: source.string)), actual=\(String(reflecting: resetPage.string))")
         try check(try Data(contentsOf: cropFixtureURL) == originalCropFixtureData, "the versioned crop fixture changed")
         print("PASS crop \(pageIndex * 90)° Reset restores the full page and text; source bytes remain unchanged")
     }
