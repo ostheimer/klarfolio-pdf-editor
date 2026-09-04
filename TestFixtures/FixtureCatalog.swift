@@ -3,6 +3,7 @@ import Foundation
 public enum PDFTestFixture: String, CaseIterable, Sendable {
     case searchableThreePages = "fixture-text-3-pages"
     case outlinedFourPages = "fixture-outline-4-pages"
+    case croppedGeometryFourPages = "fixture-crop-4-pages"
     case mergeTwoPages = "fixture-merge-2-pages"
     case interactiveForm = "fixture-form"
     case invalidDocument = "fixture-invalid"

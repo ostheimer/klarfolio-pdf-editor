@@ -67,8 +67,9 @@ root_directory="$(cd "$(dirname "$0")/.." && pwd)"
 pdf_fixture="$root_directory/TestFixtures/fixture-text-3-pages.pdf"
 form_fixture="$root_directory/TestFixtures/fixture-form.pdf"
 outline_fixture="$root_directory/TestFixtures/fixture-outline-4-pages.pdf"
+crop_fixture="$root_directory/TestFixtures/fixture-crop-4-pages.pdf"
 
-for required_fixture in "$pdf_fixture" "$form_fixture" "$outline_fixture"; do
+for required_fixture in "$pdf_fixture" "$form_fixture" "$outline_fixture" "$crop_fixture"; do
   if [[ ! -f "$required_fixture" ]]; then
     printf 'error: missing versioned UI-smoke fixture at %s\n' "$required_fixture" >&2
     exit 1
@@ -85,10 +86,18 @@ struct SmokeFailure: Error, CustomStringConvertible {
     let description: String
 }
 
+extension Optional {
+    func unwrap(_ description: String) throws -> Wrapped {
+        guard let value = self else { throw SmokeFailure(description: "missing \(description)") }
+        return value
+    }
+}
+
 let appURL = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
 let fixtureURL = URL(fileURLWithPath: CommandLine.arguments[2])
 let formFixtureURL = URL(fileURLWithPath: CommandLine.arguments[3])
 let outlineFixtureURL = URL(fileURLWithPath: CommandLine.arguments[4])
+let cropFixtureURL = URL(fileURLWithPath: CommandLine.arguments[5])
 let unavailableExitCode: Int32 = 77
 
 func unavailable(_ message: String) -> Never {
@@ -247,6 +256,9 @@ func expectReadingMode(in application: NSRunningApplication) throws {
     try check(!identifiers.contains("formFieldsSection"), "reading mode unexpectedly exposes PDF form controls")
     try check(!identifiers.contains("formText.KlarfolioName"), "reading mode exposes an editable PDF text field")
     try check(!identifiers.contains("formCheckbox.KlarfolioConsent"), "reading mode exposes an editable PDF checkbox")
+    try check(!identifiers.contains("pageCrop.open"), "reading mode exposes crop entry")
+    try check(!identifiers.contains("pageCrop.apply"), "reading mode exposes crop mutation")
+    try check(!identifiers.contains("pageCrop.reset"), "reading mode exposes crop reset")
     print("PASS reading mode hides editing surfaces")
 }
 
@@ -518,6 +530,7 @@ do {
     let originalFixtureData = try Data(contentsOf: fixtureURL)
     let originalFormFixtureData = try Data(contentsOf: formFixtureURL)
     let originalOutlineFixtureData = try Data(contentsOf: outlineFixtureURL)
+    let originalCropFixtureData = try Data(contentsOf: cropFixtureURL)
     let temporaryDirectory = FileManager.default.temporaryDirectory
         .appendingPathComponent("KlarfolioFormUISmoke-\(UUID().uuidString)", isDirectory: true)
     try FileManager.default.createDirectory(
@@ -569,6 +582,111 @@ do {
     }
     try expectReadingMode(in: application)
     print("PASS versioned three-page PDF opens in reading mode")
+
+    for pageIndex in 0..<4 {
+        let cropURL = temporaryDirectory.appendingPathComponent("Zuschnitt-\(pageIndex * 90).pdf")
+        try FileManager.default.copyItem(at: cropFixtureURL, to: cropURL)
+        let originalCropDocument = try Data(contentsOf: cropURL)
+        try openFixture(cropURL)
+        try awaitCondition("the crop fixture to open") {
+            snapshot(for: application).contains { visibleText(of: $0).contains(cropURL.lastPathComponent) }
+        }
+        try expectReadingMode(in: application)
+        try pressWorkspaceToggle(in: application)
+        try expectEditingMode(in: application)
+        for _ in 0..<pageIndex {
+            try pressButton(titled: "Nächste Seite", in: application)
+            pause(for: 0.25)
+        }
+        try pressElement(named: "pageCrop.open", in: application)
+        try awaitCondition("the current page crop sheet") {
+            element(named: "pageCrop.warning", in: application) != nil
+                && snapshot(for: application).contains { visibleText(of: $0).contains("Seite \(pageIndex + 1) zuschneiden") }
+        }
+        try check(visibleText(of: element(named: "pageCrop.warning", in: application)!).contains("keine sichere Schwärzung"),
+                  "crop sheet is missing the content-retention warning")
+        try pressElement(named: "pageCrop.margin.0.increase", in: application)
+        try pressElement(named: "pageCrop.cancel", in: application)
+        try awaitCondition("Cancel to close the crop draft without a dirty flag") {
+            element(named: "pageCrop.apply", in: application) == nil
+                && snapshot(for: application).contains { visibleText(of: $0) == "Gespeichert" }
+        }
+        try check(try Data(contentsOf: cropURL) == originalCropDocument, "Cancel wrote the crop file")
+        print("PASS crop \(pageIndex * 90)° opens on the current page and Cancel preserves the clean document")
+
+        try pressElement(named: "pageCrop.open", in: application)
+        try awaitCondition("the crop controls") { element(named: "pageCrop.apply", in: application) != nil }
+        try pressElement(named: "pageCrop.margin.0.increase", in: application)
+        try pressElement(named: "pageCrop.margin.0.increase", in: application)
+        try pressElement(named: "pageCrop.margin.1.increase", in: application)
+        let displayWidth = (pageIndex % 2 == 0 ? 400.0 : 600.0) * 25.4 / 72 - 4
+        let displayHeight = (pageIndex % 2 == 0 ? 600.0 : 400.0) * 25.4 / 72 - 2
+        let expectedSize = "Sichtbarer Bereich: \(displayWidth.formatted(.number.precision(.fractionLength(1)))) × \(displayHeight.formatted(.number.precision(.fractionLength(1)))) mm"
+        try awaitCondition("the visible crop dimensions in millimeters") {
+            element(named: "pageCrop.size", in: application).map { visibleText(of: $0).contains(expectedSize) } ?? false
+        }
+        try pressElement(named: "pageCrop.apply", in: application)
+        try awaitCondition("Apply to close the sheet and mark the PDF dirty") {
+            element(named: "pageCrop.apply", in: application) == nil
+                && snapshot(for: application).contains { visibleText(of: $0) == "Ungespeichert" }
+        }
+        try check(try Data(contentsOf: cropURL) == originalCropDocument, "Apply prematurely wrote the crop file")
+        try pressCommandShortcut(keyCode: 13, description: "Command-W after crop", in: application)
+        try expectUnsavedChangesAlert(in: application)
+        try cancelAndExpectOriginalDocument(at: cropURL, in: application)
+        print("PASS crop \(pageIndex * 90)° Apply sets dirty state and closing still protects unsaved changes")
+        try pressElement(named: "toolbarSaveDocument", in: application)
+        try awaitCondition("the crop to save") {
+            snapshot(for: application).contains { visibleText(of: $0) == "Gespeichert" }
+        }
+        let saved = try PDFDocument(url: cropURL).unwrap("the saved crop PDF")
+        let page = try saved.page(at: pageIndex).unwrap("the cropped page")
+        let media = page.bounds(for: .mediaBox)
+        let twoMM: CGFloat = 2 * 72 / 25.4
+        let fourMM = 2 * twoMM
+        let expected: [CGRect] = [
+            CGRect(x: fourMM, y: 0, width: 400 - fourMM, height: 600 - twoMM),
+            CGRect(x: twoMM, y: fourMM, width: 400 - twoMM, height: 600 - fourMM),
+            CGRect(x: 0, y: twoMM, width: 400 - fourMM, height: 600 - twoMM),
+            CGRect(x: 0, y: 0, width: 400 - twoMM, height: 600 - fourMM)
+        ]
+        try check(media.size == CGSize(width: 400, height: 600), "crop changed MediaBox size")
+        let expectedCrop = expected[pageIndex].offsetBy(dx: media.minX, dy: media.minY)
+        let actualCrop = page.bounds(for: .cropBox)
+        try check(abs(actualCrop.minX - expectedCrop.minX) < 0.001
+                    && abs(actualCrop.minY - expectedCrop.minY) < 0.001
+                    && abs(actualCrop.width - expectedCrop.width) < 0.001
+                    && abs(actualCrop.height - expectedCrop.height) < 0.001,
+                  "crop preview margins mapped to the wrong PDF coordinates")
+        try check(page.rotation == pageIndex * 90, "crop changed rotation")
+        for other in 0..<4 where other != pageIndex {
+            let unchanged = try saved.page(at: other).unwrap("an untouched page")
+            try check(unchanged.bounds(for: .cropBox) == unchanged.bounds(for: .mediaBox), "crop changed another page")
+        }
+        try openFixture(cropURL)
+        try expectReadingMode(in: application)
+        try pressWorkspaceToggle(in: application)
+        try expectEditingMode(in: application)
+        try pressElement(named: "pageCrop.open", in: application)
+        try awaitCondition("the reopened crop sheet") { element(named: "pageCrop.reset", in: application) != nil }
+        print("PASS crop \(pageIndex * 90)° Save/Reopen preserves rotation and the exact relative visible rectangle")
+        try pressElement(named: "pageCrop.reset", in: application)
+        try awaitCondition("Reset to mark the document dirty") {
+            element(named: "pageCrop.apply", in: application) == nil
+                && snapshot(for: application).contains { visibleText(of: $0) == "Ungespeichert" }
+        }
+        try pressElement(named: "toolbarSaveDocument", in: application)
+        try awaitCondition("the reset to save") {
+            snapshot(for: application).contains { visibleText(of: $0) == "Gespeichert" }
+        }
+        let reset = try PDFDocument(url: cropURL).unwrap("the reset PDF")
+        let resetPage = try reset.page(at: pageIndex).unwrap("the reset page")
+        try check(resetPage.bounds(for: .cropBox) == resetPage.bounds(for: .mediaBox), "reset did not restore the MediaBox")
+        let source = try (PDFDocument(url: cropFixtureURL)?.page(at: pageIndex)).unwrap("the source page")
+        try check(resetPage.string == source.string, "reset did not retain all original text")
+        try check(try Data(contentsOf: cropFixtureURL) == originalCropFixtureData, "the versioned crop fixture changed")
+        print("PASS crop \(pageIndex * 90)° Reset restores the full page and text; source bytes remain unchanged")
+    }
 
     try openFixture(writableOutlineURL)
     try awaitCondition("the four-page outline fixture to appear in the window title") {
@@ -859,7 +977,7 @@ do {
 }
 SWIFT
 
-if swift -e "$smoke_program" "$app_bundle" "$pdf_fixture" "$form_fixture" "$outline_fixture"; then
+if swift -e "$smoke_program" "$app_bundle" "$pdf_fixture" "$form_fixture" "$outline_fixture" "$crop_fixture"; then
   exit 0
 else
   smoke_status=$?

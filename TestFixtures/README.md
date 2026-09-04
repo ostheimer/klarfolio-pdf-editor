@@ -11,6 +11,7 @@ Die gültigen PDFs sind bewusst kleine, unkomprimierte und vollständig versioni
 | `fixture-merge-2-pages.pdf` | Zwei A4-Seiten mit unterscheidbaren blauen beziehungsweise grünen Inhaltsbereichen. | Zusammenführen, Seitenreihenfolge und visuelle Wiedererkennung. |
 | `fixture-form.pdf` | Eine A4-Seite, ein vorausgefülltes Textfeld, eine aktivierte Checkbox und eine vorhandene Notizanmerkung. | AcroForm-Erkennung, kontrollierte Text-/Checkboxbearbeitung, Widgetschutz, Dirty-Tracking, Speichern/Wiederöffnen und vorhandene Anmerkungen. |
 | `fixture-invalid.pdf` | Bewusst ungültiger Text mit PDF-Dateiendung. | Ablehnung beschädigter beziehungsweise falsch bezeichneter Dateien ohne Dokumentverlust. |
+| `fixture-crop-4-pages.pdf` | Vier synthetische Seiten mit MediaBox `[-40 75 360 675]` (400 × 600 pt), Drehungen 0/90/180/270, roten/blauen Eckmarken und drei Textzeilen. Helvetica ist als PDF-Basisschrift referenziert, nicht eingebettet. | Echte versetzte Ursprünge, gedrehte Vorschau, aktuelle Seite, wiederholter Zuschnitt, Mindestgröße, Save/Reopen, Rücksetzen und Wiederherstellung aller Textzeilen. |
 
 Swift Package Manager kopiert die Dateien in ein separates Testressourcen-Bundle. Die Regressionstests laden sie über `PDFTestFixture`; die Originaldateien können zusätzlich direkt für den manuellen QA-Katalog verwendet werden.
 

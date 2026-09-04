@@ -87,6 +87,8 @@ Auch `build_and_run.sh` aktualisiert niemals eine laufende Ziel-App: Vor dem Bui
 
 ## Tests
 
+Der Crop-Slice (#20) ergänzt eine sechste synthetische Fixture, 15 gezielte Regressionstests und einen erweiterten echten Accessibility-Lauf. Aktuelle Basis: 128 Tests in acht Suites und 82 erfolgreiche UI-Prüfungen am isolierten Bundle. Einzelheiten und die PDFKit-Koordinatennormalisierung sind im [Crop-QA-Protokoll](crop-qa.md) dokumentiert.
+
 Unter vollständigem Xcode 16 oder neuer:
 
 ```bash
