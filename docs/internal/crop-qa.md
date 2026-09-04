@@ -13,6 +13,8 @@
 
 ## Rot-/Grün-Nachweise und PDFKit-Verhalten
 
+Die normale automatische PR-Review erkannte eine verschobene Gegenecke beim Erreichen der Mindestgröße. Reproduzierende Tests sichern nun alle vier Eckgriffe bei Unterschreiten, Erreichen und Überschreiten des Ankers sowie beide äußeren Seitengrenzen ab. Der konkrete Fall Anker 300 / Zeiger 290 ergab zunächst 290…326 statt 264…300. Die Korrektur klemmt den gezogenen Eckgriff auf derselben Seite im Mindestabstand; der gegenüberliegende Anker bleibt fest. Die Tests wurden zuerst rot und danach grün ausgeführt. Randregler und Store-Validierung bleiben unverändert.
+
 Die Umstellung auf 2-mm-Schritte reproduzierte einen echten Rotationsfehler: wiederholte Gleitkomma-Subtraktion lieferte bei 90/270 Grad einen Außenüberstand von ungefähr `1e-13` pt und deaktivierte einen zulässigen Randregler. Derselbe parametrisierte Geometrietest war zunächst für 90/270 Grad rot und nach der Korrektur für alle vier Drehungen grün. Die Vorschau→PDF-Konvertierung fängt ausschließlich Rundungsabweichungen unter `1e-9` pt an MediaBox-Kanten ab; die öffentliche Store-Validierung bleibt strikt. Zusätzlich werden minimale Gesten mit gebrochenen Koordinaten geprüft.
 
 Der erste gezielte Testlauf schlug unter anderem für eine negative MediaBox-Rohbreite fehl: `CGRect.width` standardisiert das Vorzeichen. Die Validierung prüft nun `size.width/height`; derselbe Test ist grün. Die erste empirische Vorschauprüfung nahm fälschlich einen geflippten PDFView an und wurde durch den tatsächlichen Vergleich mit `PDFView.isFlipped == false` und der oberen Kante korrigiert. Feste erwartete PDF↔Vorschau-Rechtecke und der unabhängige PDFView-Vergleich bestehen für alle vier Drehungen und den Ursprung `(-40, 75)`; `bounds(for:)` liefert bei Drehungen unverändert ungedrehte Boxen.
@@ -20,6 +22,8 @@ Der erste gezielte Testlauf schlug unter anderem für eine negative MediaBox-Roh
 Die anfänglich auf identische absolute Box-Ursprünge gerichtete Save/Reopen-Prüfung schlug mit der echten Crop-Fixture fehl: Der vorhandene PDFKit-Writer normalisiert `[-40 75 360 675]` zu `[0 0 400 600]`. Die mit der PM abgestimmte Invariante ist die gleiche Größe und der gleiche relative sichtbare Ausschnitt, nicht dieselbe absolute Ursprungszahl. Die Tests prüfen Rotation, aktuelle/andere Seiten, Formularwerte, Anmerkungen, Links, Outlines, lokale Lesedaten und nach Rücksetzen/Speichern/Wiederöffnen den vollständigen ursprünglichen Text. Ein eigener PDF-Writer wurde nicht eingeführt.
 
 Der erste echte AX-Lauf erkannte das geöffnete Sheet nicht zuverlässig, weil dessen Kennung an alle Kind-Controls vererbt wurde. Eine explizite Accessibility-Containergrenze erhält nun die individuellen Control-Kennungen. Derselbe erweiterte Smoke besteht vollständig.
+
+Der erste macOS-15-CI-Smoke scheiterte am exakten Textvergleich nach Rücksetzen. Der Diagnose-Lauf belegte ausschließlich zwei führende Leerzeichen sowie einen zusätzlichen abschließenden Zeilenumbruch mit Leerzeichen beim Original; die gespeicherte Kopie enthielt sämtliche Wörter unverändert. Der Smoke normalisiert daher Unicode-Whitespace und vergleicht die vollständigen, nicht leeren Tokenfolgen in identischer Reihenfolge. Fehlender, zusätzlicher oder veränderter Text bleibt ein Fehler. Der bytegenaue Vergleich der versionierten Original-Fixtures bleibt unverändert.
 
 ## Reproduktion
 

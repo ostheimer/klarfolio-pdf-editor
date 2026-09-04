@@ -73,14 +73,39 @@ struct PDFCropGeometry {
     }
 
     /// Clamp gestures only. Store/API input is rejected, never silently repaired.
-    func selection(from start: CGPoint, to end: CGPoint) -> CGRect {
+    func selection(from start: CGPoint, to end: CGPoint, draggingCorner: Int? = nil) -> CGRect {
         let size = displaySize
         let a = CGPoint(x: min(max(start.x, 0), size.width), y: min(max(start.y, 0), size.height))
-        let b = CGPoint(x: min(max(end.x, 0), size.width), y: min(max(end.y, 0), size.height))
+        var b = CGPoint(x: min(max(end.x, 0), size.width), y: min(max(end.y, 0), size.height))
+        if let corner = draggingCorner {
+            // Existing corner handles keep their opposite corner fixed, even
+            // if the pointer crosses it. The minimum applies on the same side.
+            let minimumWidth = min(Self.minimumDimension, size.width)
+            let minimumHeight = min(Self.minimumDimension, size.height)
+            b.x = corner % 2 == 0 ? min(b.x, a.x - minimumWidth) : max(b.x, a.x + minimumWidth)
+            b.y = corner < 2 ? min(b.y, a.y - minimumHeight) : max(b.y, a.y + minimumHeight)
+        }
         let width = max(abs(b.x - a.x), min(Self.minimumDimension, size.width))
         let height = max(abs(b.y - a.y), min(Self.minimumDimension, size.height))
-        return CGRect(x: min(min(a.x, b.x), size.width - width),
-                      y: min(min(a.y, b.y), size.height - height), width: width, height: height)
+        func origin(anchor: CGFloat, end: CGFloat, length: CGFloat, limit: CGFloat) -> CGFloat {
+            let minimum = min(Self.minimumDimension, limit)
+            let value: CGFloat
+            if end < anchor, anchor >= minimum {
+                value = anchor - length
+            } else if end >= anchor, limit - anchor >= minimum {
+                value = anchor
+            } else if anchor >= minimum {
+                value = anchor - length
+            } else {
+                value = anchor
+            }
+            // A new background selection may start too close to both edges;
+            // an existing valid corner always has enough room on one side.
+            return min(max(value, 0), limit - length)
+        }
+        return CGRect(x: origin(anchor: a.x, end: b.x, length: width, limit: size.width),
+                      y: origin(anchor: a.y, end: b.y, length: height, limit: size.height),
+                      width: width, height: height)
     }
 
     private func transform(_ rect: CGRect, point: (CGPoint) -> CGPoint) -> CGRect {

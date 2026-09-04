@@ -106,7 +106,8 @@ struct PageCropSheet: View {
                                 if dragOrigin == nil { dragOrigin = selection }
                                 let anchor = cornerPoint(3 - corner, in: dragOrigin ?? selection)
                                 selection = session.geometry.selection(from: anchor,
-                                    to: CGPoint(x: value.location.x / scale, y: value.location.y / scale))
+                                    to: CGPoint(x: value.location.x / scale, y: value.location.y / scale),
+                                    draggingCorner: corner)
                             }
                             .onEnded { _ in dragOrigin = nil })
                 }

@@ -98,6 +98,25 @@ struct PDFPageCropTests {
     @Test("Ziehen bleibt in der MediaBox und wahrt die Mindestgröße", arguments: [0, 90, 180, 270])
     func clampedGestures(rotation: Int) throws {
         let geometry = try #require(PDFCropGeometry(mediaBox: media, rotation: rotation))
+        let anchored = geometry.selection(from: CGPoint(x: 300, y: 300), to: CGPoint(x: 290, y: 290))
+        #expect(anchored == CGRect(x: 264, y: 264, width: 36, height: 36))
+        let nearEdge = geometry.selection(from: CGPoint(x: 10, y: 300), to: CGPoint(x: 5, y: 290))
+        #expect(nearEdge == CGRect(x: 10, y: 264, width: 36, height: 36))
+        for corner in 0..<4 {
+            let left = corner % 2 == 0, top = corner < 2
+            let anchor = CGPoint(x: left ? 300 : 100, y: top ? 300 : 100)
+            let expected = CGRect(x: left ? 264 : 100, y: top ? 264 : 100, width: 36, height: 36)
+            for distance: CGFloat in [10, 0, -10] {
+                let moving = CGPoint(x: anchor.x + (left ? -distance : distance),
+                                     y: anchor.y + (top ? -distance : distance))
+                #expect(geometry.selection(from: anchor, to: moving, draggingCorner: corner) == expected)
+            }
+        }
+        let farEdge = CGPoint(x: geometry.displaySize.width, y: geometry.displaySize.height)
+        #expect(geometry.selection(from: farEdge, to: farEdge, draggingCorner: 0)
+                == CGRect(x: farEdge.x - 36, y: farEdge.y - 36, width: 36, height: 36))
+        #expect(geometry.selection(from: .zero, to: .zero, draggingCorner: 3)
+                == CGRect(x: 0, y: 0, width: 36, height: 36))
         for start in [CGPoint.zero, CGPoint(x: -500, y: -500), CGPoint(x: 800, y: 900),
                       CGPoint(x: 11.33858267716536, y: 5.66929133858268)] {
             for end in [start, CGPoint(x: 200, y: 300), CGPoint(x: 900, y: 900)] {

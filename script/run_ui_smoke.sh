@@ -683,7 +683,11 @@ do {
         let resetPage = try reset.page(at: pageIndex).unwrap("the reset page")
         try check(resetPage.bounds(for: .cropBox) == resetPage.bounds(for: .mediaBox), "reset did not restore the MediaBox")
         let source = try (PDFDocument(url: cropFixtureURL)?.page(at: pageIndex)).unwrap("the source page")
-        try check(resetPage.string == source.string,
+        let sourceTokens = try source.string.unwrap("the original fixture text").split(whereSeparator: { $0.isWhitespace })
+        let resetTokens = try resetPage.string.unwrap("the restored fixture text").split(whereSeparator: { $0.isWhitespace })
+        // macOS 15 PDFKit adds leading/trailing whitespace to the original
+        // extraction. Compare every token in order, never just containment.
+        try check(!sourceTokens.isEmpty && resetTokens == sourceTokens,
                   "reset did not retain all original text; expected=\(String(reflecting: source.string)), actual=\(String(reflecting: resetPage.string))")
         try check(try Data(contentsOf: cropFixtureURL) == originalCropFixtureData, "the versioned crop fixture changed")
         print("PASS crop \(pageIndex * 90)° Reset restores the full page and text; source bytes remain unchanged")
