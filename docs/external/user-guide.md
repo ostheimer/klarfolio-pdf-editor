@@ -109,6 +109,17 @@ Im rechten Werkzeugbereich stehen Seitenaktionen bereit:
 
 Bild-Drops sind im Lesemodus bewusst deaktiviert. Gemischte PDF-/Bild-Drops, mehrere gleichzeitig gezogene PDFs und unbekannte Dateitypen werden zurückgewiesen, damit das aktive Dokument nicht versehentlich verändert oder mehrdeutig ersetzt wird.
 
+## Aktuelle Seite zuschneiden
+
+1. Öffne dein PDF, aktiviere ausdrücklich `Bearbeiten` und wähle die gewünschte Seite.
+2. Wähle im rechten Bereich `Seiten` die Aktion `Seite zuschneiden …`.
+3. Die Vorschau zeigt die gesamte Seite, auch bereits ausgeblendete Bereiche. Ziehe einen neuen Rahmen auf oder passe seine vier Ecken an. Alternativ ändern die beschrifteten Plus-/Minus-Regler die Ränder in 2-mm-Schritten; sie sind auch per Tastatur und Bedienungshilfen erreichbar. Randmaße und sichtbare Größe erscheinen in Millimetern mit einer Nachkommastelle. Die Ränder beziehen sich auf die sichtbare Seitendrehung.
+4. Der Rahmen bleibt innerhalb der Seite. Die Mindestgröße beträgt ungefähr 12,7 mm je Richtung; bei noch kleineren Originalseiten bleibt in dieser Richtung die volle Größe erhalten.
+5. `Abbrechen` verwirft den Entwurf ohne Änderung. `Anwenden` ändert ausschließlich den sichtbaren Bereich der aktuellen Seite und markiert eine tatsächliche Änderung als ungespeichert. Vorschau, Miniatur und Größenanzeige aktualisieren sich.
+6. Speichere regulär. Beim erneuten Öffnen bleibt der Ausschnitt erhalten und die App beginnt wieder im Lesemodus. Zum Wiederherstellen öffne das Sheet erneut und wähle `Auf Seitengröße zurücksetzen`; auch diese Änderung muss gespeichert werden.
+
+**Zuschneiden blendet Inhalte nur aus. Es entfernt keine Inhalte und ist keine sichere Schwärzung.** Ausgeblendete Texte und andere PDF-Inhalte können weiterhin in der Datei vorhanden und zugänglich sein. Der Zuschnitt eignet sich nicht zum Entfernen vertraulicher Informationen. Stapelbearbeitung ist nicht enthalten.
+
 ## Anmerkungen
 
 Klarfolio PDF Editor unterstützt einfache PDF-Anmerkungen:

@@ -559,6 +559,46 @@ final class PDFDocumentStore: ObservableObject {
         goToPage(nextIndex)
     }
 
+    var canBeginPageCrop: Bool {
+        guard workspaceMode == .editing, let document, !document.isLocked,
+              document.allowsDocumentChanges, let page = currentPage,
+              pageIndex(of: page, in: document) != nil else { return false }
+        return PDFCropGeometry(mediaBox: page.bounds(for: .mediaBox), rotation: page.rotation) != nil
+    }
+
+    func beginPageCrop() -> PDFCropSession? {
+        guard workspaceMode == .editing, let document, !document.isLocked,
+              document.allowsDocumentChanges, let page = currentPage,
+              let index = pageIndex(of: page, in: document),
+              let geometry = PDFCropGeometry(mediaBox: page.bounds(for: .mediaBox), rotation: page.rotation)
+        else { return nil }
+        return PDFCropSession(document: document, page: page, pageIndex: index, geometry: geometry,
+                              originalCrop: page.bounds(for: .cropBox), originalRotation: page.rotation)
+    }
+
+    @discardableResult
+    func applyPageCrop(_ crop: CGRect, session: PDFCropSession) -> Bool {
+        guard workspaceMode == .editing, let document, document === session.document,
+              !document.isLocked, document.allowsDocumentChanges,
+              currentPage === session.page, document.page(at: session.pageIndex) === session.page,
+              session.page.rotation == session.originalRotation,
+              session.page.bounds(for: .mediaBox) == session.geometry.mediaBox,
+              session.page.bounds(for: .cropBox) == session.originalCrop,
+              session.geometry.isValid(crop), crop != session.originalCrop else { return false }
+        session.page.setBounds(crop, for: .cropBox)
+        // PDFKit must recalculate page layout after box changes; retain page identity,
+        // annotations, outline destinations and the user's current page.
+        pdfView?.layoutDocumentView()
+        markChanged(crop == session.geometry.mediaBox ? "Seitengröße wiederhergestellt" : "Seite zugeschnitten")
+        goToPage(session.pageIndex)
+        return true
+    }
+
+    @discardableResult
+    func resetPageCrop(session: PDFCropSession) -> Bool {
+        applyPageCrop(session.geometry.mediaBox, session: session)
+    }
+
     func rotateCurrentPage(clockwise: Bool) {
         guard let page = currentPage else {
             return

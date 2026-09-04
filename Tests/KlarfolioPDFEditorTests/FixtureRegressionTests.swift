@@ -15,7 +15,7 @@ struct FixtureRegressionTests {
 
     @Test("Alle dokumentierten Testdateien werden im Ressourcen-Bundle bereitgestellt")
     func everyDocumentedFixtureIsBundled() throws {
-        #expect(PDFTestFixture.allCases.count == 5)
+        #expect(PDFTestFixture.allCases.count == 6)
 
         for fixture in PDFTestFixture.allCases {
             let resourceValues = try fixture.url.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])

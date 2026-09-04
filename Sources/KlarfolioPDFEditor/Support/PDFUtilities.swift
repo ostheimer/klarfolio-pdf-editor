@@ -26,7 +26,7 @@ enum PDFUtilities {
             return "Keine Seite"
         }
 
-        let bounds = page.bounds(for: .mediaBox)
+        let bounds = page.bounds(for: .cropBox)
         let widthMillimeters = bounds.width * 0.352778
         let heightMillimeters = bounds.height * 0.352778
         return "\(Int(widthMillimeters.rounded())) x \(Int(heightMillimeters.rounded())) mm"

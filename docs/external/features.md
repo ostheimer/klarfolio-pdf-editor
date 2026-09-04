@@ -82,7 +82,8 @@ Diese Datei dokumentiert den aktuellen Funktionsumfang aus Nutzersicht.
 | Seite löschen | Umgesetzt | Löscht die aktuelle Seite, wenn mindestens eine weitere Seite bleibt, und entfernt interne Links mit diesem Ziel. |
 | Seiten extrahieren | Umgesetzt | Speichert einen frei gewählten Seitenbereich als neue PDF, ohne das geöffnete Dokument zu verändern; interne Links werden auf enthaltene Zielseiten umgebogen oder bei externem Bereichsziel entfernt. |
 | Dokument teilen | Umgesetzt | Schreibt zwei vorab vorbereitete neue PDFs nach der aktuellen Seite in einen ausgewählten Zielordner und behandelt interne Links je Ausgabeteil wie beim Extrahieren. |
-| Seiten zuschneiden | Nicht umgesetzt | Crop-Werkzeuge fehlen aktuell. |
+| Aktuelle Seite zuschneiden | Umgesetzt | Im Bearbeitungsmodus öffnet `Seite zuschneiden …` eine vollständige Seitenvorschau mit ziehbarem Rahmen und zugänglichen Randreglern. Ändert nur den sichtbaren Bereich der aktuellen Seite; blendet Inhalte aus, entfernt sie aber nicht und ist keine sichere Schwärzung. |
+| Seitengröße wiederherstellen | Umgesetzt | `Auf Seitengröße zurücksetzen` stellt den sichtbaren Bereich auf die MediaBox zurück; tatsächliche Änderungen werden als ungespeichert markiert und lassen sich regulär speichern. |
 
 ## Bearbeitung des PDF-Inhalts
 

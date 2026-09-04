@@ -69,6 +69,18 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 
 ## Aktuelle technische Grenzen
 
+### Zuschnitt der aktuellen Seite (#20)
+
+`PDFCropGeometry` rechnet zwischen ungedrehten PDF-Koordinaten (Ursprung unten links, einschließlich versetzter MediaBox) und gedrehten Vorschaukoordinaten (oben links). Ein empirischer Test gegen `PDFView.convert` prüft 0/90/180/270 Grad: `PDFPage.bounds(for:)` bleibt ungedreht; `PDFView.isFlipped` ist false. Die SwiftUI-Vorschau benötigt deshalb die explizite Umrechnung. Rohbreiten/-höhen werden über `CGRect.size` geprüft, weil `CGRect.width/height` negative Werte standardisieren können. Nicht endliche, negative, zu kleine und außerhalb liegende Store-Eingaben werden ohne Mutation abgewiesen. Nur Gesten werden auf gültige Grenzen begrenzt.
+
+`PDFCropSession` hält Dokument- und Seitenidentität, Seitenindex und ursprüngliche Boxen/Rotation. `PageCropSheet` hält den Rahmen ausschließlich als lokalen Entwurf; seine MediaBox-Miniatur ist kein bearbeitbarer PDFView. `canBeginPageCrop` ist eine Prüfung ohne Session-Erzeugung. Anwenden/Rücksetzen prüfen erneut Bearbeitungsmodus, Dokumentberechtigung, aktuelle Seite und unveränderte Ausgangsgeometrie. Nur die CropBox der aktuellen Seite wird gesetzt. Identische Werte bleiben ohne Dirty-State. Der bestehende Änderungs-/Speicherpfad aktualisiert Revision, Status, Miniatur und Größenanzeige; PDFKit berechnet das Seitenlayout neu. Es gibt keine zusätzlichen Crop-Menüs oder globalen Kürzel.
+
+Der vorhandene `PDFDocument.write`-Pfad normalisiert beim Export versetzte MediaBox-Ursprünge: beispielsweise wird `[-40 75 360 675]` zu `[0 0 400 600]`, und CropBox sowie Inhalte werden entsprechend verschoben. Es wird keine unveränderte absolute Ursprungskoordinate nach Save/Reopen garantiert. Die Tests sichern Seitengröße, relativen sichtbaren Ausschnitt, Rotation, Formularwerte, Anmerkungen, interne Ziele und nach Rücksetzen/Speichern/Wiederöffnen den vollständigen Fixture-Text ab. Persönliche Lesezeichen und Leseposition laufen unverändert über die bestehende lokale Speicherung. Ein eigener PDF-Writer ist ausdrücklich außerhalb dieses Slices.
+
+Zuschneiden ist ausschließlich Ausblenden über Seitenboxen, keine sichere Schwärzung oder Inhaltsentfernung. Datenverarbeitung und Datenschutz ändern sich dadurch nicht.
+
+### Weitere Grenzen
+
 - PDFKit ist stark für Anzeige, Annotationen und Seitenorganisation, aber kein vollständiger Inhaltseditor für bestehende Text- und Bildobjekte.
 - Textfelder, Stempel und Signaturfelder sind Annotationen, keine direkte Bearbeitung des ursprünglichen PDF-Content-Streams. Automatisch erzeugte PDFKit-Popup-Begleitanmerkungen werden nicht als eigenständige Nutzeranmerkungen ausgewählt oder gelöscht.
 - Beim Löschen von Seiten werden interne Links zu dieser Zielseite entfernt. Extraktion und Teilen remappen interne Ziele innerhalb des Ausgabeteils und entfernen bereichsüberschreitende Links; beide Split-Ausgaben werden vor dem Ersetzen vorhandener Zieldateien vorbereitet.

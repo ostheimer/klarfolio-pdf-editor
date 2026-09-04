@@ -2,6 +2,7 @@ import SwiftUI
 
 struct InspectorView: View {
     @ObservedObject var store: PDFDocumentStore
+    @State private var cropSession: PDFCropSession?
 
     var body: some View {
         ScrollView {
@@ -20,6 +21,9 @@ struct InspectorView: View {
             .padding(16)
         }
         .background(.regularMaterial)
+        .sheet(item: $cropSession) { session in
+            PageCropSheet(store: store, session: session)
+        }
     }
 
     private var formSection: some View {
@@ -394,6 +398,14 @@ struct InspectorView: View {
                 }
             }
             .buttonStyle(.bordered)
+
+            if store.workspaceMode == .editing {
+                Button("Seite zuschneiden …") {
+                    cropSession = store.beginPageCrop()
+                }
+                .accessibilityIdentifier("pageCrop.open")
+                .disabled(!store.canBeginPageCrop)
+            }
 
             Button {
                 store.mergePDFs()

@@ -17,6 +17,7 @@ Klarfolio PDF Editor soll ein schneller, kostenloser PDF-Reader und PDF-Editor f
 - PDF öffnen, neu erstellen, speichern und unter neuem Namen sichern
 - Seitenvorschau mit direkter Seitennavigation
 - Leere Seiten einfügen, Seiten drehen, verschieben und löschen
+- Aktuelle Seite visuell zuschneiden und auf die volle Seitengröße zurücksetzen; Zuschneiden blendet Inhalte nur aus und ist keine sichere Schwärzung
 - Bilder als PDF-Seiten importieren
 - Mehrere PDFs zusammenführen
 - Suche mit Treffer-Hervorhebung
@@ -76,6 +77,8 @@ Weitere Release-Notizen liegen in
 - [HTML-Website](website/index.html)
 
 ## Status
+
+Der lokale Zuschnitt-Slice (#20) ist durch 128 Tests in acht Suites (davon 15 gezielte Crop-Tests) und 82 echte macOS-Accessibility-Prüfungen abgesichert. Sechs synthetische Fixtures und QA-01 bis QA-96 dokumentieren die Prüfbasis. Build-/CI- und Installationsnachweise stehen im [Crop-QA-Protokoll](docs/internal/crop-qa.md); ein CI-Skip zählt nicht als echter UI-Pass.
 
 Die dokumentierte P1-Phase ist funktional abgeschlossen; sicherer Drag-and-drop, vorhandene PDF-Formulare und eine komfortable Reader-Navigation erweitern den lokalen P2-Funktionsumfang. Aktuell liegt der Schwerpunkt auf der sicheren praktischen Nutzung auf dem Mac: Jeder App-Start und jede erfolgreich geöffnete vorhandene PDF beginnen im schreibgeschützten Lesemodus, auch wenn zuvor bearbeitet wurde. Eine kompakte Navigationsschaltfläche öffnet bei Bedarf das PDF-Inhaltsverzeichnis und persönliche Seiten-Lesezeichen; die zuletzt gelesene Seite wird pro Dokument ausschließlich lokal wiederhergestellt. Lesezeichen verändern weder die PDF-Datei noch ihren Speicherstatus. Die Bearbeitungsoberfläche erscheint erst nach einer ausdrücklichen Auswahl; ein bewusst neu erstelltes PDF darf direkt zur Bearbeitung wechseln. Abgebrochene oder fehlgeschlagene Öffnungen verändern weder das bisherige Dokument noch seinen Modus. Auch ungespeicherte Formularänderungen bleiben vor unbeabsichtigtem Verwerfen geschützt. Versionierte synthetische PDF-Fixtures, Regressionstests und ein lokaler UI-Smoke begleiten diesen Entwicklungsstand. Eine öffentliche Veröffentlichung ist derzeit nicht vorgesehen; Apple-Signierung/App-Store-Einrichtung, vollständiger Release-QA-Nachweis sowie finale Betreiber-, Support-, Datenschutz- und HTTPS-Downloadangaben bleiben Voraussetzungen für einen späteren öffentlichen Start.
 
