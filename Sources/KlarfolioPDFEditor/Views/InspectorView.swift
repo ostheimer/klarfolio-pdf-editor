@@ -13,8 +13,11 @@ struct InspectorView: View {
                 }
 
                 toolSection
+                    .disabled(!store.canPerform(.annotate))
                 annotationSection
+                    .disabled(!store.canPerform(.annotate))
                 selectedAnnotationSection
+                    .disabled(!store.canPerform(.annotate))
                 pageSection
                 documentSection
             }
@@ -90,7 +93,7 @@ struct InspectorView: View {
                 )
             )
             .textFieldStyle(.roundedBorder)
-            .disabled(field.isReadOnly || store.workspaceMode != .editing)
+            .disabled(field.isReadOnly || !store.canPerform(.fillForms))
             .accessibilityLabel(field.title)
             .accessibilityIdentifier(
                 accessibilityFormFieldIdentifier(for: field, prefix: "formText")
@@ -109,7 +112,7 @@ struct InspectorView: View {
                 )
             )
             .toggleStyle(.checkbox)
-            .disabled(field.isReadOnly || store.workspaceMode != .editing)
+            .disabled(field.isReadOnly || !store.canPerform(.fillForms))
             .accessibilityLabel(field.title)
             .accessibilityIdentifier(
                 accessibilityFormFieldIdentifier(for: field, prefix: "formCheckbox")
@@ -398,6 +401,7 @@ struct InspectorView: View {
                 }
             }
             .buttonStyle(.bordered)
+            .disabled(!store.canPerform(.assemblePages))
 
             if store.workspaceMode == .editing {
                 Button("Seite zuschneiden …") {
@@ -412,13 +416,14 @@ struct InspectorView: View {
             } label: {
                 Label("PDF zusammenführen", systemImage: "square.stack.3d.up")
             }
+            .disabled(!store.canPerform(.assemblePages))
 
             Button(role: .destructive) {
                 store.deleteCurrentPage()
             } label: {
                 Label("Aktuelle Seite löschen", systemImage: "trash")
             }
-            .disabled(store.pageCount <= 1)
+            .disabled(store.pageCount <= 1 || !store.canPerform(.assemblePages))
 
             Divider()
 
@@ -445,14 +450,14 @@ struct InspectorView: View {
                     }
                 }
             }
-            .disabled(!store.hasDocument)
+            .disabled(!store.canPerform(.exportPages))
 
             Button {
                 store.splitDocumentAfterCurrentPage()
             } label: {
                 Label("Nach aktueller Seite teilen …", systemImage: "rectangle.split.2x1")
             }
-            .disabled(store.pageCount < 2 || store.currentPageIndex >= store.pageCount - 1)
+            .disabled(!store.canPerform(.exportPages) || store.pageCount < 2 || store.currentPageIndex >= store.pageCount - 1)
         }
     }
 
@@ -471,14 +476,14 @@ struct InspectorView: View {
                 } label: {
                     Label("Speichern", systemImage: "square.and.arrow.down")
                 }
-                .disabled(!store.hasDocument)
+                .disabled(!store.canPerform(.save))
 
                 Button {
                     store.saveDocumentAs()
                 } label: {
                     Label("Sichern unter", systemImage: "square.and.arrow.down.on.square")
                 }
-                .disabled(!store.hasDocument)
+                .disabled(!store.canPerform(.save))
             }
         }
     }

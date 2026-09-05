@@ -10,6 +10,7 @@ Klarfolio PDF Editor soll ein schneller, kostenloser PDF-Reader und PDF-Editor f
 
 - Ablenkungsarmer Lesemodus bei jedem App-Start und beim Öffnen jeder vorhandenen PDF
 - Schreibgeschützter Lesemodus und Sicherheitsabfrage vor dem Verwerfen ungespeicherter Änderungen
+- Passwortgeschützte PDFs verdeckt entsperren; zentrale PDF-Rechte und konservativer Schreibschutz für verschlüsselte und digital signierte Originale
 - Kompaktes PDF-Inhaltsverzeichnis mit verschachtelten Kapiteln und direktem Seitenansprung
 - Persönliche lokale Seiten-Lesezeichen und dokumentbezogen gemerkte Leseposition
 - PDF-Dateien und Bildseiten per sicherem Drag-and-drop öffnen beziehungsweise importieren
@@ -78,7 +79,7 @@ Weitere Release-Notizen liegen in
 
 ## Status
 
-Der lokale Zuschnitt-Slice (#20) ist durch 128 Tests in acht Suites (davon 15 gezielte Crop-Tests) und 82 echte macOS-Accessibility-Prüfungen abgesichert. Sechs synthetische Fixtures und QA-01 bis QA-96 dokumentieren die Prüfbasis. Build-/CI- und Installationsnachweise stehen im [Crop-QA-Protokoll](docs/internal/crop-qa.md); ein CI-Skip zählt nicht als echter UI-Pass.
+Der lokale Schutz-Slice (#22) erweitert die Crop-Basis auf 148 Tests in zehn Suites, 14 synthetische Fixtures und QA-01 bis QA-106. Der echte macOS-Accessibility-Smoke umfasst 105 erfolgreiche Prüfungen. Passwortöffnung und durchgängige PDF-Rechte sind umgesetzt; verschlüsselte und digital signierte PDFs bleiben begründet schreibgeschützt. Nachweise und Grenzen stehen im [Schutz-QA-Protokoll](docs/internal/protected-pdf-qa.md), die vorherige Crop-Basis im [Crop-QA-Protokoll](docs/internal/crop-qa.md). Ein CI-Skip zählt nicht als echter UI-Pass.
 
 Die dokumentierte P1-Phase ist funktional abgeschlossen; sicherer Drag-and-drop, vorhandene PDF-Formulare und eine komfortable Reader-Navigation erweitern den lokalen P2-Funktionsumfang. Aktuell liegt der Schwerpunkt auf der sicheren praktischen Nutzung auf dem Mac: Jeder App-Start und jede erfolgreich geöffnete vorhandene PDF beginnen im schreibgeschützten Lesemodus, auch wenn zuvor bearbeitet wurde. Eine kompakte Navigationsschaltfläche öffnet bei Bedarf das PDF-Inhaltsverzeichnis und persönliche Seiten-Lesezeichen; die zuletzt gelesene Seite wird pro Dokument ausschließlich lokal wiederhergestellt. Lesezeichen verändern weder die PDF-Datei noch ihren Speicherstatus. Die Bearbeitungsoberfläche erscheint erst nach einer ausdrücklichen Auswahl; ein bewusst neu erstelltes PDF darf direkt zur Bearbeitung wechseln. Abgebrochene oder fehlgeschlagene Öffnungen verändern weder das bisherige Dokument noch seinen Modus. Auch ungespeicherte Formularänderungen bleiben vor unbeabsichtigtem Verwerfen geschützt. Versionierte synthetische PDF-Fixtures, Regressionstests und ein lokaler UI-Smoke begleiten diesen Entwicklungsstand. Eine öffentliche Veröffentlichung ist derzeit nicht vorgesehen; Apple-Signierung/App-Store-Einrichtung, vollständiger Release-QA-Nachweis sowie finale Betreiber-, Support-, Datenschutz- und HTTPS-Downloadangaben bleiben Voraussetzungen für einen späteren öffentlichen Start.
 

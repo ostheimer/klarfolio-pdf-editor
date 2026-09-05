@@ -99,7 +99,10 @@ Diese Datei dokumentiert den aktuellen Funktionsumfang aus Nutzersicht.
 
 | Feature | Status | Beschreibung |
 | --- | --- | --- |
-| Passwortschutz | Nicht umgesetzt | Noch keine Verschlüsselungs- oder Berechtigungsverwaltung. |
+| Geschützte PDFs öffnen | Umgesetzt | Verdeckte Passwortabfrage, Wiederholung und sicherer Abbruch; verschlüsselte Dateien bleiben mit verständlichem Hinweis schreibgeschützt. |
+| PDF-Berechtigungen | Umgesetzt | Zentrale getrennte Regeln für Formulare, Annotationen, Seiten/Crop, Import/Export und native Copy-/Print-Aktionen; Store und alternative UI-Einstiege beachten dieselben Grenzen. |
+| Signierte Originale schützen | Umgesetzt | Vorhandene digitale Signaturen werden strukturell erkannt und vor Umschreiben geschützt; keine Signatur- oder Zertifikatsvalidierung. Leere Felder und sichtbare Platzhalter zählen nicht als Signatur. |
+| Passwortschutz einrichten/ändern | Nicht umgesetzt | Keine neue Verschlüsselungs- oder Berechtigungsverwaltung. |
 | Schwärzung/Zensieren | Nicht umgesetzt | Muss echte Inhalt Entfernung leisten, nicht nur Überdecken. |
 | Komprimierung | Nicht umgesetzt | Noch keine Optimierung von Bildqualität oder Objektstruktur. |
 | Office-/Bildexport | Nicht umgesetzt | Export nach Word, Excel, PowerPoint, TXT, JPG oder PNG fehlt. |

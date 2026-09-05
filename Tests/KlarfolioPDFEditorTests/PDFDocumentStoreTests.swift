@@ -160,6 +160,7 @@ struct PDFDocumentStoreTests {
     func pageOperationsPreserveAUsableDocument() throws {
         let store = PDFDocumentStore()
         store.createBlankDocument()
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
         store.addBlankPage()
 
@@ -188,6 +189,7 @@ struct PDFDocumentStoreTests {
     func lastPageCannotBeDeleted() {
         let store = PDFDocumentStore()
         store.createBlankDocument()
+        store.setWorkspaceMode(.editing)
 
         store.deleteCurrentPage()
 
@@ -200,6 +202,7 @@ struct PDFDocumentStoreTests {
     func annotationLifecycle() throws {
         let store = PDFDocumentStore()
         store.createBlankDocument()
+        store.setWorkspaceMode(.editing)
         store.fontSize = 19
         store.annotationColor = .blue
 
@@ -278,6 +281,7 @@ struct PDFDocumentStoreTests {
     func invalidPageNavigationKeepsCurrentPage() {
         let store = PDFDocumentStore()
         store.createBlankDocument()
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
         #expect(store.currentPageIndex == 1)
 
@@ -292,6 +296,7 @@ struct PDFDocumentStoreTests {
     func copyingAndExtractingPagesPreservesOriginalDocument() throws {
         let store = PDFDocumentStore()
         store.createBlankDocument()
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
         store.addBlankPage()
         store.isDirty = false
@@ -320,6 +325,7 @@ struct PDFDocumentStoreTests {
     func splittingDocumentWritesExpectedParts() throws {
         let store = PDFDocumentStore()
         store.createBlankDocument()
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
         store.addBlankPage()
         store.isDirty = false
@@ -381,6 +387,7 @@ struct PDFDocumentStoreTests {
     func selectedAnnotationLifecycle() throws {
         let store = PDFDocumentStore()
         store.createBlankDocument()
+        store.setWorkspaceMode(.editing)
         store.addFreeTextAnnotation(text: "Vorher")
 
         let annotation = try #require(store.selectedAnnotation)
@@ -421,6 +428,7 @@ struct PDFDocumentStoreTests {
     func linkAnnotationsUseValidatedTargets() throws {
         let store = PDFDocumentStore()
         store.createBlankDocument()
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
         store.goToPage(0)
 
@@ -476,6 +484,7 @@ struct PDFDocumentStoreTests {
     func splitDocumentsPersistValidLinkTargets() throws {
         let store = PDFDocumentStore()
         store.createBlankDocument()
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
         store.addBlankPage()
         let source = try #require(store.document)
@@ -532,6 +541,7 @@ struct PDFDocumentStoreTests {
     func annotationSelectionTracksStructuralPageChanges() throws {
         let store = PDFDocumentStore()
         store.createBlankDocument()
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
         store.addBlankPage()
         store.addFreeTextAnnotation(text: "Seite 3")
@@ -556,6 +566,7 @@ struct PDFDocumentStoreTests {
     func selectingAnnotationSynchronizesPDFViewPage() throws {
         let store = PDFDocumentStore()
         store.createBlankDocument()
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
         let firstPage = try #require(store.document?.page(at: 0))
         let secondPage = try #require(store.document?.page(at: 1))
@@ -584,6 +595,7 @@ struct PDFDocumentStoreTests {
     func selectedInternalLinkTracksPageMoves() throws {
         let store = PDFDocumentStore()
         store.createBlankDocument()
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
         store.goToPage(0)
         store.linkTargetMode = .page
@@ -611,6 +623,7 @@ struct PDFDocumentStoreTests {
     func deletingTargetPageRemovesInternalLinks() throws {
         let store = PDFDocumentStore()
         store.createBlankDocument()
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
         store.goToPage(0)
         store.linkTargetMode = .page

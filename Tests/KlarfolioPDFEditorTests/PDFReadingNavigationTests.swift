@@ -333,6 +333,7 @@ struct PDFReadingNavigationTests {
         let store = PDFDocumentStore(preferences: preferences)
 
         #expect(store.createBlankDocument())
+        store.setWorkspaceMode(.editing)
         store.addBlankPage()
         store.goToPage(1)
         store.toggleBookmarkForCurrentPage()
@@ -341,7 +342,8 @@ struct PDFReadingNavigationTests {
         #expect(store.pageBookmarks.isEmpty)
         #expect(!store.isCurrentPageBookmarked)
         #expect(store.isDirty)
-        #expect(preferences.persistentDomain(forName: suiteName)?.isEmpty != false)
+        let savedKeys = Set(preferences.persistentDomain(forName: suiteName)?.keys.map { $0 } ?? [])
+        #expect(savedKeys == [PDFDocumentStore.workspaceModeDefaultsKey])
     }
 
     @Test("Ungültige gespeicherte Lesepositionen werden auf vorhandene Seiten begrenzt")
@@ -588,6 +590,7 @@ struct PDFReadingNavigationTests {
         defer { preferences.removePersistentDomain(forName: suiteName) }
         let store = PDFDocumentStore(preferences: preferences)
         #expect(store.loadDocument(from: PDFTestFixture.outlinedFourPages.url))
+        store.setWorkspaceMode(.editing)
         store.goToPage(3)
         store.toggleBookmarkForCurrentPage()
 
@@ -605,6 +608,7 @@ struct PDFReadingNavigationTests {
         defer { preferences.removePersistentDomain(forName: suiteName) }
         let store = PDFDocumentStore(preferences: preferences)
         #expect(store.loadDocument(from: PDFTestFixture.outlinedFourPages.url))
+        store.setWorkspaceMode(.editing)
         store.goToPage(1)
 
         store.moveCurrentPage(by: 2)
@@ -623,6 +627,7 @@ struct PDFReadingNavigationTests {
         defer { preferences.removePersistentDomain(forName: suiteName) }
         let store = PDFDocumentStore(preferences: preferences)
         #expect(store.loadDocument(from: PDFTestFixture.outlinedFourPages.url))
+        store.setWorkspaceMode(.editing)
 
         store.addBlankPage()
 

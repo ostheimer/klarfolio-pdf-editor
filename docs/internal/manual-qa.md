@@ -189,3 +189,18 @@ QA-43 bleibt bis zur Store-Einreichung ein offenes Release-Gate: Der App-Hinweis
 | QA-94 | Kritisch | Formular-, Outline- und Link-Fixtures mit lokalen Lesezeichen zuschneiden, speichern und zurücksetzen. | Feldwerte, Notizen, interne Zielseiten, Kapitel und persönliche Lesedaten bleiben stabil; versionierte Originale bytegenau unverändert. | Store-/Save-Reopen-Tests |
 | QA-95 | Hoch | Sheet und Handbuch lesen. | Beide erklären: Zuschneiden blendet nur aus, entfernt keine Inhalte und ist keine sichere Schwärzung. Keine Stapelbearbeitung oder Redaction-Garantie. | UI + Dokumentation |
 | QA-96 | Hoch | Isolierten Smoke mit `--require-ui` ausführen; CI-Ausgabe separat prüfen. | Reale lokale UI-Interaktionen bestehen. Ein CI-Skip wird ausdrücklich als Skip dokumentiert und zählt nicht als echter UI-Pass. | Lokales Smoke-Protokoll + beide CI-Jobs |
+
+## Geschützte und signierte PDFs (#22)
+
+| ID | Priorität | Prüfung | Erwartetes Ergebnis | Evidenz |
+| --- | --- | --- | --- | --- |
+| QA-97 | Kritisch | Passwort-Fixture mit falscher, dann richtiger Eingabe öffnen. | Verdecktes Eingabefeld, leere Wiederholung nach Fehler, Reader-First nach Erfolg; kein gespeichertes/protokolliertes Passwort. | CUA + AX-Smoke + Store-Test |
+| QA-98 | Kritisch | Dirty PDF mit Auswahl durch Passwort-PDF ersetzen; Passwortabfrage abbrechen. | Dokument, Auswahl, Revision, Dirty-State und Modus erhalten; noch keine Verwerfen-Abfrage. | AX-Smoke + Store-Test |
+| QA-99 | Kritisch | Nach korrektem Passwort den Dirty-Guard abbrechen; reentrante Öffnung prüfen. | Kein Dokumentverlust, keine veraltete Dialogrückmeldung ersetzt ein neues Dokument. | AX-Smoke + Store-Test |
+| QA-100 | Kritisch | Rechte-Fixtures über Menüs, Kürzel, Store, Formulare, Annotationen, Drags, Seiten und Crop ansprechen. | Zentrale Operationen blockieren vor Mutation; Quelle, Revision und Dirty-State unverändert. | Store-Matrix + echter AX-Smoke |
+| QA-101 | Kritisch | Verschlüsselte Datei speichern, Save As, extrahieren, teilen oder als Merge-Quelle wählen. | Kein Schreibdialog/Export und kein teilweiser Merge; sichtbare Erklärung der Speichergrenze. | Store-Tests + PDFKit-Probe + AX-Smoke |
+| QA-102 | Kritisch | Signed-Fixture öffnen; CMS-Integrität und manipulierte Nutzlast prüfen. | Original byteidentisch; Integrität besteht, Negativkontrolle scheitert; App behauptet keine Zertifikatsvalidierung. | OpenSSL-Test + AX-Smoke |
+| QA-103 | Hoch | Leeres Signaturfeld, sichtbarer Platzhalter und fehlerhafte befüllte Signaturstruktur öffnen. | Leere/visuelle Kontrollen bleiben editierbar; unklar befüllte Struktur bleibt lesbar und schreibgeschützt. | Store-Tests + AX-Smoke |
+| QA-104 | Hoch | Copy, beide nativen Print-Varianten und native Reset-Aktion bei restricted-Fixture aufrufen. | Kein Kopieren/Drucken/Reset entgegen den Rechten; gewöhnliche Navigation bleibt möglich. | PDFView-Test + CUA |
+| QA-105 | Kritisch | Gewöhnliches PDF bearbeiten, zum Reader wechseln, speichern/wiederöffnen. | Bereits vorhandene Änderungen können gespeichert werden und bleiben erhalten. | Save/Reopen-Test + bestehender Formular-Smoke |
+| QA-106 | Hoch | Beide CI-Matrizen und lokalen erweiterten Smoke prüfen; Normal-/Dev-App aus geprüftem Merge aktualisieren. | Tests/Builds grün, echter UI-Pass getrennt von CI-Skip, identischer gemergter Code, Herkunft/Backup/geschlossene Apps geprüft. | CI-URLs + Installationsbelege |

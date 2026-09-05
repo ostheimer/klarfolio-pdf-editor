@@ -37,7 +37,6 @@ struct PDFFormEditingTests {
         let textField = try formField(named: "KlarfolioName", in: store)
         let checkbox = try formField(named: "KlarfolioConsent", in: store)
         let originalRevision = store.revision
-        let originalStatus = store.statusMessage
 
         #expect(store.workspaceMode == .reading)
         #expect(!store.updateFormTextField(textField.id, value: "Unerlaubte Änderung"))
@@ -45,7 +44,7 @@ struct PDFFormEditingTests {
         #expect(store.formFields.first { $0.id == textField.id }?.textValue == "Andreas Test")
         #expect(store.formFields.first { $0.id == checkbox.id }?.isChecked == true)
         #expect(store.revision == originalRevision)
-        #expect(store.statusMessage == originalStatus)
+        #expect(store.statusMessage == "Diese Aktion benötigt den Bearbeitungsmodus.")
         #expect(!store.isDirty)
     }
 

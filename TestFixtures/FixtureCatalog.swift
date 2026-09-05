@@ -7,6 +7,14 @@ public enum PDFTestFixture: String, CaseIterable, Sendable {
     case mergeTwoPages = "fixture-merge-2-pages"
     case interactiveForm = "fixture-form"
     case invalidDocument = "fixture-invalid"
+    case password = "fixture-password"
+    case restricted = "fixture-restricted"
+    case formOnly = "fixture-form-only"
+    case assemblyOnly = "fixture-assembly-only"
+    case commentOnly = "fixture-comment-only"
+    case signed = "fixture-signed"
+    case emptySignature = "fixture-empty-signature"
+    case signaturePlaceholder = "fixture-signature-placeholder"
 
     public var url: URL {
         guard let resourceURL = Bundle.module.url(forResource: rawValue, withExtension: "pdf") else {

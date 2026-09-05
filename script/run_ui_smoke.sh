@@ -973,6 +973,112 @@ do {
     )
     print("PASS the outline fixture restores its last page after an app restart")
 
+    // Protected-document flows use private fixture copies only.
+    let protectionRoot = fixtureURL.deletingLastPathComponent()
+    var protectedCopies: [String: URL] = [:]
+    var protectedBytes: [String: Data] = [:]
+    for name in ["password", "restricted", "signed", "empty-signature", "signature-placeholder"] {
+        let source = protectionRoot.appendingPathComponent("fixture-\(name).pdf")
+        let copy = temporaryDirectory.appendingPathComponent("Schutz-\(name).pdf")
+        try FileManager.default.copyItem(at: source, to: copy)
+        protectedCopies[name] = copy
+        protectedBytes[name] = try Data(contentsOf: source)
+    }
+    func inputPassword(_ value: String) throws {
+        try awaitCondition("the secure PDF password input") {
+            element(named: "documentPassword.input", in: application) != nil
+        }
+        let field = try element(named: "documentPassword.input", in: application).unwrap("password input")
+        try check(attribute(field, kAXSubroleAttribute) as? String == kAXSecureTextFieldSubrole,
+                  "PDF password input is not a secure text field")
+        try check(AXUIElementSetAttributeValue(field, kAXValueAttribute as CFString, value as CFString) == .success,
+                  "could not fill the synthetic password input")
+        try pressElement(named: "documentPassword.open", in: application)
+    }
+    try pressWorkspaceToggle(in: application)
+    try expectEditingMode(in: application)
+    try pressButton(titled: "Notiz", in: application)
+    try openFixture(protectedCopies["password"]!)
+    try inputPassword("wrong")
+    try awaitCondition("the incorrect-password retry") {
+        snapshot(for: application).contains { visibleText(of: $0).contains("Das Passwort ist nicht korrekt.") }
+    }
+    try check(element(named: "documentSafety.discard", in: application) == nil,
+              "dirty confirmation appeared before the PDF was unlocked")
+    try pressElement(named: "documentPassword.cancel", in: application)
+    try expectEditingMode(in: application)
+    try check(snapshot(for: application).contains { visibleText(of: $0) == "Ungespeichert" },
+              "password cancellation lost dirty state")
+    try check(snapshot(for: application).contains { visibleText(of: $0).contains(writableOutlineURL.lastPathComponent) },
+              "password cancellation replaced the document")
+    print("PASS secure wrong-password retry and Cancel preserve the dirty PDF and editing mode")
+
+    pause(for: 0.6) // external-open deduplication interval
+    try openFixture(protectedCopies["password"]!)
+    try inputPassword("klarfolio-test-open")
+    try expectUnsavedChangesAlert(in: application)
+    try pressSafetyAction("documentSafety.cancel", in: application)
+    try expectEditingMode(in: application)
+    print("PASS a correct password still respects Cancel in the dirty-document guard")
+
+    pause(for: 0.6)
+    try openFixture(protectedCopies["password"]!)
+    try inputPassword("klarfolio-test-open")
+    try expectUnsavedChangesAlert(in: application)
+    try pressSafetyAction("documentSafety.discard", in: application)
+    try expectReadingMode(in: application)
+    try awaitCondition("the encrypted-document protection reason") {
+        element(named: "documentProtection.reason", in: application).map {
+            visibleText(of: $0).contains("Verschlüsseltes PDF")
+        } ?? false
+    }
+    print("PASS the unlocked PDF opens Reader-First with a visible encryption limitation")
+
+    for name in ["password", "restricted", "signed"] {
+        if name != "password" { try openFixture(protectedCopies[name]!) }
+        try expectReadingMode(in: application)
+        try awaitCondition("the protected document notice") {
+            element(named: "documentProtection.reason", in: application) != nil
+        }
+        if name == "signed" {
+            try check(element(named: "documentProtection.reason", in: application).map {
+                visibleText(of: $0).contains("Gültigkeit der Signatur wurde nicht geprüft")
+            } ?? false, "signed notice implies certificate validation")
+        }
+        try pressWorkspaceToggle(in: application)
+        try expectEditingMode(in: application)
+        for identifier in ["toolbarSaveDocument", "pageCrop.open", "formText.KlarfolioName", "formCheckbox.KlarfolioConsent"] {
+            let control = try element(named: identifier, in: application).unwrap("protected control \(identifier)")
+            try check(attribute(control, kAXEnabledAttribute) as? Bool == false,
+                      "protected control remains enabled: \(identifier)")
+        }
+        for title in ["Notiz", "Leere Seite", "PDF zusammenführen", "Extrahieren …"] {
+            let control = try button(titled: title, in: application).unwrap("protected action \(title)")
+            try check(attribute(control, kAXEnabledAttribute) as? Bool == false,
+                      "protected action remains enabled: \(title)")
+        }
+        try pressCommandShortcut(keyCode: 1, description: "Command-S on protected PDF", in: application)
+        try check(try Data(contentsOf: protectedCopies[name]!) == protectedBytes[name], "protected original was rewritten")
+        print("PASS \(name) disables Save, Crop, forms, annotations, pages and exports; Command-S preserves bytes")
+    }
+    for name in ["empty-signature", "signature-placeholder"] {
+        try openFixture(protectedCopies[name]!)
+        try expectReadingMode(in: application)
+        try check(element(named: "documentProtection.reason", in: application) == nil,
+                  "an unsigned control is incorrectly treated as signed")
+        try pressWorkspaceToggle(in: application)
+        try expectEditingMode(in: application)
+        let save = try element(named: "toolbarSaveDocument", in: application).unwrap("unsigned Save")
+        try check(attribute(save, kAXEnabledAttribute) as? Bool == true, "unsigned control cannot be edited")
+        print("PASS \(name) remains an ordinary editable PDF")
+    }
+    for (name, bytes) in protectedBytes {
+        try check(try Data(contentsOf: protectedCopies[name]!) == bytes, "private protection fixture changed")
+        try check(try Data(contentsOf: protectionRoot.appendingPathComponent("fixture-\(name).pdf")) == bytes,
+                  "versioned protection fixture changed")
+    }
+    print("PASS all protected and unsigned-control source fixtures remain byte-identical")
+
     try terminate(application)
     activeApplication = nil
     print("UI smoke passed.")

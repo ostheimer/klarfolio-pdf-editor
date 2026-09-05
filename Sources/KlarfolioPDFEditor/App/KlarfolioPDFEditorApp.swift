@@ -146,13 +146,13 @@ struct KlarfolioPDFEditorCommands: Commands {
                 store.saveDocument()
             }
             .keyboardShortcut("s")
-            .disabled(!store.hasDocument)
+            .disabled(!store.canPerform(.save))
 
             Button("Sichern unter …") {
                 store.saveDocumentAs()
             }
             .keyboardShortcut("s", modifiers: [.command, .shift])
-            .disabled(!store.hasDocument)
+            .disabled(!store.canPerform(.save))
         }
 
         CommandGroup(after: .saveItem) {
@@ -179,28 +179,28 @@ struct KlarfolioPDFEditorCommands: Commands {
                 store.addBlankPage()
             }
             .keyboardShortcut("p", modifiers: [.command, .shift])
-            .disabled(!store.hasDocument || store.workspaceMode != .editing)
+            .disabled(!store.canPerform(.assemblePages))
 
             Button("Bilder als Seiten einfügen …") {
                 store.importImagesAsPages()
             }
-            .disabled(store.workspaceMode != .editing)
+            .disabled(!store.canPerform(.assemblePages))
 
             Button("PDF zusammenführen …") {
                 store.mergePDFs()
             }
-            .disabled(store.workspaceMode != .editing)
+            .disabled(!store.canPerform(.assemblePages))
 
             Button("Seiten extrahieren …") {
                 store.extractPages()
             }
-            .disabled(!store.hasDocument || store.workspaceMode != .editing)
+            .disabled(!store.canPerform(.exportPages))
 
             Button("Nach aktueller Seite teilen …") {
                 store.splitDocumentAfterCurrentPage()
             }
             .disabled(
-                store.workspaceMode != .editing
+                !store.canPerform(.exportPages)
                     || store.pageCount < 2
                     || store.currentPageIndex >= store.pageCount - 1
             )
@@ -211,30 +211,30 @@ struct KlarfolioPDFEditorCommands: Commands {
                 store.addMarkupAnnotation(.highlight)
             }
             .keyboardShortcut("h", modifiers: [.command, .shift])
-            .disabled(!store.hasDocument || store.workspaceMode != .editing)
+            .disabled(!store.canPerform(.annotate))
 
             Button("Textfeld einfügen") {
                 store.addFreeTextAnnotation()
             }
             .keyboardShortcut("t", modifiers: [.command, .shift])
-            .disabled(!store.hasDocument || store.workspaceMode != .editing)
+            .disabled(!store.canPerform(.annotate))
 
             Button("Notiz einfügen") {
                 store.addNoteAnnotation()
             }
             .keyboardShortcut("m", modifiers: [.command, .shift])
-            .disabled(!store.hasDocument || store.workspaceMode != .editing)
+            .disabled(!store.canPerform(.annotate))
 
             Button("Link einfügen") {
                 store.addLinkAnnotation()
             }
             .keyboardShortcut("l", modifiers: [.command, .shift])
-            .disabled(!store.hasDocument || store.workspaceMode != .editing)
+            .disabled(!store.canPerform(.annotate))
 
             Button("Ausgewählte Anmerkung löschen") {
                 store.removeSelectedAnnotation()
             }
-            .disabled(!store.hasSelectedAnnotation || store.workspaceMode != .editing)
+            .disabled(!store.hasSelectedAnnotation || !store.canPerform(.annotate))
 
             Divider()
 
