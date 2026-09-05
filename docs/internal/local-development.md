@@ -87,6 +87,8 @@ Auch `build_and_run.sh` aktualisiert niemals eine laufende Ziel-App: Vor dem Bui
 
 ## Tests
 
+Der Schutz-Slice (#22) ergänzt acht kleine verschlüsselte, rechtebeschränkte und tatsächlich signierte Fixtures mit negativen Kontrollen. Passwortöffnung, operationsbezogene Store-/PDFView-Grenzen, Import/Export und Signaturintegrität werden automatisiert geprüft; der echte AX-Lauf ergänzt Passwortabbruch mit dirty Dokument, sichtbaren Schreibschutz und deaktivierte Aktionen. Nachweise und reproduzierbarer PDFKit-Versuch: [Schutz-QA](protected-pdf-qa.md). Die folgenden Crop-Zahlen beschreiben die unveränderte Ausgangsbasis.
+
 Der Crop-Slice (#20) ergänzt eine sechste synthetische Fixture, 15 gezielte Regressionstests und einen erweiterten echten Accessibility-Lauf. Aktuelle Basis: 128 Tests in acht Suites und 82 erfolgreiche UI-Prüfungen am isolierten Bundle. Einzelheiten und die PDFKit-Koordinatennormalisierung sind im [Crop-QA-Protokoll](crop-qa.md) dokumentiert.
 
 Unter vollständigem Xcode 16 oder neuer:

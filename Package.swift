@@ -21,7 +21,15 @@ let package = Package(
                 .copy("fixture-crop-4-pages.pdf"),
                 .copy("fixture-merge-2-pages.pdf"),
                 .copy("fixture-form.pdf"),
-                .copy("fixture-invalid.pdf")
+                .copy("fixture-invalid.pdf"),
+                .copy("fixture-password.pdf"),
+                .copy("fixture-restricted.pdf"),
+                .copy("fixture-form-only.pdf"),
+                .copy("fixture-assembly-only.pdf"),
+                .copy("fixture-comment-only.pdf"),
+                .copy("fixture-signed.pdf"),
+                .copy("fixture-empty-signature.pdf"),
+                .copy("fixture-signature-placeholder.pdf")
             ]
         ),
         .executableTarget(

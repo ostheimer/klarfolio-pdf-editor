@@ -18,6 +18,7 @@ final class PDFDocumentStore: ObservableObject {
     private let preferences: UserDefaults
     private let unsavedChangesDecisionProvider: ((PDFDocumentStore) -> UnsavedChangesDecision)?
     private let saveChangesHandler: ((PDFDocumentStore) -> Bool)?
+    private let passwordProvider: ((URL, Bool) -> String?)?
     private var formAnnotations: [String: PDFAnnotation] = [:]
     private var activeReadingDocumentIdentifier: String?
     private var isRestoringReadingState = false
@@ -27,7 +28,10 @@ final class PDFDocumentStore: ObservableObject {
             preferences.set(workspaceMode.rawValue, forKey: Self.workspaceModeDefaultsKey)
         }
     }
-    @Published var document: PDFDocument?
+    @Published var document: PDFDocument? {
+        didSet { protection = document.map(PDFDocumentProtection.init(document:)) ?? PDFDocumentProtection() }
+    }
+    @Published private(set) var protection = PDFDocumentProtection()
     @Published var fileURL: URL?
     @Published var currentPageIndex = 0 {
         didSet {
@@ -58,15 +62,63 @@ final class PDFDocumentStore: ObservableObject {
     @Published var extractionEndPage = 1
 
     weak var pdfView: PDFView?
+    private var isOpeningDocument = false
+
+    func canPerform(_ operation: PDFOperation) -> Bool {
+        if operation != .save && operation != .copy && operation != .print,
+           workspaceMode != .editing { return false }
+        guard let document else { return operation == .assemblePages && workspaceMode == .editing }
+        return !document.isLocked && protection.allows(operation)
+    }
+
+    func fileDropAction(for urls: [URL]) -> PDFFileDropAction? {
+        let action = PDFFileDropAction.resolve(urls, workspaceMode: workspaceMode)
+        if case .importImages = action, !canPerform(.assemblePages) { return nil }
+        return action
+    }
+
+    @discardableResult
+    func requirePermission(_ operation: PDFOperation) -> Bool {
+        guard canPerform(operation) else {
+            statusMessage = protection.readOnlyReason
+                ?? (workspaceMode == .reading && operation != .save && operation != .copy && operation != .print
+                    ? "Diese Aktion benötigt den Bearbeitungsmodus."
+                    : "Die PDF-Berechtigungen erlauben diese Aktion nicht.")
+            return false
+        }
+        return true
+    }
+
+    func canEditAnnotation(_ annotation: PDFAnnotation, on page: PDFPage) -> Bool {
+        canPerform(.annotate) && page.document === document
+            && page.annotations.contains(where: { $0 === annotation })
+            && !annotation.hasSubtype(.widget) && !annotation.hasSubtype(.popup)
+    }
+
+    /// The view must never mutate bounds before this central check.
+    @discardableResult
+    func moveAnnotation(_ annotation: PDFAnnotation, on page: PDFPage, to bounds: CGRect) -> Bool {
+        guard canEditAnnotation(annotation, on: page), annotation === selectedAnnotation,
+              bounds.origin.x.isFinite, bounds.origin.y.isFinite else { return false }
+        let constrained = constrainedAnnotationBounds(bounds, on: page)
+        guard constrained != annotation.bounds else { return false }
+        annotation.bounds = constrained
+        annotation.modificationDate = Date()
+        pdfView?.annotationsChanged(on: page)
+        markChanged("Anmerkung verschoben")
+        return true
+    }
 
     init(
         preferences: UserDefaults = .standard,
         unsavedChangesDecisionProvider: ((PDFDocumentStore) -> UnsavedChangesDecision)? = nil,
-        saveChangesHandler: ((PDFDocumentStore) -> Bool)? = nil
+        saveChangesHandler: ((PDFDocumentStore) -> Bool)? = nil,
+        passwordProvider: ((URL, Bool) -> String?)? = nil
     ) {
         self.preferences = preferences
         self.unsavedChangesDecisionProvider = unsavedChangesDecisionProvider
         self.saveChangesHandler = saveChangesHandler
+        self.passwordProvider = passwordProvider
         workspaceMode = .reading
     }
 
@@ -104,7 +156,7 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     var currentPage: PDFPage? {
-        if let page = pdfView?.currentPage {
+        if let page = pdfView?.currentPage, page.document === document {
             return page
         }
 
@@ -184,19 +236,60 @@ final class PDFDocumentStore: ObservableObject {
 
     @discardableResult
     func loadDocument(from url: URL) -> Bool {
+        guard !isOpeningDocument else { return false }
+        isOpeningDocument = true
+        defer { isOpeningDocument = false }
+        let previousDocument = document
+        let previousRevision = revision
         guard let pdfDocument = PDFDocument(url: url) else {
             statusMessage = "Die Datei konnte nicht geöffnet werden."
             return false
         }
 
+        var retry = false
+        while pdfDocument.isLocked {
+            // The password lives only in this loop iteration and the secure
+            // native input; never in Published state, preferences or logs.
+            let enteredPassword: String?
+            if let passwordProvider { enteredPassword = passwordProvider(url, retry) }
+            else { enteredPassword = presentPasswordAlert(for: url, retry: retry) }
+            guard let password = enteredPassword else {
+                statusMessage = "Öffnen abgebrochen"
+                return false
+            }
+            _ = pdfDocument.unlock(withPassword: password)
+            retry = true
+        }
+        guard document === previousDocument, revision == previousRevision,
+              pdfDocument.pageCount > 0 else { return false }
+
         guard confirmDiscardingUnsavedChanges() else {
             return false
         }
 
+        guard document === previousDocument else { return false }
         setDocument(pdfDocument, url: url, dirty: false)
         setWorkspaceMode(.reading)
         statusMessage = "\(url.lastPathComponent) geöffnet"
         return true
+    }
+
+    private func presentPasswordAlert(for url: URL, retry: Bool) -> String? {
+        let alert = NSAlert()
+        alert.messageText = retry ? "Das Passwort ist nicht korrekt." : "Passwortgeschütztes PDF"
+        alert.informativeText = "Gib das Passwort für „\(url.lastPathComponent)“ ein."
+        let field = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 320, height: 26))
+        field.placeholderString = "Passwort"
+        field.setAccessibilityIdentifier("documentPassword.input")
+        alert.accessoryView = field
+        alert.addButton(withTitle: "Öffnen")
+        alert.addButton(withTitle: "Abbrechen")
+        alert.buttons[0].setAccessibilityIdentifier("documentPassword.open")
+        alert.buttons[1].setAccessibilityIdentifier("documentPassword.cancel")
+        alert.buttons[1].keyEquivalent = "\u{1b}"
+        alert.window.initialFirstResponder = field
+        defer { field.stringValue = "" }
+        return alert.runModal() == .alertFirstButtonReturn ? field.stringValue : nil
     }
 
     @discardableResult
@@ -212,6 +305,7 @@ final class PDFDocumentStore: ObservableObject {
 
     @discardableResult
     func saveDocument() -> Bool {
+        guard requirePermission(.save) else { return false }
         guard let document else {
             return false
         }
@@ -232,6 +326,7 @@ final class PDFDocumentStore: ObservableObject {
 
     @discardableResult
     func saveDocumentAs() -> Bool {
+        guard requirePermission(.save) else { return false }
         guard let document else {
             return false
         }
@@ -246,6 +341,7 @@ final class PDFDocumentStore: ObservableObject {
             return false
         }
 
+        guard self.document === document, requirePermission(.save) else { return false }
         if document.write(to: url) {
             fileURL = url
             activateReadingState(for: url, document: document)
@@ -303,6 +399,7 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func addBlankPage() {
+        guard requirePermission(.assemblePages) else { return }
         ensureDocument()
         guard let document, let page = PDFUtilities.blankPage() else {
             return
@@ -315,6 +412,9 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func importImagesAsPages() {
+        guard requirePermission(.assemblePages) else { return }
+        let expectedDocument = document
+        let expectedRevision = revision
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.image]
         panel.allowsMultipleSelection = true
@@ -325,11 +425,13 @@ final class PDFDocumentStore: ObservableObject {
             return
         }
 
+        guard document === expectedDocument, revision == expectedRevision else { return }
         importImages(from: panel.urls)
     }
 
     @discardableResult
     func importImages(from urls: [URL]) -> Int {
+        guard requirePermission(.assemblePages) else { return 0 }
         guard !urls.isEmpty else {
             return 0
         }
@@ -362,6 +464,9 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func mergePDFs() {
+        guard requirePermission(.assemblePages) else { return }
+        let expectedDocument = document
+        let expectedRevision = revision
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.pdf]
         panel.allowsMultipleSelection = true
@@ -372,27 +477,46 @@ final class PDFDocumentStore: ObservableObject {
             return
         }
 
+        guard document === expectedDocument, revision == expectedRevision else { return }
+        _ = mergeDocuments(from: panel.urls)
+    }
+
+    @discardableResult
+    func mergeDocuments(from urls: [URL]) -> Int {
+        guard requirePermission(.assemblePages), !urls.isEmpty else { return 0 }
+        // Prepare every source before changing the destination. Protected sources
+        // are not rewritten as unprotected pages or partially imported.
+        var pages: [PDFPage] = []
+        var preparedSources: [PDFDocument] = []
+        for url in urls {
+            guard let source = PDFDocument(url: url),
+                  PDFDocumentProtection(document: source).allows(.exportPages), source.pageCount > 0 else {
+                statusMessage = "Zusammenführen abgebrochen: Eine Quelle ist geschützt oder nicht lesbar."
+                return 0
+            }
+            let prepared = PDFDocument()
+            var copiedPages: [(source: PDFPage, copy: PDFPage)] = []
+            for index in 0..<source.pageCount {
+                guard let original = source.page(at: index),
+                      let copy = original.copy() as? PDFPage else { return 0 }
+                prepared.insert(copy, at: prepared.pageCount)
+                copiedPages.append((original, copy))
+                pages.append(copy)
+            }
+            // Keep each original alive until its destinations refer to the
+            // corresponding copied pages, never to another source or target page.
+            remapInternalLinks(in: copiedPages, sourceDocument: source, sourceRange: 0...(source.pageCount - 1))
+            preparedSources.append(prepared)
+        }
         ensureDocument()
         guard let document else {
-            return
+            return 0
         }
 
         let firstInsertedIndex = document.pageCount
-        var inserted = 0
-
-        for url in panel.urls {
-            guard let source = PDFDocument(url: url) else {
-                continue
-            }
-
-            for pageIndex in 0..<source.pageCount {
-                guard let page = source.page(at: pageIndex) else {
-                    continue
-                }
-
-                document.insert(page, at: document.pageCount)
-                inserted += 1
-            }
+        let inserted = pages.count
+        withExtendedLifetime(preparedSources) {
+            for page in pages { document.insert(page, at: document.pageCount) }
         }
 
         if inserted > 0 {
@@ -401,9 +525,12 @@ final class PDFDocumentStore: ObservableObject {
         } else {
             statusMessage = "Keine PDF-Seiten gefunden."
         }
+        return inserted
     }
 
     func extractPages() {
+        guard requirePermission(.exportPages) else { return }
+        let expectedRevision = revision
         guard let document else {
             return
         }
@@ -432,6 +559,7 @@ final class PDFDocumentStore: ObservableObject {
             return
         }
 
+        guard self.document === document, revision == expectedRevision else { return }
         _ = writePages(in: startIndex...endIndex, to: url, preparedDocument: extractedDocument)
     }
 
@@ -442,6 +570,8 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func splitDocumentAfterCurrentPage() {
+        guard requirePermission(.exportPages) else { return }
+        let expectedRevision = revision
         guard let document, document.pageCount > 1 else {
             statusMessage = "Zum Teilen werden mindestens zwei Seiten benötigt."
             return
@@ -476,6 +606,7 @@ final class PDFDocumentStore: ObservableObject {
             return
         }
 
+        guard self.document === document, revision == expectedRevision else { return }
         _ = writeSplitDocument(
             afterPageAt: splitIndex,
             firstPartURL: firstURL,
@@ -485,6 +616,7 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func documentByCopyingPages(in range: ClosedRange<Int>) -> PDFDocument? {
+        guard requirePermission(.exportPages) else { return nil }
         guard let document,
               range.lowerBound >= 0,
               range.upperBound < document.pageCount else {
@@ -509,6 +641,7 @@ final class PDFDocumentStore: ObservableObject {
 
     @discardableResult
     func writePages(in range: ClosedRange<Int>, to url: URL) -> Bool {
+        guard requirePermission(.exportPages) else { return false }
         guard let extractedDocument = documentByCopyingPages(in: range) else {
             statusMessage = "Bitte einen gültigen Seitenbereich wählen."
             return false
@@ -523,6 +656,7 @@ final class PDFDocumentStore: ObservableObject {
         firstPartURL: URL,
         secondPartURL: URL
     ) -> Bool {
+        guard requirePermission(.exportPages) else { return false }
         guard let document,
               splitIndex >= 0,
               splitIndex < document.pageCount - 1,
@@ -541,6 +675,7 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func deleteCurrentPage() {
+        guard requirePermission(.assemblePages) else { return }
         guard let document, document.pageCount > 1 else {
             statusMessage = "Die letzte Seite kann nicht gelöscht werden."
             return
@@ -560,15 +695,15 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     var canBeginPageCrop: Bool {
-        guard workspaceMode == .editing, let document, !document.isLocked,
-              document.allowsDocumentChanges, let page = currentPage,
+        guard canPerform(.cropPage), let document,
+              let page = currentPage,
               pageIndex(of: page, in: document) != nil else { return false }
         return PDFCropGeometry(mediaBox: page.bounds(for: .mediaBox), rotation: page.rotation) != nil
     }
 
     func beginPageCrop() -> PDFCropSession? {
-        guard workspaceMode == .editing, let document, !document.isLocked,
-              document.allowsDocumentChanges, let page = currentPage,
+        guard requirePermission(.cropPage), let document,
+              let page = currentPage,
               let index = pageIndex(of: page, in: document),
               let geometry = PDFCropGeometry(mediaBox: page.bounds(for: .mediaBox), rotation: page.rotation)
         else { return nil }
@@ -578,8 +713,7 @@ final class PDFDocumentStore: ObservableObject {
 
     @discardableResult
     func applyPageCrop(_ crop: CGRect, session: PDFCropSession) -> Bool {
-        guard workspaceMode == .editing, let document, document === session.document,
-              !document.isLocked, document.allowsDocumentChanges,
+        guard requirePermission(.cropPage), let document, document === session.document,
               currentPage === session.page, document.page(at: session.pageIndex) === session.page,
               session.page.rotation == session.originalRotation,
               session.page.bounds(for: .mediaBox) == session.geometry.mediaBox,
@@ -600,6 +734,7 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func rotateCurrentPage(clockwise: Bool) {
+        guard requirePermission(.assemblePages) else { return }
         guard let page = currentPage else {
             return
         }
@@ -611,6 +746,7 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func moveCurrentPage(by offset: Int) {
+        guard requirePermission(.assemblePages) else { return }
         guard let document, let page = currentPage else {
             return
         }
@@ -693,11 +829,13 @@ final class PDFDocumentStore: ObservableObject {
 
     @discardableResult
     func updateFormTextField(_ fieldID: String, value: String) -> Bool {
+        guard requirePermission(.fillForms) else { return false }
         guard workspaceMode == .editing,
               let field = formFields.first(where: { $0.id == fieldID }),
               field.kind == .text,
               !field.isReadOnly,
               let annotation = formAnnotations[fieldID],
+              annotation.page?.document === document,
               annotation.hasSubtype(.widget),
               annotation.widgetFieldType == .text,
               !annotation.isPasswordField,
@@ -722,11 +860,13 @@ final class PDFDocumentStore: ObservableObject {
 
     @discardableResult
     func updateFormCheckbox(_ fieldID: String, isOn: Bool) -> Bool {
+        guard requirePermission(.fillForms) else { return false }
         guard workspaceMode == .editing,
               let field = formFields.first(where: { $0.id == fieldID }),
               field.kind == .checkbox,
               !field.isReadOnly,
               let annotation = formAnnotations[fieldID],
+              annotation.page?.document === document,
               annotation.hasSubtype(.widget),
               annotation.widgetFieldType == .button,
               annotation.widgetControlType == .checkBoxControl,
@@ -830,6 +970,9 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func selectAnnotation(_ annotation: PDFAnnotation?, on page: PDFPage? = nil) {
+        if let annotation {
+            guard let page = page ?? annotation.page, canEditAnnotation(annotation, on: page) else { return }
+        }
         selectedAnnotation = annotation
 
         guard let annotation else {
@@ -862,6 +1005,8 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func applySelectedAnnotationEdits() {
+        guard let candidate = selectedAnnotation, let selectedPage = candidate.page,
+              canEditAnnotation(candidate, on: selectedPage) else { return }
         guard let annotation = selectedAnnotation, let page = annotation.page else {
             statusMessage = "Keine Anmerkung ausgewählt."
             return
@@ -883,6 +1028,8 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func moveSelectedAnnotationBy(x: CGFloat, y: CGFloat) {
+        guard let candidate = selectedAnnotation, let selectedPage = candidate.page,
+              canEditAnnotation(candidate, on: selectedPage) else { return }
         guard let annotation = selectedAnnotation, let page = annotation.page else {
             statusMessage = "Keine Anmerkung ausgewählt."
             return
@@ -906,7 +1053,8 @@ final class PDFDocumentStore: ObservableObject {
         on page: PDFPage,
         from originalBounds: CGRect
     ) {
-        guard annotation === selectedAnnotation, annotation.bounds != originalBounds else {
+        guard canEditAnnotation(annotation, on: page),
+              annotation === selectedAnnotation, annotation.bounds != originalBounds else {
             return
         }
 
@@ -916,6 +1064,8 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func removeSelectedAnnotation() {
+        guard let candidate = selectedAnnotation, let selectedPage = candidate.page,
+              canEditAnnotation(candidate, on: selectedPage) else { return }
         guard let annotation = selectedAnnotation, let page = annotation.page else {
             statusMessage = "Keine Anmerkung ausgewählt."
             return
@@ -928,6 +1078,7 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func addLinkAnnotation() {
+        guard requirePermission(.annotate) else { return }
         guard currentPage != nil else {
             return
         }
@@ -972,6 +1123,7 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func addFreeTextAnnotation(text: String = "Text") {
+        guard requirePermission(.annotate) else { return }
         guard let page = currentPage else {
             return
         }
@@ -994,6 +1146,7 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func addNoteAnnotation() {
+        guard requirePermission(.annotate) else { return }
         guard let page = currentPage else {
             return
         }
@@ -1013,6 +1166,7 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func addMarkupAnnotation(_ kind: MarkupAnnotationKind) {
+        guard requirePermission(.annotate) else { return }
         guard let pdfView, let selection = pdfView.currentSelection else {
             statusMessage = kind.fallbackStatus
             return
@@ -1027,6 +1181,7 @@ final class PDFDocumentStore: ObservableObject {
         var count = 0
         for lineSelection in lineSelections {
             for page in lineSelection.pages {
+                guard page.document === document else { continue }
                 let bounds = lineSelection.bounds(for: page).insetBy(dx: -1, dy: -1)
                 guard !bounds.isEmpty else {
                     continue
@@ -1048,6 +1203,7 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func addStamp(text: String) {
+        guard requirePermission(.annotate) else { return }
         guard let page = currentPage else {
             return
         }
@@ -1070,6 +1226,7 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func addSignaturePlaceholder() {
+        guard requirePermission(.annotate) else { return }
         guard let page = currentPage else {
             return
         }
@@ -1092,8 +1249,9 @@ final class PDFDocumentStore: ObservableObject {
     }
 
     func removeLastAnnotationOnCurrentPage() {
+        guard requirePermission(.annotate) else { return }
         guard let page = currentPage,
-              let annotation = page.annotations.last(where: { !$0.hasSubtype(.popup) }) else {
+              let annotation = page.annotations.last(where: { !$0.hasSubtype(.popup) && !$0.hasSubtype(.widget) }) else {
             statusMessage = "Keine Anmerkung auf dieser Seite."
             return
         }
@@ -1408,6 +1566,7 @@ final class PDFDocumentStore: ObservableObject {
         if let selection = pdfView?.currentSelection {
             let locations = selection.selectionsByLine().flatMap { lineSelection in
                 lineSelection.pages.compactMap { page -> (page: PDFPage, bounds: CGRect)? in
+                    guard page.document === document else { return nil }
                     let bounds = lineSelection.bounds(for: page).insetBy(dx: -1.5, dy: -1.5)
                     return bounds.isEmpty ? nil : (page, bounds)
                 }
@@ -1718,6 +1877,7 @@ final class PDFDocumentStore: ObservableObject {
         to url: URL,
         preparedDocument: PDFDocument
     ) -> Bool {
+        guard requirePermission(.exportPages) else { return false }
         guard preparedDocument.write(to: url) else {
             statusMessage = "Die ausgewählten Seiten konnten nicht gesichert werden."
             return false
@@ -1734,6 +1894,7 @@ final class PDFDocumentStore: ObservableObject {
         secondPartURL: URL,
         preparedParts: (first: PDFDocument, second: PDFDocument)
     ) -> Bool {
+        guard requirePermission(.exportPages) else { return false }
         guard firstPartURL.standardizedFileURL != secondPartURL.standardizedFileURL else {
             statusMessage = "Für beide Teile werden unterschiedliche Dateinamen benötigt."
             return false

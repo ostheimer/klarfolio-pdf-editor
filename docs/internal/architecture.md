@@ -69,6 +69,12 @@ Das Run-Skript baut das SwiftPM-Executable, legt ein lokales `.app`-Bundle unter
 
 ## Aktuelle technische Grenzen
 
+### Geschützte PDFs (#22)
+
+`PDFDocumentProtection` erfasst PDFKit-Rechte getrennt nach Operation und liest die Signaturstruktur aus dem ursprünglichen CGPDF-Katalog, ohne den Writer aufzurufen. `PDFDocumentStore.canPerform` verbindet diese Rechte mit dem Arbeitsmodus. Store, Menüs, Inspektor, Seitenkontext, PDFView, Datei-Drops und Importquellen verwenden dieselben Regeln. Gesperrte, verschlüsselte, signierte und strukturell unklar signierte Dokumente bleiben vor sämtlichen Mutationen und PDF-Neuschreibpfaden geschützt; Kopieren und Drucken beachten ihre eigenen Rechte. Native Annotation-Drags mutieren erst innerhalb des Store-Guards. Aktuelle Dokument-/Seitenidentität wird auch für ausgewählte Annotationen, Markup-/Link-Selektionen und verspätete Dialogrückmeldungen geprüft.
+
+Öffnen entsperrt zunächst die neue Datei mit einer flüchtigen, verdeckten Passwortabfrage und führt erst danach den Dirty-Guard aus. Abbruch erhält bisherige Auswahl, Modus und Dokument. Die App prüft keine Signaturgültigkeit. Im geprüften PDFKit-Writer konnten AES-128-Dateien nach Save nicht mit den ursprünglichen Passwörtern wieder geöffnet werden; der erste Slice sperrt daher verschlüsselte Schreibpfade. Die vollständige Matrix, empirische Grenzen und Nachweise stehen im [Schutz-QA-Protokoll](protected-pdf-qa.md).
+
 ### Zuschnitt der aktuellen Seite (#20)
 
 `PDFCropGeometry` rechnet zwischen ungedrehten PDF-Koordinaten (Ursprung unten links, einschließlich versetzter MediaBox) und gedrehten Vorschaukoordinaten (oben links). Ein empirischer Test gegen `PDFView.convert` prüft 0/90/180/270 Grad: `PDFPage.bounds(for:)` bleibt ungedreht; `PDFView.isFlipped` ist false. Die SwiftUI-Vorschau benötigt deshalb die explizite Umrechnung. Rohbreiten/-höhen werden über `CGRect.size` geprüft, weil `CGRect.width/height` negative Werte standardisieren können. Nicht endliche, negative, zu kleine und außerhalb liegende Store-Eingaben werden ohne Mutation abgewiesen. Nur Gesten werden auf gültige Grenzen begrenzt.
@@ -90,7 +96,7 @@ Zuschneiden ist ausschließlich Ausblenden über Seitenboxen, keine sichere Schw
 
 ## Nächste sinnvolle technische Schritte
 
-1. Den vorhandenen Fixture- und UI-Smoke-Grundstock gezielt um große, verschlüsselte, signierte und formularreiche PDFs erweitern.
+1. Den vorhandenen Fixture- und UI-Smoke-Grundstock bei Bedarf um große und komplexere formularreiche PDFs erweitern. Kleine verschlüsselte, rechtebeschränkte und tatsächlich signierte Fixtures sind seit #22 vorhanden.
 2. Die vorhandene Drag-and-drop-Basis um nachvollziehbare Nutzerhinweise und bei Bedarf weitere lokale Importformate ergänzen.
 3. Die vorhandene Reader-Navigation bei tatsächlichem Bedarf um erweiterte Linkverwaltung, weitere Leseeinstellungen und zusätzliche PDF-Formularfeldtypen ergänzen.
 4. Sichere Redaction erst mit Validierung implementieren, dass Inhalte wirklich entfernt sind.

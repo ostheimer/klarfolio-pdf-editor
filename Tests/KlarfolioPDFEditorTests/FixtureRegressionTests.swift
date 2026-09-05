@@ -15,7 +15,7 @@ struct FixtureRegressionTests {
 
     @Test("Alle dokumentierten Testdateien werden im Ressourcen-Bundle bereitgestellt")
     func everyDocumentedFixtureIsBundled() throws {
-        #expect(PDFTestFixture.allCases.count == 6)
+        #expect(PDFTestFixture.allCases.count == 14)
 
         for fixture in PDFTestFixture.allCases {
             let resourceValues = try fixture.url.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])
@@ -199,6 +199,7 @@ struct FixtureRegressionTests {
         defer { preferences.removePersistentDomain(forName: suiteName) }
         let store = PDFDocumentStore(preferences: preferences)
         #expect(store.loadDocument(from: PDFTestFixture.searchableThreePages.url))
+        store.setWorkspaceMode(.editing)
 
         let extracted = try #require(store.documentByCopyingPages(in: 1...2))
 

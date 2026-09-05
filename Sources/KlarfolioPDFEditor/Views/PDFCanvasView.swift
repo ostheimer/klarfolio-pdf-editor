@@ -82,7 +82,7 @@ struct PDFCanvasView: NSViewRepresentable {
 }
 
 @MainActor
-private final class AnnotationEditingPDFView: PDFView {
+final class AnnotationEditingPDFView: PDFView, NSMenuItemValidation {
     weak var editingStore: PDFDocumentStore?
 
     private weak var draggedAnnotation: PDFAnnotation?
@@ -92,6 +92,60 @@ private final class AnnotationEditingPDFView: PDFView {
 
     override var acceptsFirstResponder: Bool {
         true
+    }
+
+    override func copy(_ sender: Any?) {
+        guard document === editingStore?.document,
+              editingStore?.requirePermission(.copy) == true else { return }
+        super.copy(sender)
+    }
+
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        guard document === editingStore?.document else { return false }
+        if menuItem.action == #selector(copy(_:)) {
+            return editingStore?.canPerform(.copy) == true && currentSelection != nil
+        }
+        if menuItem.action == #selector(printView(_:)) {
+            return editingStore?.canPerform(.print) == true
+        }
+        return document != nil
+    }
+
+    override func printView(_ sender: Any?) {
+        guard document === editingStore?.document,
+              editingStore?.requirePermission(.print) == true else { return }
+        print(with: NSPrintInfo.shared, autoRotate: true)
+    }
+
+    override func print(with printInfo: NSPrintInfo, autoRotate: Bool) {
+        guard document === editingStore?.document,
+              editingStore?.requirePermission(.print) == true else { return }
+        super.print(with: printInfo, autoRotate: autoRotate)
+    }
+
+    override func print(with printInfo: NSPrintInfo, autoRotate: Bool, pageScaling scale: PDFPrintScalingMode) {
+        guard document === editingStore?.document,
+              editingStore?.requirePermission(.print) == true else { return }
+        super.print(with: printInfo, autoRotate: autoRotate, pageScaling: scale)
+    }
+
+    override func perform(_ action: PDFAction) {
+        // Native reset/JavaScript/named Print or remote-document actions can
+        // otherwise bypass Store guards. Only ordinary navigation links run.
+        guard action is PDFActionGoTo || action is PDFActionURL else { return }
+        super.perform(action)
+    }
+
+    override func menu(for event: NSEvent) -> NSMenu? {
+        // PDFKit's opaque context menu includes annotation editing and exporting
+        // selections as images. Expose only the explicitly guarded copy action.
+        let menu = NSMenu()
+        let item = NSMenuItem(title: "Kopieren", action: #selector(copy(_:)), keyEquivalent: "")
+        item.target = self
+        item.isEnabled = editingStore?.canPerform(.copy) == true && currentSelection != nil
+        menu.autoenablesItems = false
+        menu.addItem(item)
+        return menu
     }
 
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
@@ -137,12 +191,22 @@ private final class AnnotationEditingPDFView: PDFView {
             return
         }
 
-        if editingStore.workspaceMode == .reading {
+        if !editingStore.canPerform(.annotate) {
+            if let page = page(for: viewPoint, nearest: false),
+               let hit = annotation(at: convert(viewPoint, to: page), on: page),
+               !hit.hasSubtype(.link) {
+                window?.makeFirstResponder(self)
+                return
+            }
             super.mouseDown(with: event)
             return
         }
 
-        guard editingStore.selectedTool == .select else {
+        if editingStore.selectedTool != .select {
+            // Do not turn Marker/Text into a drag tool. Consuming hits on
+            // annotations also avoids PDFKit's own untracked note editors.
+            if let page = page(for: viewPoint, nearest: false),
+               annotation(at: convert(viewPoint, to: page), on: page) != nil { return }
             super.mouseDown(with: event)
             return
         }
@@ -172,7 +236,8 @@ private final class AnnotationEditingPDFView: PDFView {
 
     override func mouseDragged(with event: NSEvent) {
         guard let editingStore,
-              editingStore.workspaceMode == .editing,
+              editingStore.canPerform(.annotate),
+              editingStore.selectedTool == .select,
               let annotation = draggedAnnotation,
               let page = draggedPage else {
             super.mouseDragged(with: event)
@@ -190,23 +255,13 @@ private final class AnnotationEditingPDFView: PDFView {
             return
         }
 
-        annotation.bounds = constrainedBounds
-        annotationsChanged(on: page)
+        guard editingStore.moveAnnotation(annotation, on: page, to: constrainedBounds) else { return }
         needsDisplay = true
         autoscroll(with: event)
     }
 
     override func mouseUp(with event: NSEvent) {
-        if let editingStore,
-           editingStore.workspaceMode == .editing,
-           let annotation = draggedAnnotation,
-           let page = draggedPage {
-            editingStore.annotationMoveDidFinish(
-                annotation,
-                on: page,
-                from: dragStartBounds
-            )
-        } else {
+        if draggedAnnotation == nil {
             super.mouseUp(with: event)
         }
 
@@ -215,8 +270,14 @@ private final class AnnotationEditingPDFView: PDFView {
     }
 
     override func keyDown(with event: NSEvent) {
+        // PDFKit tab navigation may focus native widget editors. Supported
+        // forms are edited through the accessible, guarded inspector controls.
+        if event.keyCode == 48 {
+            moveFocusOutsidePDFView(backwards: event.modifierFlags.contains(.shift))
+            return
+        }
         guard let editingStore,
-              editingStore.workspaceMode == .editing,
+              editingStore.canPerform(.annotate),
               editingStore.hasSelectedAnnotation else {
             super.keyDown(with: event)
             return
@@ -259,6 +320,16 @@ private final class AnnotationEditingPDFView: PDFView {
         context.restoreGState()
     }
 
+    private func moveFocusOutsidePDFView(backwards: Bool) {
+        var candidate = backwards ? previousValidKeyView : nextValidKeyView
+        var visited = Set<ObjectIdentifier>()
+        while let view = candidate, view !== self,
+              visited.insert(ObjectIdentifier(view)).inserted {
+            if !view.isDescendant(of: self), window?.makeFirstResponder(view) == true { return }
+            candidate = backwards ? view.previousValidKeyView : view.nextValidKeyView
+        }
+    }
+
     private func annotation(at point: CGPoint, on page: PDFPage) -> PDFAnnotation? {
         page.annotations.reversed().first { annotation in
             annotation.shouldDisplay
@@ -280,6 +351,6 @@ private final class AnnotationEditingPDFView: PDFView {
             )?
             .compactMap { ($0 as? NSURL).map { $0 as URL } } ?? []
 
-        return PDFFileDropAction.resolve(urls, workspaceMode: editingStore.workspaceMode)
+        return editingStore.fileDropAction(for: urls)
     }
 }

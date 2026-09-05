@@ -2,6 +2,14 @@
 
 Klarfolio PDF Editor ist eine kostenlose, native macOS-App zum Lesen, Erstellen und Bearbeiten von PDF-Dateien. Bei jedem Start und beim Öffnen jeder vorhandenen PDF zeigt sie zuerst einen ablenkungsarmen Lesemodus; die vollständige Bearbeitungsoberfläche lässt sich bei Bedarf ausdrücklich einblenden.
 
+## Passwortgeschützte und signierte PDFs
+
+Beim Öffnen eines gesperrten PDFs fragt Klarfolio das Passwort verdeckt ab. Eine falsche Eingabe erlaubt einen weiteren Versuch. `Abbrechen` erhält das bisherige Dokument einschließlich ungespeicherter Änderungen und Arbeitsmodus. Das Passwort wird weder dauerhaft gespeichert noch protokolliert. Nach erfolgreichem Entsperren erscheint die Datei zunächst im Lesemodus.
+
+Verschlüsselte PDFs bleiben derzeit schreibgeschützt, auch wenn einzelne PDF-Rechte Bearbeitung erlauben: Der geprüfte Speicherpfad kann den vorhandenen Passwortschutz nicht zuverlässig erhalten. Ein sichtbarer Hinweis erklärt diese Grenze. Speichern, Sichern unter, Formulare, Anmerkungen, Seitenänderungen und PDF-Export sind dann deaktiviert; solche Quellen können auch nicht zusammengeführt werden. Suche, Navigation und lokale Lesezeichen bleiben verfügbar. Kopieren und native Druckaktionen beachten die jeweiligen PDF-Rechte.
+
+PDFs mit vorhandener digitaler Signatur bleiben ebenfalls schreibgeschützt, damit das Original nicht umgeschrieben wird. **Klarfolio prüft die Gültigkeit oder Vertrauenswürdigkeit dieser Signatur nicht.** Ein leeres Signaturfeld oder ein sichtbarer Unterschriftsplatzhalter ist keine digitale Signatur und löst diese Sperre nicht aus. Wenn sich die Signaturstruktur nicht sicher einordnen lässt, bleibt das Dokument vorsorglich schreibgeschützt.
+
 ## Starten
 
 ```bash
@@ -139,7 +147,7 @@ Farbe und Schriftgröße werden im Werkzeugbereich eingestellt. Für Marker, Unt
 
 ## Grenzen des aktuellen MVP
 
-Klarfolio PDF Editor bearbeitet derzeit keine vorhandenen PDF-Textobjekte direkt. Frei eingefügte Textfelder sind Anmerkungen, keine Änderungen am ursprünglichen PDF-Inhalt; vorhandene PDF-Formular-Textfelder und Checkboxen können dagegen über den eigenen Bereich `Formularfelder` ausgefüllt werden. Das Erstellen neuer Formularfelder sowie kryptografische Signaturen werden nicht unterstützt. Ebenso fehlen aktuell OCR, Schwärzung, Passwortschutz, Komprimierung, Office-Export und KI-gestützte Zusammenfassungen.
+Klarfolio PDF Editor bearbeitet derzeit keine vorhandenen PDF-Textobjekte direkt. Frei eingefügte Textfelder sind Anmerkungen, keine Änderungen am ursprünglichen PDF-Inhalt; vorhandene PDF-Formular-Textfelder und Checkboxen können dagegen über den eigenen Bereich `Formularfelder` ausgefüllt werden. Das Erstellen neuer Formularfelder sowie kryptografische Signaturen werden nicht unterstützt. Ebenso fehlen aktuell OCR, Schwärzung, das Einrichten oder Ändern von Passwortschutz, Komprimierung, Office-Export und KI-gestützte Zusammenfassungen.
 
 ## Datenschutz
 

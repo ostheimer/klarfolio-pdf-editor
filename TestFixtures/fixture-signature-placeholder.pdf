@@ -1,0 +1,235 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+/AcroForm 9 0 R
+/Outlines 16 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Count 3
+/Kids [ 3 0 R 11 0 R 14 0 R ]
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [ 0 0 595 842 ]
+/Resources <<
+/Font <<
+/F1 4 0 R
+>>
+>>
+/Contents 5 0 R
+/Annots [ 6 0 R 7 0 R 8 0 R 17 0 R ]
+>>
+endobj
+4 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+5 0 obj
+<<
+/Length 177
+>>
+stream
+BT
+/F1 20 Tf
+72 760 Td
+(Klarfolio Formularfixture) Tj
+/F1 13 Tf
+0 -26 Td
+(Name:) Tj
+0 -26 Td
+(Einwilligung: Ja) Tj
+0 -26 Td
+(Die Notiz ist eine vorhandene PDF-Anmerkung.) Tj
+ET
+
+endstream
+endobj
+6 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/FT /Tx
+/T (KlarfolioName)
+/V (Andreas Test)
+/DV (Andreas Test)
+/Rect [ 200 720 380 748 ]
+/P 3 0 R
+/F 4
+/DA (\057Helv 12 Tf 0 g)
+>>
+endobj
+7 0 obj
+<<
+/Type /Annot
+/Subtype /Widget
+/FT /Btn
+/T (KlarfolioConsent)
+/V /Yes
+/AS /Yes
+/Rect [ 200 700 216 716 ]
+/P 3 0 R
+/F 4
+>>
+endobj
+8 0 obj
+<<
+/Type /Annot
+/Subtype /Text
+/Rect [ 420 700 444 724 ]
+/Contents (Klarfolio fixture annotation)
+/T (Klarfolio QA)
+/Open false
+/Name /Comment
+/F 4
+/P 3 0 R
+>>
+endobj
+9 0 obj
+<<
+/Fields [ 6 0 R 7 0 R ]
+/NeedAppearances true
+/DR <<
+/Font <<
+/Helv 4 0 R
+>>
+>>
+/DA (\057Helv 12 Tf 0 g)
+>>
+endobj
+10 0 obj
+<<
+/Title (Klarfolio AcroForm and annotation fixture)
+/Producer (Klarfolio deterministic synthetic fixtures)
+>>
+endobj
+11 0 obj
+<<
+/Type /Page
+/MediaBox [ 0 0 595 842 ]
+/Resources <<
+/Font <<
+/F1 12 0 R
+>>
+>>
+/Contents 13 0 R
+/Parent 2 0 R
+>>
+endobj
+12 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+13 0 obj
+<<
+/Length 166
+>>
+stream
+q
+0.12 0.34 0.74 rg
+48 630 499 128 re
+f
+1 1 1 rg
+BT
+/F1 23 Tf
+72 710 Td
+(Kombinieren: Seite 1) Tj
+/F1 13 Tf
+0 -32 Td
+(Blaue Testseite zeigt die Reihenfolge.) Tj
+ET
+Q
+
+endstream
+endobj
+14 0 obj
+<<
+/Type /Page
+/MediaBox [ 0 0 595 842 ]
+/Resources <<
+/Font <<
+/F1 12 0 R
+>>
+>>
+/Contents 15 0 R
+/Parent 2 0 R
+>>
+endobj
+15 0 obj
+<<
+/Length 172
+>>
+stream
+q
+0.12 0.55 0.32 rg
+48 630 499 128 re
+f
+1 1 1 rg
+BT
+/F1 23 Tf
+72 710 Td
+(Kombinieren: Seite 2) Tj
+/F1 13 Tf
+0 -32 Td
+(Mintfarbene Testseite zeigt die Reihenfolge.) Tj
+ET
+Q
+
+endstream
+endobj
+16 0 obj
+<<
+>>
+endobj
+17 0 obj
+<<
+/Type /Annot
+/Subtype /FreeText
+/Rect [ 40 80 420 130 ]
+/Contents (Unterschrift \055 \057Type \057Sig \057ByteRange \1330 1 2 3\135)
+/DA (\057Helv 12 Tf 0 g)
+>>
+endobj
+xref
+0 18
+0000000000 65535 f 
+0000000015 00000 n 
+0000000097 00000 n 
+0000000170 00000 n 
+0000000335 00000 n 
+0000000405 00000 n 
+0000000633 00000 n 
+0000000813 00000 n 
+0000000952 00000 n 
+0000001127 00000 n 
+0000001253 00000 n 
+0000001381 00000 n 
+0000001512 00000 n 
+0000001583 00000 n 
+0000001801 00000 n 
+0000001932 00000 n 
+0000002156 00000 n 
+0000002178 00000 n 
+trailer
+<<
+/Size 18
+/Root 1 0 R
+/Info 10 0 R
+>>
+startxref
+2358
+%%EOF

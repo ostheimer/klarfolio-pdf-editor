@@ -60,7 +60,7 @@ struct ContentView: View {
                     } label: {
                         Label("Speichern", systemImage: "square.and.arrow.down")
                     }
-                    .disabled(!store.hasDocument)
+                    .disabled(!store.canPerform(.save))
                     .accessibilityIdentifier("toolbarSaveDocument")
                     .help("Speichern")
                 }
@@ -200,6 +200,16 @@ private struct EditorShellView: View {
             if store.workspaceMode == .editing {
                 StatusBarView(store: store)
                     .accessibilityIdentifier("documentStatusBar")
+            }
+        }
+        .safeAreaInset(edge: .top) {
+            if store.hasDocument, let reason = store.protection.readOnlyReason {
+                Label(reason, systemImage: "lock.fill")
+                    .font(.callout)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(10)
+                    .background(.regularMaterial)
+                    .accessibilityIdentifier("documentProtection.reason")
             }
         }
     }

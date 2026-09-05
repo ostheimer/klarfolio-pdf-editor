@@ -26,13 +26,13 @@ Klarfolio PDF Editor ist aktuell ein lokales macOS-MVP. Es deckt die Grundfläch
 | Direkte Textbearbeitung | Vorhandenen PDF-Text ändern, Absätze ergänzen, Schriften bearbeiten. | Nicht umgesetzt. Textfelder sind Annotationen. | Große Lücke gegenüber PDF Expert. |
 | Bilder bearbeiten | Bilder einfügen, ersetzen und skalieren. | Bilder können als neue Seiten importiert werden. | Nur Import als Seiten, keine Objektbearbeitung im PDF. |
 | Links | Links zu Seiten oder Websites hinzufügen. | Link-Anmerkungen zu Webadressen oder Dokumentseiten. | Basis vorhanden, keine erweiterte Linkverwaltung. |
-| Seitenverwaltung | Zusammenführen, Seiten hinzufügen, löschen, drehen, neu anordnen, extrahieren, teilen. | Zusammenführen, leere Seiten, Bildseiten, löschen, drehen, verschieben, Seitenbereiche extrahieren und nach aktueller Seite teilen. | Gute Basis, aber ohne komplexe Batch-Workflows. |
+| Seitenverwaltung | Zusammenführen, Seiten hinzufügen, löschen, drehen, neu anordnen, extrahieren, teilen. | Zusammenführen, leere Seiten, Bildseiten, löschen, drehen, verschieben, aktuelle Seite zuschneiden/zurücksetzen, Seitenbereiche extrahieren und nach aktueller Seite teilen. | Gute Basis, aber ohne komplexe Batch-Workflows. |
 | Konvertierung | PDF zu Word, Excel, PowerPoint, Bildern, TXT und umgekehrt. | Bilder zu PDF-Seiten, ansonsten keine Konvertierung. | Große Lücke. |
 | OCR | Texterkennung für Scans, Text kopieren, markieren und durchsuchen. | Nicht umgesetzt. | Große Lücke, besonders für gescannte Dokumente. |
 | Scan-Verbesserung | Scans verbessern, Schatten entfernen, Kontrast verbessern, Doppelseiten aufteilen. | Nicht umgesetzt. | Nicht im MVP. |
 | Formulare | PDF-Formulare ausfüllen, inklusive gängiger Formularformate laut App Store. | Vorhandene PDF-Textfelder und Checkboxen über eine sichere Bearbeitungsoberfläche ausfüllen, speichern und vor unbeabsichtigtem Verwerfen schützen. | Wichtigste lokale Formularbasis vorhanden; zusätzliche Feldtypen, Formularerstellung und komplexe Workflows fehlen. |
-| Signaturen | Elektronische Signaturen und mehrere Signaturen. | Signaturfeld als Annotation-Platzhalter. | Nur visueller Platzhalter, keine echte Signaturfunktion. |
-| Schutz | Passwortschutz, Schwärzen/Zensieren, vertrauliche Daten entfernen. | Nicht umgesetzt. | Wichtig, aber sicherheitskritisch und später sorgfältig umzusetzen. |
+| Signaturen | Elektronische Signaturen und mehrere Signaturen. | Signaturfeld als Annotation-Platzhalter; vorhandene digitale Signaturen vor Umschreiben schützen. | Keine Signaturerzeugung oder Zertifikatsvalidierung. |
+| Schutz | Passwortschutz, Schwärzen/Zensieren, vertrauliche Daten entfernen. | Passwortgeschützte PDFs öffnen; vorhandene Rechte und digitale Signaturen konservativ beachten. | Keine neue Verschlüsselung, keine Signaturvalidierung oder sichere Schwärzung; geschützte Quellen bleiben schreibgeschützt. |
 | Komprimierung | PDFs komprimieren. | Nicht umgesetzt. | Fehlt. |
 | KI-Funktionen | PDF Copilot mit Zusammenfassung, Fragen, Erklärungen und Quellenbezug laut App Store/Anleitungen. | Nicht umgesetzt. | Kein aktuelles Ziel des MVP. |
 | Plattformen | Mac, iPhone, iPad, Vision Pro, geräteübergreifendes Konto. | macOS lokal. | Klarfolio PDF Editor ist enger, aber dafür einfacher und lokal. |
@@ -60,7 +60,8 @@ Klarfolio PDF Editor sollte kurzfristig nicht als vollständiger PDF-Expert-Ersa
 | Abgeschlossen (P2) | Vorhandene Textfelder und Checkboxen sicher ausfüllen | Hilft bei Verträgen, Bewerbungen und Behörden-PDFs; Änderungen bleiben nachvollziehbar, speicherbar und im Lesemodus gesperrt. |
 | Abgeschlossen (P2) | PDF-Inhaltsverzeichnis, lokale Lesezeichen und Leseposition | Erleichtert das Lesen längerer Dokumente, ohne PDF-Inhalte zu verändern oder die reduzierte Reader-Oberfläche dauerhaft zu überladen. |
 | P2 | Sichere Schwärzung | Hoher Nutzen, aber nur mit echter Inhaltsentfernung veröffentlichen. |
-| P2 | Crop/Zuschneiden | Häufige Scan- und Dokumentpflegefunktion. |
+| Abgeschlossen (P2, #20) | Aktuelle Seite zuschneiden und zurücksetzen | Visuelle Vorschau für 0/90/180/270 Grad, validierte CropBox und Save/Reopen; keine Schwärzung oder Stapelbearbeitung. |
+| Abgeschlossen (erster Mac-Slice, #22) | Geschützte PDFs öffnen und Rechte beachten | Passwortdialog und zentrale Operationsregeln; verschlüsselte/signierte Dateien bleiben begründet schreibgeschützt. |
 | P3 | OCR | Strategisch wichtig, aber größere technische Entscheidung. |
 | P3 | Export/Konvertierung | Hoher Aufwand, potenziell externe Abhängigkeiten. |
 | P3 | Direkte Inhaltsbearbeitung | Größte Funktionslücke, aber technisch komplex. |

@@ -51,11 +51,13 @@ struct SidebarView: View {
                                 store.goToPage(index)
                                 store.rotateCurrentPage(clockwise: true)
                             }
+                            .disabled(!store.canPerform(.assemblePages))
 
                             Button("Leere Seite danach") {
                                 store.goToPage(index)
                                 store.addBlankPage()
                             }
+                            .disabled(!store.canPerform(.assemblePages))
 
                             Divider()
 
@@ -63,7 +65,7 @@ struct SidebarView: View {
                                 store.goToPage(index)
                                 store.deleteCurrentPage()
                             }
-                            .disabled(store.pageCount <= 1)
+                            .disabled(store.pageCount <= 1 || !store.canPerform(.assemblePages))
                         }
                 }
             }

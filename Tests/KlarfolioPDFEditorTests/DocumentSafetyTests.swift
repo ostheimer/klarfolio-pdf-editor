@@ -36,6 +36,7 @@ struct DocumentSafetyTests {
             return .cancel
         })
         #expect(store.createBlankDocument())
+        store.setWorkspaceMode(.editing)
         store.addFreeTextAnnotation(text: "Diese Änderung muss erhalten bleiben")
 
         let originalDocument = try #require(store.document)
@@ -613,6 +614,7 @@ struct DocumentSafetyTests {
         let secondImageURL = try makeImage(in: temporaryDirectory, named: "Zweites Bild.png")
         let store = PDFDocumentStore()
         #expect(store.createBlankDocument())
+        store.setWorkspaceMode(.editing)
 
         #expect(store.importImages(from: [firstImageURL, secondImageURL]) == 2)
         #expect(store.pageCount == 3)
@@ -629,6 +631,7 @@ struct DocumentSafetyTests {
 
         let imageURL = try makeImage(in: temporaryDirectory, named: "Einzelbild.png")
         let store = PDFDocumentStore()
+        store.setWorkspaceMode(.editing)
 
         #expect(store.importImages(from: [imageURL]) == 1)
         #expect(store.pageCount == 1)
@@ -651,6 +654,7 @@ struct DocumentSafetyTests {
         #expect(!store.hasDocument)
 
         #expect(store.createBlankDocument())
+        store.setWorkspaceMode(.editing)
         #expect(store.importImages(from: [invalidImageURL]) == 0)
         #expect(store.pageCount == 1)
         #expect(store.statusMessage == "Keine lesbaren Bilder gefunden.")
