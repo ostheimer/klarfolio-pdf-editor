@@ -202,6 +202,15 @@ final class AnnotationEditingPDFView: PDFView, NSMenuItemValidation {
             return
         }
 
+        if editingStore.selectedTool != .select {
+            // Do not turn Marker/Text into a drag tool. Consuming hits on
+            // annotations also avoids PDFKit's own untracked note editors.
+            if let page = page(for: viewPoint, nearest: false),
+               annotation(at: convert(viewPoint, to: page), on: page) != nil { return }
+            super.mouseDown(with: event)
+            return
+        }
+
         window?.makeFirstResponder(self)
         guard let page = page(for: viewPoint, nearest: false) else {
             editingStore.clearAnnotationSelection()
@@ -228,6 +237,7 @@ final class AnnotationEditingPDFView: PDFView, NSMenuItemValidation {
     override func mouseDragged(with event: NSEvent) {
         guard let editingStore,
               editingStore.canPerform(.annotate),
+              editingStore.selectedTool == .select,
               let annotation = draggedAnnotation,
               let page = draggedPage else {
             super.mouseDragged(with: event)
@@ -262,7 +272,10 @@ final class AnnotationEditingPDFView: PDFView, NSMenuItemValidation {
     override func keyDown(with event: NSEvent) {
         // PDFKit tab navigation may focus native widget editors. Supported
         // forms are edited through the accessible, guarded inspector controls.
-        if event.keyCode == 48 { return }
+        if event.keyCode == 48 {
+            moveFocusOutsidePDFView(backwards: event.modifierFlags.contains(.shift))
+            return
+        }
         guard let editingStore,
               editingStore.canPerform(.annotate),
               editingStore.hasSelectedAnnotation else {
@@ -305,6 +318,16 @@ final class AnnotationEditingPDFView: PDFView, NSMenuItemValidation {
         context.setLineDash(phase: 0, lengths: [6, 3])
         context.stroke(selectionBounds)
         context.restoreGState()
+    }
+
+    private func moveFocusOutsidePDFView(backwards: Bool) {
+        var candidate = backwards ? previousValidKeyView : nextValidKeyView
+        var visited = Set<ObjectIdentifier>()
+        while let view = candidate, view !== self,
+              visited.insert(ObjectIdentifier(view)).inserted {
+            if !view.isDescendant(of: self), window?.makeFirstResponder(view) == true { return }
+            candidate = backwards ? view.previousValidKeyView : view.nextValidKeyView
+        }
     }
 
     private func annotation(at point: CGPoint, on page: PDFPage) -> PDFAnnotation? {

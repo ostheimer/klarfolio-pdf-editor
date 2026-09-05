@@ -487,16 +487,26 @@ final class PDFDocumentStore: ObservableObject {
         // Prepare every source before changing the destination. Protected sources
         // are not rewritten as unprotected pages or partially imported.
         var pages: [PDFPage] = []
+        var preparedSources: [PDFDocument] = []
         for url in urls {
             guard let source = PDFDocument(url: url),
                   PDFDocumentProtection(document: source).allows(.exportPages), source.pageCount > 0 else {
                 statusMessage = "Zusammenführen abgebrochen: Eine Quelle ist geschützt oder nicht lesbar."
                 return 0
             }
+            let prepared = PDFDocument()
+            var copiedPages: [(source: PDFPage, copy: PDFPage)] = []
             for index in 0..<source.pageCount {
-                guard let copy = source.page(at: index)?.copy() as? PDFPage else { return 0 }
+                guard let original = source.page(at: index),
+                      let copy = original.copy() as? PDFPage else { return 0 }
+                prepared.insert(copy, at: prepared.pageCount)
+                copiedPages.append((original, copy))
                 pages.append(copy)
             }
+            // Keep each original alive until its destinations refer to the
+            // corresponding copied pages, never to another source or target page.
+            remapInternalLinks(in: copiedPages, sourceDocument: source, sourceRange: 0...(source.pageCount - 1))
+            preparedSources.append(prepared)
         }
         ensureDocument()
         guard let document else {
@@ -505,7 +515,9 @@ final class PDFDocumentStore: ObservableObject {
 
         let firstInsertedIndex = document.pageCount
         let inserted = pages.count
-        for page in pages { document.insert(page, at: document.pageCount) }
+        withExtendedLifetime(preparedSources) {
+            for page in pages { document.insert(page, at: document.pageCount) }
+        }
 
         if inserted > 0 {
             markChanged("\(inserted) Seiten zusammengeführt", refreshDocumentOutline: true)
